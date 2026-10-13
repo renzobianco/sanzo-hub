@@ -76,16 +76,17 @@ export function productMargin(p, rate) {
   return { cost, price, margin, pct }
 }
 
-// El kit es un rejunte de las piezas sueltas: su costo ya está contado en cada
-// pieza individual, así que no lo sumamos de nuevo para no duplicar el costo.
+// El kit es un rejunte de las piezas sueltas: sus unidades, su costo y su precio ya
+// están contados en cada pieza individual, así que lo dejamos afuera para no duplicar.
 export function inventoryValue(products, rate) {
   let atCost = 0
   let atPrice = 0
   let units = 0
   for (const p of products) {
+    if (p.isKit) continue
     const stock = num(p.stock)
     units += stock
-    if (!p.isKit) atCost += stock * num(p.costUSD) * num(rate)
+    atCost += stock * num(p.costUSD) * num(rate)
     atPrice += stock * num(p.priceARS)
   }
   return { atCost, atPrice, units, potential: atPrice - atCost }

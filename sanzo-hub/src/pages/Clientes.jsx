@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { useApp } from '../context/AppContext.jsx'
 import { PageHeader, Modal, ConfirmDialog, EmptyState, Field, Segmented } from '../components/ui/Primitives.jsx'
 import { IconPlus, IconEdit, IconTrash, IconSearch, IconHeart, IconPhone, IconUsers, IconX } from '../components/ui/Icons.jsx'
 import { fmtARS, fmtDate, fmtNum } from '../utils/format.js'
 import { aggregateClients, normalizeHandle } from '../utils/calc.js'
+
+const MapaLugares = lazy(() => import('../components/MapaLugares.jsx'))
 
 export default function Clientes() {
   const { state, addItem, updateItem, removeItem, notify } = useApp()
@@ -147,6 +149,12 @@ export default function Clientes() {
             </table>
           </div>
         )}
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <Suspense fallback={<div className="card places-map places-map-loading">Cargando mapa…</div>}>
+          <MapaLugares />
+        </Suspense>
       </div>
 
       {modal && <ClientForm key={modal === 'new' ? 'new' : modal.id || 'derived'} client={modal === 'new' ? null : modal} onClose={() => setModal(null)} onSave={onSave} />}
