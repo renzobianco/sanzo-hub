@@ -7,8 +7,8 @@ export function Logo({ hayLogo, className = "" }: { hayLogo: boolean; className?
       <Image
         src="/logo-sanzo.png"
         alt="sanzo"
-        width={240}
-        height={80}
+        width={929}
+        height={230}
         priority
         className={`h-7 w-auto md:h-8 ${className}`}
       />
