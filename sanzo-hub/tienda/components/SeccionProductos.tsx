@@ -1,0 +1,42 @@
+import { individuales } from "@/data/products";
+import { textoPrecio } from "@/lib/formato";
+import { AgregarAlCarrito } from "./AgregarAlCarrito";
+import { ImagenProducto } from "./ImagenProducto";
+import { Reveal } from "./Reveal";
+
+export function SeccionProductos() {
+  return (
+    <section id="productos" aria-labelledby="productos-titulo" className="bg-crema py-20 md:py-28">
+      <div className="mx-auto max-w-7xl px-4 md:px-8">
+        <Reveal className="mb-10 text-center md:mb-14">
+          <p className="eyebrow">Pieza por pieza</p>
+          <h2 id="productos-titulo" className="titulo-seccion mt-3">
+            Productos
+          </h2>
+        </Reveal>
+
+        <ul className="grid grid-cols-2 gap-x-3 gap-y-10 md:grid-cols-4 md:gap-x-6 md:gap-y-14">
+          {individuales.map((p, i) => (
+            <li key={p.id}>
+              <Reveal delay={(i % 4) * 80} className="group flex h-full flex-col">
+                <ImagenProducto
+                  src={p.imagenes[0]}
+                  srcHover={p.imagenes[1]}
+                  nombre={p.nombre}
+                  sizes="(min-width: 768px) 25vw, 50vw"
+                />
+                <div className="mt-4 flex flex-1 flex-col">
+                  <h3 className="text-[15px] uppercase tracking-[0.16em]">{p.nombre}</h3>
+                  <p className="mt-1 text-sm text-tinta/75">{textoPrecio(p.precio)}</p>
+                  <div className="mt-auto pt-4">
+                    <AgregarAlCarrito producto={p} />
+                  </div>
+                </div>
+              </Reveal>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}

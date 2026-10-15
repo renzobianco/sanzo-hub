@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Paleta Sanzo (canales RGB para poder usar opacidad en Tailwind). */
+:root {
+  --marron: 148 96 55; /* #946037 · Pantone 4635 C */
+  --topo: 163 146 130; /* #A39282 · Pantone 4745 C */
+  --crema: 244 237 227; /* #F4EDE3 */
+  --lino: 232 220 203; /* #E8DCCB */
+  --tinta: 37 29 22; /* #251D16 */
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+  body {
+    @apply bg-crema text-tinta antialiased;
+    font-weight: 350;
+  }
+  ::selection {
+    @apply bg-marron text-crema;
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--marron));
+    outline-offset: 3px;
+  }
+  section[id] {
+    scroll-margin-top: 4.5rem;
+  }
+}
+
+@layer components {
+  .titulo-seccion {
+    @apply text-2xl font-light uppercase tracking-marca md:text-4xl;
+  }
+  .eyebrow {
+    @apply text-[11px] font-normal uppercase tracking-amplio text-tinta/70;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-[13px] font-normal uppercase tracking-marca transition-colors duration-300 disabled:cursor-not-allowed;
+  }
+  .btn-primario {
+    @apply btn bg-tinta text-crema hover:bg-marron disabled:bg-tinta/30 disabled:text-crema/90;
+  }
+  .btn-claro {
+    @apply btn bg-crema text-tinta hover:bg-lino;
+  }
+  .btn-borde {
+    @apply btn border border-tinta/80 text-tinta hover:bg-tinta hover:text-crema disabled:border-tinta/25 disabled:text-tinta/45 disabled:hover:bg-transparent;
+  }
+  .campo {
+    @apply w-full rounded-none border-0 border-b border-tinta/30 bg-transparent px-0 py-2.5 text-base text-tinta placeholder:text-tinta/40 focus:border-marron focus:outline-none focus:ring-0;
+  }
+  .sin-scrollbar {
+    scrollbar-width: none;
+  }
+  .sin-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Aparición al scrollear: solo si hay JS (la clase la pone un script en <head>). */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.js .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .animate-entrada,
+  .animate-giro {
+    animation: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}

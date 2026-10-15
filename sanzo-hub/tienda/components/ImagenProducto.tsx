@@ -1,0 +1,64 @@
+import Image from "next/image";
+
+interface Props {
+  src?: string;
+  /** Segunda foto que aparece al pasar el mouse (si existe). */
+  srcHover?: string;
+  nombre: string;
+  sizes: string;
+  priority?: boolean;
+  /** Clase de proporción. Por defecto 4:5. */
+  aspecto?: string;
+  className?: string;
+  /** Tamaño del texto del placeholder. */
+  tamTexto?: string;
+  /** Fondo del placeholder (para que no se pierda sobre secciones lino). */
+  fondo?: string;
+}
+
+/** Foto del producto con next/image, o placeholder elegante en lino con el nombre centrado. */
+export function ImagenProducto({
+  src,
+  srcHover,
+  nombre,
+  sizes,
+  priority,
+  aspecto = "aspect-[4/5]",
+  className = "",
+  tamTexto = "text-sm md:text-base",
+  fondo = "bg-lino",
+}: Props) {
+  return (
+    <div className={`relative overflow-hidden ${fondo} ${aspecto} ${className}`}>
+      {src ? (
+        <>
+          <Image
+            src={src}
+            alt={nombre}
+            fill
+            sizes={sizes}
+            priority={priority}
+            className={`object-cover transition-opacity duration-700 ${srcHover ? "group-hover:opacity-0" : ""}`}
+          />
+          {srcHover && (
+            <Image
+              src={srcHover}
+              alt=""
+              fill
+              sizes={sizes}
+              className="object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-100"
+            />
+          )}
+        </>
+      ) : (
+        <div
+          role="img"
+          aria-label={nombre}
+          className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(ellipse_at_30%_20%,rgb(var(--crema)/0.7),transparent_60%)] p-3 text-center"
+        >
+          <span className={`font-light uppercase tracking-marca text-tinta/60 ${tamTexto}`}>{nombre}</span>
+        </div>
+      )}
+    </div>
+  );
+}
