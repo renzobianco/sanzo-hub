@@ -45,7 +45,6 @@ export function Footer({ hayLogo }: { hayLogo: boolean }) {
             </li>
           )}
         </ul>
-        <p className="text-[11px] uppercase tracking-amplio text-tinta/70">{sitio.hechoEn}</p>
       </div>
     </footer>
   );

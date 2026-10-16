@@ -68,7 +68,6 @@ export const sitio = {
     whatsapp: "11 5969 4816",
   },
   email: "", // mail de contacto que se muestra en el footer
-  hechoEn: "Hecho en Buenos Aires",
 };
 
 // -----------------------------------------------------------------------------
