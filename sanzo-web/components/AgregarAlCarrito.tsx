@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import type { Producto } from "@/data/products";
+import type { Personalizacion } from "@/lib/personalizacion";
 import { useCarrito } from "./carrito/CarritoProvider";
+import { Personalizar } from "./personalizar/Personalizar";
 
 interface Props {
   producto: Producto;
@@ -20,6 +22,7 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
   const router = useRouter();
   const [seleccion, setSeleccion] = useState<string>("");
   const [aviso, setAviso] = useState("");
+  const [personalizacion, setPersonalizacion] = useState<Personalizacion>();
   const id = useId();
 
   const sinPrecio = producto.precio === null;
@@ -33,7 +36,7 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
       return;
     }
     setAviso("");
-    agregar(producto.id, seleccion || undefined, { abrir: !irAlCheckout });
+    agregar(producto.id, seleccion || undefined, { abrir: !irAlCheckout, personalizacion });
     if (irAlCheckout) router.push("/checkout");
   }
 
@@ -76,6 +79,10 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
             ))}
           </div>
         </fieldset>
+      )}
+
+      {producto.personalizable && (
+        <Personalizar valor={personalizacion} onCambio={setPersonalizacion} grande={grande} />
       )}
 
       <button

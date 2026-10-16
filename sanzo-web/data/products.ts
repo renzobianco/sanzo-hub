@@ -25,6 +25,20 @@ export interface Producto {
   disponible: boolean;
   /** Opción que el cliente elige al agregar (talle o color). Opcional. */
   opcion?: { nombre: string; valores: string[] };
+  /** true → muestra el botón "Personalizar" (pieza con el nombre sobre el arnés). */
+  personalizable?: boolean;
+}
+
+/** Un estilo de parche = una foto del arnés con ese parche puesto. */
+export interface EstiloParche {
+  id: string;
+  nombre: string;
+  /** Foto del arnés de frente con este parche (mismo encuadre en todas). */
+  imagen: string;
+  /** Foto del parche solo, sin fondo (PNG transparente). Se muestra en el botón para elegirlo. */
+  parche: string;
+  /** Zona del parche donde se escribe el nombre, en píxeles de la foto: centro (x, y), ancho y alto. */
+  texto: { x: number; y: number; ancho: number; alto: number };
 }
 
 const TALLES = ["XS", "S", "M", "L"];
@@ -45,10 +59,14 @@ export const sitio = {
     bajada: "Todo lo que necesita para salir. Combinado.",
     boton: "Comprar el kit",
   },
+  /** Redes que se muestran en el footer. Vacío → no se muestra. */
   redes: {
-    instagram: "https://www.instagram.com/sanzo_pets/",
+    instagram: "sanzo_pets", // usuario, sin @
+    facebook: "", // link completo de la página, ej. "https://www.facebook.com/sanzo.pets"
     tiktok: "https://www.tiktok.com/@sanzo_pets",
     x: "https://x.com/sanzo_pets",
+    /** Número de WhatsApp con código de área, sin 0 ni 15 (ej. "11 5969 4816"). */
+    whatsapp: "11 5969 4816",
   },
   email: "", // mail de contacto que se muestra en el footer
   /**
@@ -62,7 +80,6 @@ export const sitio = {
     mensaje: "Hola sanzo! Tengo una consulta",
     rapidas: ["¿Qué talle le va a mi perro?", "¿Cuánto tarda el envío?", "Quiero el kit completo"],
   },
-  hechoEn: "Hecho en Buenos Aires",
 };
 
 // -----------------------------------------------------------------------------
@@ -72,6 +89,43 @@ export const sitio = {
 export const contadorKits: { restantes: number | null; total: number } = {
   restantes: null,
   total: 50,
+};
+
+// -----------------------------------------------------------------------------
+// Personalización: parche con el nombre del perro (y su teléfono, si quieren).
+// Se activa por producto con `personalizable: true`.
+// -----------------------------------------------------------------------------
+export const personalizacion: {
+  boton: string;
+  titulo: string;
+  bajada: string;
+  imagenArnes: string;
+  tamFoto: { ancho: number; alto: number };
+  zoom: number;
+  precioExtra: number;
+  maxNombre: number;
+  estilos: EstiloParche[];
+} = {
+  boton: "Personalizar",
+  titulo: "Hacelo suyo",
+  bajada: "Elegí el parche y poné su nombre.",
+  /** Foto del arnés que se ve antes de elegir un estilo. */
+  imagenArnes: "/productos/arnes/frente.png",
+  /** Tamaño en píxeles de las fotos de los estilos (todas iguales). */
+  tamFoto: { ancho: 1125, alto: 1398 },
+  /** Acerca la foto (1 = tal cual). Sirve si la foto tiene mucho margen alrededor del arnés. */
+  zoom: 1.2,
+  /** Lo que suma la personalización al precio de cada unidad. 0 = sin costo extra. */
+  precioExtra: 0,
+  /** Máximo de letras del nombre. */
+  maxNombre: 12,
+  /** Los estilos, en el orden en que se muestran. */
+  estilos: [
+    { id: "cinta", nombre: "Cinta", imagen: "/productos/arnes/estilo-cinta.jpg", parche: "/productos/arnes/parche-cinta.png", texto: { x: 578, y: 873, ancho: 230, alto: 56 } },
+    { id: "hueso", nombre: "Hueso", imagen: "/productos/arnes/estilo-hueso.jpg", parche: "/productos/arnes/parche-hueso.png", texto: { x: 550, y: 840, ancho: 150, alto: 52 } },
+    { id: "clasica", nombre: "Clásica", imagen: "/productos/arnes/estilo-clasica.jpg", parche: "/productos/arnes/parche-clasica.png", texto: { x: 550, y: 855, ancho: 175, alto: 52 } },
+    { id: "redondeada", nombre: "Redondeada", imagen: "/productos/arnes/estilo-redondeada.jpg", parche: "/productos/arnes/parche-redondeada.png", texto: { x: 561, y: 856, ancho: 210, alto: 54 } },
+  ],
 };
 
 // -----------------------------------------------------------------------------
@@ -96,12 +150,13 @@ export const kit: Producto = {
   tipo: "kit",
   descripcion: "Arnés, correa, collar, moño, bandana y porta bolsitas. Todo lo que necesita para salir. Combinado.",
   incluye: ["arnes", "correa", "collar", "mono", "bandana", "poo-bag"],
-  precio: null,
+  precio: 67000,
   imagenes: ["/productos/arnes.jpg", "/productos/kit-1.jpg", "/productos/kit-2.jpg", "/productos/kit-3.jpg"],
   envioGratis: true,
   linkPago: "",
   disponible: true,
   opcion: { nombre: "Talle", valores: TALLES },
+  personalizable: true,
 };
 
 // -----------------------------------------------------------------------------
@@ -146,6 +201,7 @@ export const combos: Producto[] = [
     linkPago: "",
     disponible: true,
     opcion: { nombre: "Talle", valores: TALLES },
+    personalizable: true,
   },
 ];
 
@@ -165,6 +221,7 @@ export const individuales: Producto[] = [
     linkPago: "",
     disponible: true,
     opcion: { nombre: "Talle", valores: TALLES },
+    personalizable: true,
   },
   {
     id: "correa",
@@ -278,24 +335,6 @@ export const promos: Promo[] = [
 ];
 
 // -----------------------------------------------------------------------------
-// Etiqueta personalizada — POR AHORA SOLO UN ADELANTO ("muy pronto"), sin compra.
-// Cuando llegue el arnés se arma el personalizador de verdad (ver MEJORAS.md).
-// `activo: false` oculta la sección.
-// -----------------------------------------------------------------------------
-export const etiqueta = {
-  activo: true,
-  eyebrow: "Muy pronto",
-  titulo: "Ponele su etiqueta",
-  bajada: "En el producto que quieras, menos en el moño.",
-  /** Formas del modo "elegís un diseño" (se dibujan como boceto). */
-  formas: ["Rectángulo", "Huesito", "Círculo"],
-  opciones: [
-    { titulo: "Elegís un diseño", texto: "Tres formas, en un lugar ya pensado. Sin vueltas." },
-    { titulo: "Como quieras", texto: "Subís tu imagen y elegís tamaño y lugar." },
-  ],
-};
-
-// -----------------------------------------------------------------------------
 // "¿Por qué nuestro arnés?" — video corto + razones.
 // video: ruta en /public (ej. "/videos/arnes.mp4", vertical 4:5 o 9:16). Vacío → placeholder.
 // -----------------------------------------------------------------------------
@@ -335,7 +374,7 @@ export const confianza = {
 // -----------------------------------------------------------------------------
 // Cinta que corre debajo del hero. Vacía → no aparece.
 // -----------------------------------------------------------------------------
-export const cinta = ["Garantía por un año", "Envíos a todo el país", "Cambio de talle sin vueltas", "Todo combina con todo", "Hecho en Buenos Aires"];
+export const cinta = ["Garantía por un año", "Envíos a todo el país", "Cambio de talle sin vueltas", "Todo combina con todo"];
 
 // -----------------------------------------------------------------------------
 // Galería "Salen con sanzo": fotos verticales 4:5 con el producto que se ve.

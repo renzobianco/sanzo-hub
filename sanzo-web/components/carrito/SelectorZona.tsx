@@ -9,7 +9,7 @@ export function SelectorZona() {
   return (
     <div className="space-y-3">
       <div>
-        <label htmlFor="zona-provincia" className="eyebrow mb-1 block">
+        <label htmlFor="zona-provincia" className="etiqueta">
           Calculá el envío
         </label>
         <select
@@ -28,7 +28,7 @@ export function SelectorZona() {
       </div>
       {ubicacion.provincia === "Buenos Aires" && (
         <div>
-          <label htmlFor="zona-gba" className="eyebrow mb-1 block">
+          <label htmlFor="zona-gba" className="etiqueta">
             ¿Estás en el GBA?
           </label>
           <select

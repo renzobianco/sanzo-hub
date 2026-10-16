@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { calcularTotales, type LineaCarrito, type Totales } from "@/lib/carrito";
 import { formatearPrecio, textoEnvio } from "@/lib/formato";
+import { crearPreferencia, pagoOnlineActivo, sePuedeCobrar } from "@/lib/mercadopago";
 import type { PedidoEntrada, PedidoRespuesta } from "@/lib/pedido";
+import { textoPersonalizacion, type Personalizacion } from "@/lib/personalizacion";
 import { validarCheckout, type DatosCheckout } from "@/lib/validacion";
 
 export const runtime = "nodejs";
@@ -17,6 +19,17 @@ function esc(s: string) {
 
 function str(v: unknown, max = 300) {
   return typeof v === "string" ? v.slice(0, max) : "";
+}
+
+/** Solo recorta y tipa; la validación real la hace resolverLineas (descarta la línea si no es válida). */
+function limpiarPersonalizacion(p: unknown): Personalizacion | undefined {
+  if (!p || typeof p !== "object") return undefined;
+  const o = p as Record<string, unknown>;
+  return {
+    estilo: str(o.estilo, 30),
+    nombre: str(o.nombre, 40),
+    telefono: typeof o.telefono === "string" ? str(o.telefono, 30) : undefined,
+  };
 }
 
 function limpiarCliente(c: Partial<DatosCheckout> | undefined): DatosCheckout {
@@ -38,7 +51,7 @@ function limpiarCliente(c: Partial<DatosCheckout> | undefined): DatosCheckout {
   };
 }
 
-function armarMail(numero: string, c: DatosCheckout, t: Totales) {
+function armarMail(numero: string, c: DatosCheckout, t: Totales, pago: string) {
   const entrega = c.entrega === "domicilio" ? "Envío a domicilio" : "Retiro en sucursal de Correo Argentino";
   const direccion =
     c.entrega === "domicilio"
@@ -61,12 +74,16 @@ function armarMail(numero: string, c: DatosCheckout, t: Totales) {
     ["Localidad", c.localidad],
     ["Código postal", c.codigoPostal.toUpperCase()],
     ["Notas", c.notas || "—"],
+    ["Pago", pago],
   ];
 
   const items = t.lineas.map((l) => ({
-    nombre: l.producto.nombre + (l.opcion && l.producto.opcion ? ` (${l.producto.opcion.nombre} ${l.opcion})` : ""),
+    nombre:
+      l.producto.nombre +
+      (l.opcion && l.producto.opcion ? ` (${l.producto.opcion.nombre} ${l.opcion})` : "") +
+      (l.personalizacion ? ` — PERSONALIZADO: ${textoPersonalizacion(l.personalizacion)}` : ""),
     cantidad: l.cantidad,
-    unitario: formatearPrecio(l.producto.precio ?? 0),
+    unitario: formatearPrecio(l.unitario),
     subtotal: formatearPrecio(l.subtotal),
   }));
 
@@ -130,6 +147,7 @@ export async function POST(req: Request) {
     key: "",
     productoId: str(l?.productoId, 60),
     opcion: str(l?.opcion, 30) || undefined,
+    personalizacion: limpiarPersonalizacion(l?.personalizacion),
     cantidad: Number(l?.cantidad) || 1,
   }));
 
@@ -142,7 +160,21 @@ export async function POST(req: Request) {
   }
 
   const numero = numeroPedido();
-  const { html, texto } = armarMail(numero, cliente, totales);
+
+  // Pago online con Mercado Pago (Checkout Pro): tarjeta de crédito/débito o cuenta de MP.
+  // Si no hay credenciales, el envío está "a cotizar" o MP falla, el pedido igual se registra y le escribimos.
+  let linkPago: string | undefined;
+  if (pagoOnlineActivo() && sePuedeCobrar(totales)) {
+    try {
+      linkPago = await crearPreferencia(numero, cliente, totales, new URL(req.url).origin);
+    } catch (err) {
+      console.error("[pedido] No se pudo crear el pago en Mercado Pago", err);
+    }
+  }
+  const pago = linkPago
+    ? "Online con Mercado Pago. Confirmá el cobro en tu cuenta de MP (referencia: número de pedido)."
+    : "A coordinar: escribile con el link de pago.";
+  const { html, texto } = armarMail(numero, cliente, totales, pago);
 
   const apiKey = process.env.RESEND_API_KEY;
   const destino = process.env.PEDIDOS_EMAIL;
@@ -173,16 +205,12 @@ export async function POST(req: Request) {
     }
   }
 
-  // Redirección directa a Mercado Pago solo si es un único producto (1 unidad), con link cargado
-  // y sin costo de envío a sumar (el link de MP tiene precio fijo y no incluye el envío).
-  //
-  // TODO Mercado Pago Checkout Pro: acá iría la creación de la preferencia con el SDK de MP
-  // (items = totales.lineas, shipments = costo del envío, external_reference = numero,
-  // back_urls → /gracias?pedido=numero) y se devolvería `init_point` en `redirigirA`.
-  // Eso permite cobrar cualquier carrito y no solo un producto suelto.
+  // Sin credenciales de MP: link fijo del producto, solo si es un único producto (1 unidad), al precio
+  // del link y sin envío a cobrar (el link de MP tiene precio fijo y no incluye el envío).
   const unica = totales.lineas.length === 1 && totales.lineas[0].cantidad === 1 ? totales.lineas[0] : null;
-  const sinEnvioACobrar = totales.envio.tipo === "gratis" || (totales.envio.tipo === "precio" && totales.envio.monto === 0);
-  const redirigirA = unica && unica.producto.linkPago && sinEnvioACobrar ? unica.producto.linkPago : undefined;
+  const precioFijo = unica !== null && unica.unitario === unica.producto.precio;
+  const linkFijo = unica && precioFijo && totales.envio.tipo === "gratis" ? unica.producto.linkPago || undefined : undefined;
+  const redirigirA = linkPago ?? linkFijo;
 
   return NextResponse.json<PedidoRespuesta>({ ok: true, numero, redirigirA });
 }

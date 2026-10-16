@@ -10,7 +10,6 @@ const LINKS = [
   { href: "/#kit", label: "Kit" },
   { href: "/#combos", label: "Combos" },
   { href: "/#productos", label: "Productos" },
-  { href: "/#envios", label: "Envíos" },
   { href: "/#preguntas", label: "Preguntas" },
 ];
 

@@ -42,7 +42,9 @@ Todo en `data/`:
 
 Si el carrito tiene el kit completo, el envío es gratis para todo el pedido.
 
-**Cuándo redirige a Mercado Pago:** cuando el pedido es un único producto, 1 unidad, con `linkPago` cargado y sin envío a cobrar (por ejemplo, el kit solo). En cualquier otro caso se muestra "Pedido recibido" y le escribís al cliente con el link de pago. Para cobrar cualquier carrito automáticamente hay que conectar Mercado Pago Checkout Pro; el lugar está marcado con `TODO` en `app/api/pedido/route.ts`.
+**Cobro con Mercado Pago (Checkout Pro):** con `MP_ACCESS_TOKEN` cargado en Vercel, al confirmar el pedido el cliente va a la página de pago de Mercado Pago con el total exacto del carrito (productos, personalización y envío). Ahí paga con tarjeta de crédito, débito (sin cuenta) o con su cuenta de MP, y vuelve a `/gracias`. El número de pedido llega a MP como referencia externa. Si el envío está "a cotizar", no hay total cerrado: el pedido se registra y le escribís con el link.
+
+Sin `MP_ACCESS_TOKEN`, solo redirige al `linkPago` fijo del producto cuando el pedido es un único producto, 1 unidad, sin envío a cobrar; en cualquier otro caso muestra "Pedido recibido".
 
 ## 4. Variables de entorno en Vercel
 
@@ -53,6 +55,7 @@ Settings → Environment Variables:
 | `RESEND_API_KEY` | API key de [Resend](https://resend.com) para mandar el mail de cada pedido |
 | `PEDIDOS_EMAIL` | Mail donde llegan los pedidos (podés poner varios separados por coma) |
 | `PEDIDOS_FROM` | Opcional. Remitente, ej. `sanzo <pedidos@tudominio.com>`. Tiene que ser de un dominio verificado en Resend. Si no lo ponés, se usa `onboarding@resend.dev`, que **solo** manda al mail de tu cuenta de Resend |
+| `MP_ACCESS_TOKEN` | Access Token de **producción** de Mercado Pago (Tus integraciones → tu aplicación → Credenciales de producción). Activa el pago online. Después de cargarlo, hacé Redeploy |
 | `NEXT_PUBLIC_SITE_URL` | Opcional. URL final del sitio (ej. `https://sanzo.com.ar`) para las previews en redes |
 
 Si el mail falla, el pedido igual queda en los logs de Vercel (Runtime Logs).

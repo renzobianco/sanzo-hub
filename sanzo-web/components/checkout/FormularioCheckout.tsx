@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PROVINCIAS } from "@/data/envios";
 import { formatearPrecio, textoEnvio } from "@/lib/formato";
 import { CLAVE_ULTIMO_PEDIDO, type PedidoEntrada, type PedidoRespuesta } from "@/lib/pedido";
+import { textoPersonalizacion } from "@/lib/personalizacion";
 import { datosVacios, validarCheckout, type DatosCheckout } from "@/lib/validacion";
 import { useCarrito } from "../carrito/CarritoProvider";
 import { ImagenProducto } from "../ImagenProducto";
@@ -26,7 +27,8 @@ const ORDEN: Campo[] = [
   "codigoPostal",
 ];
 
-export function FormularioCheckout() {
+/** `pagoOnline`: hay credenciales de Mercado Pago cargadas → se paga en el momento. */
+export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
   const router = useRouter();
   const { totales, listo, ubicacion, setUbicacion, vaciar } = useCarrito();
   const [d, setD] = useState<DatosCheckout>(datosVacios);
@@ -81,7 +83,12 @@ export function FormularioCheckout() {
     setEnviando(true);
     const payload: PedidoEntrada = {
       cliente: d,
-      lineas: totales.lineas.map((l) => ({ productoId: l.productoId, opcion: l.opcion, cantidad: l.cantidad })),
+      lineas: totales.lineas.map((l) => ({
+        productoId: l.productoId,
+        opcion: l.opcion,
+        personalizacion: l.personalizacion,
+        cantidad: l.cantidad,
+      })),
       empresa,
     };
     try {
@@ -94,7 +101,7 @@ export function FormularioCheckout() {
       if (!res.ok || !data.ok || !data.numero) throw new Error(data.error || "Error");
 
       try {
-        window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ numero: data.numero, nombre: d.nombre }));
+        window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ numero: data.numero, nombre: d.nombre, pago: data.redirigirA }));
       } catch {
         // sin almacenamiento: /gracias igual recibe el número por la URL
       }
@@ -130,6 +137,8 @@ export function FormularioCheckout() {
   }
 
   const { lineas, subtotal, descuentos, envio, total } = totales;
+  // Con envío "a cotizar" no hay total cerrado: el pedido se confirma y le escribimos con el link.
+  const pagaAhora = pagoOnline && envio.tipo !== "cotizar";
 
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-12 md:grid-cols-[1fr_380px] md:gap-16">
@@ -193,7 +202,7 @@ export function FormularioCheckout() {
         </Grupo>
 
         <fieldset>
-          <legend className="mb-5 text-sm uppercase tracking-marca">Entrega</legend>
+          <legend className="titulo-form">Entrega</legend>
           <div className="grid gap-3 sm:grid-cols-2">
             {(
               [
@@ -210,7 +219,7 @@ export function FormularioCheckout() {
                   onChange={() => set("entrega", valor)}
                   className="peer sr-only"
                 />
-                <span className="flex h-full items-center gap-3 border border-tinta/20 px-4 py-4 text-[15px] transition-colors peer-checked:border-tinta peer-checked:bg-lino/60 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
+                <span className="flex h-full items-center gap-3 rounded-lg border border-tinta/30 px-4 py-4 text-[15px] transition-colors peer-checked:border-tinta peer-checked:bg-lino/60 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
                   <span
                     aria-hidden="true"
                     className={`h-4 w-4 shrink-0 rounded-full border border-tinta ${
@@ -354,7 +363,7 @@ export function FormularioCheckout() {
       </div>
 
       <aside aria-labelledby="resumen-titulo" className="h-fit bg-lino/70 p-6 md:sticky md:top-24 md:p-8">
-        <h2 id="resumen-titulo" className="text-sm uppercase tracking-marca">
+        <h2 id="resumen-titulo" className="text-lg font-normal tracking-wide">
           Tu pedido
         </h2>
         <ul className="mt-5 divide-y divide-tinta/10">
@@ -373,6 +382,9 @@ export function FormularioCheckout() {
                   {l.opcion && l.producto.opcion ? `${l.producto.opcion.nombre} ${l.opcion} · ` : ""}
                   {l.cantidad} u.
                 </p>
+                {l.personalizacion && (
+                  <p className="text-sm text-marron">{textoPersonalizacion(l.personalizacion)}</p>
+                )}
               </div>
               <p className="text-[15px]">{formatearPrecio(l.subtotal)}</p>
             </li>
@@ -411,12 +423,21 @@ export function FormularioCheckout() {
         </dl>
 
         <button type="submit" disabled={enviando} className="btn-primario mt-8 w-full py-4">
-          {enviando ? "Enviando…" : "Confirmar pedido"}
+          {enviando ? (pagaAhora ? "Yendo a pagar…" : "Enviando…") : pagaAhora ? "Ir a pagar" : "Confirmar pedido"}
         </button>
         <p role="alert" className="mt-3 text-sm text-marron empty:hidden">
           {errorEnvio || (intentado && Object.keys(errores).length > 0 ? "Revisá los campos marcados." : "")}
         </p>
-        <p className="mt-4 text-xs leading-relaxed text-tinta/70">El pago se hace por Mercado Pago.</p>
+        {pagaAhora ? (
+          <div className="mt-4 space-y-1 text-[15px] leading-snug">
+            <p>Pagás con tarjeta de crédito, débito o Mercado Pago.</p>
+            <p className="text-tinta/70">No hace falta tener cuenta. El pago se hace en la página segura de Mercado Pago.</p>
+          </div>
+        ) : (
+          <p className="mt-4 text-[15px] leading-snug text-tinta/80">
+            Confirmás el pedido y te escribimos para coordinar el envío y el pago.
+          </p>
+        )}
       </aside>
     </form>
   );
@@ -425,8 +446,8 @@ export function FormularioCheckout() {
 function Grupo({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
     <fieldset>
-      <legend className="mb-5 text-sm uppercase tracking-marca">{titulo}</legend>
-      <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">{children}</div>
+      <legend className="titulo-form">{titulo}</legend>
+      <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">{children}</div>
     </fieldset>
   );
 }
@@ -448,13 +469,13 @@ function Campo({
 }) {
   return (
     <div className={className}>
-      <label htmlFor={`f-${id}`} className="eyebrow block">
+      <label htmlFor={`f-${id}`} className="etiqueta">
         {label}
-        {opcional && <span className="ml-1 normal-case tracking-normal text-tinta/60">(opcional)</span>}
+        {opcional && <span className="ml-1 text-tinta/60">(opcional)</span>}
       </label>
       {children}
       {error && (
-        <p id={`e-${id}`} className="mt-1.5 text-sm text-marron">
+        <p id={`e-${id}`} className="mt-1.5 text-[15px] font-normal text-marron">
           {error}
         </p>
       )}

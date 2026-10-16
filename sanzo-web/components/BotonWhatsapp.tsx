@@ -98,7 +98,7 @@ export function BotonWhatsapp() {
       >
         {!abierto && <span aria-hidden="true" className="absolute inset-0 animate-ping rounded-full bg-marron/30 [animation-duration:2.6s]" />}
         <span className={`transition-transform duration-500 ease-suave ${abierto ? "rotate-90" : ""}`}>
-          {abierto ? <IconoCerrar /> : <IconoWhatsapp />}
+          {abierto ? <IconoCerrar /> : <IconoWhatsapp width={25} height={25} />}
         </span>
       </button>
     </div>

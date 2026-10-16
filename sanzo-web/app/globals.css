@@ -58,8 +58,15 @@
   .btn-borde {
     @apply btn border border-tinta/80 text-tinta hover:bg-tinta hover:text-crema disabled:border-tinta/25 disabled:text-tinta/45 disabled:hover:bg-transparent;
   }
+  /* Campos de formulario: recuadro completo y letra normal, que se entienda dónde escribir. */
   .campo {
-    @apply w-full rounded-none border-0 border-b border-tinta/30 bg-transparent px-0 py-2.5 text-base text-tinta placeholder:text-tinta/40 focus:border-marron focus:outline-none focus:ring-0;
+    @apply w-full rounded-lg border border-tinta/35 bg-lino/40 px-4 py-3 text-base font-normal text-tinta placeholder:text-tinta/45 focus:border-tinta focus:outline-none focus:ring-1 focus:ring-tinta aria-[invalid=true]:border-marron aria-[invalid=true]:ring-1 aria-[invalid=true]:ring-marron;
+  }
+  .etiqueta {
+    @apply mb-1.5 block text-[15px] font-normal text-tinta;
+  }
+  .titulo-form {
+    @apply mb-5 text-lg font-normal tracking-wide text-tinta;
   }
   .sin-scrollbar {
     scrollbar-width: none;

@@ -9,6 +9,7 @@ import {
   type Totales,
   type Ubicacion,
 } from "@/lib/carrito";
+import type { Personalizacion } from "@/lib/personalizacion";
 
 const CLAVE_STORAGE = "sanzo-carrito-v1";
 
@@ -19,7 +20,11 @@ interface CarritoContexto {
   abierto: boolean;
   /** true cuando ya se leyó localStorage (evita parpadeos en /checkout). */
   listo: boolean;
-  agregar: (productoId: string, opcion?: string, opts?: { abrir?: boolean }) => void;
+  agregar: (
+    productoId: string,
+    opcion?: string,
+    opts?: { abrir?: boolean; personalizacion?: Personalizacion },
+  ) => void;
   cambiarCantidad: (key: string, cantidad: number) => void;
   quitar: (key: string) => void;
   vaciar: () => void;
@@ -62,13 +67,14 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
   }, [lineas, ubicacion, listo]);
 
   const agregar = useCallback<CarritoContexto["agregar"]>((productoId, opcion, opts) => {
-    const key = claveLinea(productoId, opcion);
+    const personalizacion = opts?.personalizacion;
+    const key = claveLinea(productoId, opcion, personalizacion);
     setLineas((prev) => {
       const existe = prev.find((l) => l.key === key);
       if (existe) {
         return prev.map((l) => (l.key === key ? { ...l, cantidad: Math.min(MAX_CANTIDAD, l.cantidad + 1) } : l));
       }
-      return [...prev, { key, productoId, opcion, cantidad: 1 }];
+      return [...prev, { key, productoId, opcion, personalizacion, cantidad: 1 }];
     });
     if (opts?.abrir !== false) setAbierto(true);
   }, []);
