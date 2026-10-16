@@ -162,7 +162,8 @@ export const kit: Producto = {
 };
 
 // -----------------------------------------------------------------------------
-// Combos
+// Combos — REGLA: precio del combo = suma de los precios "base" de sus piezas (los del Hub).
+// Los sueltos se venden más caros (Hub +25%) para que convenga llevar combo.
 // -----------------------------------------------------------------------------
 export const combos: Producto[] = [
   {
@@ -171,7 +172,7 @@ export const combos: Producto[] = [
     tipo: "combo",
     descripcion: "Lo justo para el paseo de todos los días.",
     incluye: ["correa", "collar", "poo-bag"],
-    precio: 33000,
+    precio: 27000,
     imagenes: ["/productos/combo-paseo/1.jpg", "/productos/combo-paseo/2.jpg", "/productos/combo-paseo/3.jpg"],
     envioGratis: false,
     linkPago: "",
@@ -184,7 +185,7 @@ export const combos: Producto[] = [
     tipo: "combo",
     descripcion: "Para que salga con onda. Y se note.",
     incluye: ["collar", "mono", "bandana"],
-    precio: 27000,
+    precio: 24500,
     imagenes: ["/productos/combo-estilo/1.jpg", "/productos/combo-estilo/2.jpg", "/productos/combo-estilo/3.jpg"],
     envioGratis: false,
     linkPago: "",
@@ -197,7 +198,7 @@ export const combos: Producto[] = [
     tipo: "combo",
     descripcion: "Arnés y correa que van juntos a todos lados.",
     incluye: ["arnes", "correa"],
-    precio: 39000,
+    precio: 25000,
     imagenes: ["/productos/combo-aventura/1.jpg", "/productos/combo-aventura/2.jpg"],
     envioGratis: false,
     linkPago: "",
@@ -217,7 +218,7 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Terracota, liviano y a su medida.",
     incluye: [],
-    precio: 29000,
+    precio: 19000,
     imagenes: ["/productos/solo/arnes/1.jpg", "/productos/solo/arnes/2.jpg"],
     envioGratis: false,
     linkPago: "",
@@ -231,7 +232,7 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "La que combina con todo lo demás.",
     incluye: [],
-    precio: 16000,
+    precio: 12500,
     imagenes: ["/productos/solo/correa/1.jpg", "/productos/solo/correa/2.jpg"],
     envioGratis: false,
     linkPago: "",
@@ -243,7 +244,7 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Simple, prolijo, a su medida.",
     incluye: [],
-    precio: 14000,
+    precio: 10500,
     imagenes: ["/productos/solo/collar/1.jpg", "/productos/solo/collar/2.jpg"],
     envioGratis: false,
     linkPago: "",
@@ -256,7 +257,7 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "El detalle que le cambia la cara al paseo.",
     incluye: [],
-    precio: 8000,
+    precio: 9500,
     imagenes: ["/productos/solo/mono/1.jpg", "/productos/solo/mono/2.jpg"],
     envioGratis: false,
     linkPago: "",
@@ -268,7 +269,7 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Al cuello, sobre el pecho. Como tiene que ir.",
     incluye: [],
-    precio: 9000,
+    precio: 10500,
     imagenes: ["/productos/solo/bandana/1.jpg", "/productos/solo/bandana/2.jpg"],
     envioGratis: false,
     linkPago: "",
@@ -280,7 +281,7 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Porta bolsitas. Siempre a mano, en la correa.",
     incluye: [],
-    precio: 8000,
+    precio: 10500,
     imagenes: ["/productos/solo/poo-bag/1.jpg", "/productos/solo/poo-bag/2.jpg"],
     envioGratis: false,
     linkPago: "",
@@ -292,7 +293,7 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Para vos. Que combine con el paseo.",
     incluye: [],
-    precio: 15000,
+    precio: 11000,
     imagenes: ["/productos/solo/gorra/1.jpg", "/productos/solo/gorra/2.jpg"],
     envioGratis: false,
     linkPago: "",
@@ -305,7 +306,7 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Para el sol de la plaza.",
     incluye: [],
-    precio: 15000,
+    precio: 11000,
     imagenes: ["/productos/solo/piluso/1.jpg", "/productos/solo/piluso/2.jpg"],
     envioGratis: false,
     linkPago: "",
@@ -331,9 +332,9 @@ export interface Promo {
 }
 
 export const promos: Promo[] = [
-  { id: "correa-mono", lleva: ["correa", "mono"], tipo: "ahorro", monto: 2000 },
-  { id: "collar-bandana", lleva: ["collar", "bandana"], tipo: "ahorro", monto: 2000 },
-  { id: "arnes-collar-poo", lleva: ["arnes", "collar", "poo-bag"], tipo: "regalo", regalo: "poo-bag" },
+  { id: "correa-mono", lleva: ["correa", "mono"], tipo: "ahorro", monto: 4500 },
+  { id: "collar-bandana", lleva: ["collar", "bandana"], tipo: "ahorro", monto: 4000 },
+  { id: "arnes-collar-poo", lleva: ["arnes", "collar", "poo-bag"], tipo: "ahorro", monto: 8000 },
 ];
 
 // -----------------------------------------------------------------------------

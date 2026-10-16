@@ -83,3 +83,12 @@ Lo que definió Santi (2026-10-16):
 - [ ] Precios reales (reemplazar los provisorios).
 - [ ] Videos de clientes → `clientes.videos[].video`.
 - [ ] Foto linda de la correa sola (estilo "artículo").
+
+## 2026-10-16 · Precios con la regla de combos (Santi)
+
+- Base = precios de venta del Sanzo Hub (Productos): arnés 15.000, correa 10.000, collar 8.500, moño 7.500, bandana 8.500, portabolsa 8.500, gorra/piluso 11.000.
+- **Combos = suma de la base**: Paseo 27.000 · Estilo 24.500 · Aventura 25.000.
+- **Sueltos = base +25%** (redondeado a $500): arnés 19.000 · correa 12.500 · collar 10.500 · moño 9.500 · bandana 10.500 · poo bag 10.500. Gorra y piluso quedan a 11.000 (no entran en combos).
+- Promos del carrito = lo que se ahorra frente a la base: correa+moño −4.500 · collar+bandana −4.000 · arnés+collar+poo bag −8.000.
+- [ ] **Kit: definir.** Web 67.000 (Renzo) · Hub 60.000 · con la regla sería 58.500.
+- [ ] Actualizar en el Hub el precio de los sueltos si se publican estos (hoy el Hub tiene la base).
