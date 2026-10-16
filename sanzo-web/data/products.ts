@@ -29,8 +29,15 @@ export interface Producto {
   personalizable?: boolean;
 }
 
-/** Formas de la pieza grabada. Los dibujos están en components/personalizar/PiezaGrabada.tsx. */
-export type FormaPieza = "hueso" | "corazon" | "placa";
+/** Un estilo de parche = una foto del arnés con ese parche puesto. */
+export interface EstiloParche {
+  id: string;
+  nombre: string;
+  /** Foto del arnés de frente con este parche (mismo encuadre en todas). */
+  imagen: string;
+  /** Zona del parche donde se escribe el nombre, en píxeles de la foto: centro (x, y), ancho y alto. */
+  texto: { x: number; y: number; ancho: number; alto: number };
+}
 
 const TALLES = ["XS", "S", "M", "L"];
 
@@ -68,35 +75,39 @@ export const contadorKits: { restantes: number | null; total: number } = {
 };
 
 // -----------------------------------------------------------------------------
-// Personalización: pieza recortada con el nombre del perro (y su teléfono, si
-// quieren) que va sobre el arnés. Se activa por producto con `personalizable: true`.
+// Personalización: parche con el nombre del perro (y su teléfono, si quieren).
+// Se activa por producto con `personalizable: true`.
 // -----------------------------------------------------------------------------
 export const personalizacion: {
   boton: string;
   titulo: string;
   bajada: string;
   imagenArnes: string;
-  posicion: { x: number; y: number; ancho: number };
+  tamFoto: { ancho: number; alto: number };
+  zoom: number;
   precioExtra: number;
   maxNombre: number;
-  estilos: { id: FormaPieza; nombre: string }[];
+  estilos: EstiloParche[];
 } = {
   boton: "Personalizar",
   titulo: "Hacelo suyo",
-  bajada: "Elegí la forma y poné su nombre.",
-  /** Foto del arnés de frente, ej. "/productos/arnes/frente.png". Vacío → dibujo de referencia. */
-  imagenArnes: "",
-  /** Dónde va la pieza sobre la foto, en % de la imagen: centro (x, y) y ancho. Ajustalo cuando cargues la foto. */
-  posicion: { x: 50, y: 66, ancho: 38 },
+  bajada: "Elegí el parche y poné su nombre.",
+  /** Foto del arnés que se ve antes de elegir un estilo. */
+  imagenArnes: "/productos/arnes/frente.png",
+  /** Tamaño en píxeles de las fotos de los estilos (todas iguales). */
+  tamFoto: { ancho: 1125, alto: 1398 },
+  /** Acerca la foto (1 = tal cual). Sirve si la foto tiene mucho margen alrededor del arnés. */
+  zoom: 1.2,
   /** Lo que suma la personalización al precio de cada unidad. 0 = sin costo extra. */
   precioExtra: 0,
   /** Máximo de letras del nombre. */
   maxNombre: 12,
-  /** Los 3 estilos, en el orden en que se muestran. */
+  /** Los estilos, en el orden en que se muestran. */
   estilos: [
-    { id: "hueso", nombre: "Hueso" },
-    { id: "corazon", nombre: "Corazón" },
-    { id: "placa", nombre: "Placa" },
+    { id: "cinta", nombre: "Cinta", imagen: "/productos/arnes/estilo-cinta.jpg", texto: { x: 578, y: 873, ancho: 230, alto: 56 } },
+    { id: "hueso", nombre: "Hueso", imagen: "/productos/arnes/estilo-hueso.jpg", texto: { x: 550, y: 840, ancho: 150, alto: 52 } },
+    { id: "clasica", nombre: "Clásica", imagen: "/productos/arnes/estilo-clasica.jpg", texto: { x: 550, y: 855, ancho: 175, alto: 52 } },
+    { id: "redondeada", nombre: "Redondeada", imagen: "/productos/arnes/estilo-redondeada.jpg", texto: { x: 561, y: 856, ancho: 210, alto: 54 } },
   ],
 };
 

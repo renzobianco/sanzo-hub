@@ -1,17 +1,17 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { personalizacion as config, type FormaPieza } from "@/data/products";
+import { personalizacion as config } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
 import {
+  estiloPorId,
   textoPersonalizacion,
   validarPersonalizacion,
   type ErroresPersonalizacion,
   type Personalizacion,
 } from "@/lib/personalizacion";
 import { IconoCerrar } from "../Iconos";
-import { PiezaGrabada } from "./PiezaGrabada";
-import { VistaArnes } from "./VistaArnes";
+import { MiniParche, VistaArnes } from "./VistaArnes";
 
 interface Props {
   valor?: Personalizacion;
@@ -23,7 +23,7 @@ interface Props {
 export function Personalizar({ valor, onCambio, grande }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
-  const [estilo, setEstilo] = useState<FormaPieza | undefined>(valor?.estilo);
+  const [estilo, setEstilo] = useState<string | undefined>(valor?.estilo);
   const [nombre, setNombre] = useState(valor?.nombre ?? "");
   const [conTelefono, setConTelefono] = useState(!!valor?.telefono);
   const [telefono, setTelefono] = useState(valor?.telefono ?? "");
@@ -89,7 +89,7 @@ export function Personalizar({ valor, onCambio, grande }: Props) {
         ref={ref}
         aria-labelledby={`${id}-titulo`}
         onClose={() => (document.body.style.overflow = "")}
-        className="m-0 h-[100dvh] max-h-none w-full max-w-none bg-crema p-0 text-tinta backdrop:bg-tinta/50 md:m-auto md:h-[90vh] md:max-w-md"
+        className="m-0 h-[100dvh] max-h-none w-full max-w-none overflow-hidden bg-crema p-0 text-tinta backdrop:bg-tinta/50 md:m-auto md:h-[90vh] md:max-w-md"
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b border-tinta/10 px-4 py-3">
@@ -104,16 +104,16 @@ export function Personalizar({ valor, onCambio, grande }: Props) {
           {/* La vista queda fija arriba para ver los cambios mientras escribe. */}
           <div className="shrink-0 bg-lino px-4 pt-3">
             <div className="mx-auto w-[min(100%,34dvh)]">
-              <VistaArnes estilo={estilo} nombre={nombre} telefono={conTelefono ? telefono : ""} />
+              <VistaArnes estilo={estilo ? estiloPorId(estilo) : undefined} nombre={nombre} telefono={conTelefono ? telefono : ""} />
             </div>
           </div>
 
-          <div className="flex-1 space-y-7 overflow-y-auto px-4 py-6">
+          <div className="relative flex-1 space-y-7 overflow-y-auto px-4 py-6">
             <p className="text-[15px] text-tinta/80">{config.bajada}</p>
 
             <fieldset>
-              <legend className="eyebrow mb-3">1 · Estilo</legend>
-              <div className="grid grid-cols-3 gap-2">
+              <legend className="eyebrow mb-3">1 · Parche</legend>
+              <div className="grid grid-cols-2 gap-2">
                 {config.estilos.map((e, i) => (
                   <label key={e.id} className="cursor-pointer">
                     <input
@@ -128,8 +128,8 @@ export function Personalizar({ valor, onCambio, grande }: Props) {
                       }}
                       className="peer sr-only"
                     />
-                    <span className="flex flex-col items-center gap-2 border border-tinta/20 px-2 py-3 transition-colors peer-checked:border-tinta peer-checked:bg-lino peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
-                      <PiezaGrabada forma={e.id} sinTexto className="w-16" />
+                    <span className="flex flex-col items-center gap-2 border border-tinta/20 p-1.5 pb-2.5 transition-colors peer-checked:border-tinta peer-checked:bg-lino peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
+                      <MiniParche estilo={e} />
                       <span className="text-[11px] uppercase tracking-[0.14em]">{e.nombre}</span>
                     </span>
                   </label>

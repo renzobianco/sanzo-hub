@@ -1,7 +1,8 @@
-import { personalizacion as config, type FormaPieza, type Producto } from "@/data/products";
+import { personalizacion as config, type Producto } from "@/data/products";
 
 export interface Personalizacion {
-  estilo: FormaPieza;
+  /** id de un estilo de `personalizacion.estilos`. */
+  estilo: string;
   nombre: string;
   /** Opcional: va grabado debajo del nombre. */
   telefono?: string;
@@ -19,7 +20,7 @@ export function estiloPorId(id: string) {
 
 export function validarPersonalizacion(p: { estilo: string; nombre: string; telefono?: string }): ErroresPersonalizacion {
   const e: ErroresPersonalizacion = {};
-  if (!estiloPorId(p.estilo)) e.estilo = "Elegí un estilo.";
+  if (!estiloPorId(p.estilo)) e.estilo = "Elegí un parche.";
 
   const nombre = p.nombre.trim();
   if (!nombre) e.nombre = "Poné el nombre de tu perro.";
@@ -45,7 +46,7 @@ export function normalizarPersonalizacion(producto: Producto, p: unknown): Perso
   if (typeof estilo !== "string" || typeof nombre !== "string") return null;
   if (telefono !== undefined && typeof telefono !== "string") return null;
   const limpio = {
-    estilo: estilo as FormaPieza,
+    estilo,
     nombre: nombre.trim().replace(/\s+/g, " "),
     telefono: telefono?.trim().replace(/\s+/g, " ") || undefined,
   };

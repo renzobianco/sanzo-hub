@@ -25,7 +25,7 @@ function limpiarPersonalizacion(p: unknown): Personalizacion | undefined {
   if (!p || typeof p !== "object") return undefined;
   const o = p as Record<string, unknown>;
   return {
-    estilo: str(o.estilo, 20) as Personalizacion["estilo"],
+    estilo: str(o.estilo, 30),
     nombre: str(o.nombre, 40),
     telefono: typeof o.telefono === "string" ? str(o.telefono, 30) : undefined,
   };
