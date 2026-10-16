@@ -3,7 +3,6 @@ import { SeccionKit } from "@/components/SeccionKit";
 import { SeccionCombos } from "@/components/SeccionCombos";
 import { SeccionProductos } from "@/components/SeccionProductos";
 import { FranjaValor } from "@/components/FranjaValor";
-import { SeccionEnvios } from "@/components/SeccionEnvios";
 import { SeccionPreguntas } from "@/components/SeccionPreguntas";
 
 export default function Inicio() {
@@ -14,7 +13,6 @@ export default function Inicio() {
       <SeccionCombos />
       <SeccionProductos />
       <FranjaValor />
-      <SeccionEnvios />
       <SeccionPreguntas />
     </>
   );
