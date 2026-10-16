@@ -45,6 +45,25 @@ const config: Config = {
           "55%": { transform: "scaleY(1)", transformOrigin: "bottom" },
           "100%": { transform: "scaleY(0)", transformOrigin: "bottom" },
         },
+        salto: {
+          "0%, 100%": { transform: "translateY(0) rotate(0)" },
+          "30%": { transform: "translateY(-6px) rotate(-8deg)" },
+          "60%": { transform: "translateY(0) rotate(5deg)" },
+          "80%": { transform: "translateY(-2px) rotate(-2deg)" },
+        },
+        pop: {
+          "0%": { transform: "scale(0.4)", opacity: "0" },
+          "60%": { transform: "scale(1.25)", opacity: "1" },
+          "100%": { transform: "scale(1)" },
+        },
+        flotar: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
+        respirar: {
+          from: { transform: "scale(1)" },
+          to: { transform: "scale(1.08)" },
+        },
         balanceo: {
           "0%, 100%": { transform: "rotate(-1.2deg) translateY(0)" },
           "50%": { transform: "rotate(1.2deg) translateY(-3px)" },
@@ -53,6 +72,11 @@ const config: Config = {
       animation: {
         entrada: "entrada 0.9s cubic-bezier(0.22, 1, 0.36, 1) both",
         balanceo: "balanceo 6s ease-in-out infinite",
+        respirar: "respirar 9s ease-in-out infinite alternate",
+        salto: "salto 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
+        pop: "pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both",
+        flotar: "flotar 4s ease-in-out infinite",
+        "cinta-lenta": "cinta 60s linear infinite",
         subir: "subir 1.1s cubic-bezier(0.16, 1, 0.3, 1) both",
         "zoom-lento": "zoomLento 14s cubic-bezier(0.22, 1, 0.36, 1) both",
         cinta: "cinta 32s linear infinite",

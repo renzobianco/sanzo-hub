@@ -18,34 +18,49 @@ function redes() {
 }
 
 export function Footer({ hayLogo }: { hayLogo: boolean }) {
+  const lista = redes();
+  // Redes: solo el logo. WhatsApp: logo y número, para que se pueda leer y agendar.
+  const iconos = lista.filter((r) => r.Icono !== IconoWhatsapp);
+  const wa = lista.find((r) => r.Icono === IconoWhatsapp);
   return (
     <footer className="bg-crema">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-8 px-4 py-16 text-center md:flex-row md:justify-between md:px-8 md:text-left">
         <Logo hayLogo={hayLogo} />
-        <ul className="flex flex-col items-center gap-1 md:flex-row md:gap-6">
-          {redes().map(({ href, texto, label, Icono }) => (
+        <ul className="flex items-center gap-3">
+          {iconos.map(({ href, label, Icono }) => (
             <li key={href}>
               <a
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={label}
-                className="flex items-center gap-3 py-2 text-[15px] tracking-wide hover:text-marron"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-tinta/20 transition-[color,border-color,transform] duration-300 ease-suave hover:-translate-y-0.5 hover:border-marron hover:text-marron active:scale-95"
               >
                 <Icono />
-                {texto}
               </a>
             </li>
           ))}
-          {sitio.email && (
-            <li>
-              <a href={`mailto:${sitio.email}`} className="flex items-center gap-3 py-2 text-[15px] hover:text-marron">
-                <IconoMail />
-                {sitio.email}
-              </a>
-            </li>
-          )}
         </ul>
+        <div className="flex flex-col items-center gap-1 md:items-end">
+          {wa && (
+            <a
+              href={wa.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={wa.label}
+              className="flex items-center gap-3 py-2 text-[15px] tracking-wide hover:text-marron"
+            >
+              <IconoWhatsapp />
+              {wa.texto}
+            </a>
+          )}
+          {sitio.email && (
+            <a href={`mailto:${sitio.email}`} className="flex items-center gap-3 py-2 text-[15px] hover:text-marron">
+              <IconoMail />
+              {sitio.email}
+            </a>
+          )}
+        </div>
       </div>
     </footer>
   );

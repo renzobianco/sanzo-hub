@@ -1,12 +1,15 @@
-import { Palabras } from "./Palabras";
 import Image from "next/image";
 import { galeria, getProducto } from "@/data/products";
-import { CarruselVivo } from "./CarruselVivo";
+import { Palabras } from "./Palabras";
 import { Reveal } from "./Reveal";
 
-/** "Salen con sanzo": fotos de perros con los productos, deslizables. Cada foto lleva a su producto. */
+/**
+ * "Salen con sanzo": tira de fotos que se mueve sola, sin fin (se pausa al pasar el mouse en PC).
+ * El contenido va duplicado para que el loop no tenga corte.
+ */
 export function SeccionGaleria() {
   if (galeria.fotos.length === 0) return null;
+  const fotos = [...galeria.fotos, ...galeria.fotos];
   return (
     <section aria-labelledby="galeria-titulo" className="overflow-hidden bg-tinta py-20 text-crema md:py-28">
       <Reveal className="mb-10 px-4 text-center md:mb-14">
@@ -15,36 +18,37 @@ export function SeccionGaleria() {
           <Palabras texto={galeria.titulo} />
         </h2>
       </Reveal>
-      <CarruselVivo className="sin-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-[14%] md:gap-5 md:px-8">
-        {galeria.fotos.map((f, i) => {
-          const p = getProducto(f.producto);
-          return (
-            <li key={f.imagen} className="w-[72%] shrink-0 snap-center will-change-transform sm:w-[44%] md:w-[28%]">
-              <Reveal delay={Math.min(i, 3) * 90}>
-                <a href="#productos" className="group block">
-                  <div className="img-revelar relative aspect-[4/5] overflow-hidden bg-topo/30">
+      <div className="group">
+        <ul className="flex w-max animate-cinta-lenta gap-3 group-hover:[animation-play-state:paused] md:gap-5">
+          {fotos.map((f, i) => {
+            const p = getProducto(f.producto);
+            const copia = i >= galeria.fotos.length;
+            return (
+              <li key={`${f.imagen}-${i}`} aria-hidden={copia} className="w-[15rem] shrink-0 md:w-[19rem]">
+                <a href="#productos" tabIndex={copia ? -1 : 0} className="group/foto block">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[1rem] bg-topo/30">
                     <Image
                       src={f.imagen}
-                      alt={p ? `Perro con ${p.nombre.toLowerCase()} sanzo` : ""}
+                      alt={p && !copia ? `Perro con ${p.nombre.toLowerCase()} sanzo` : ""}
                       fill
-                      sizes="(min-width: 768px) 28vw, 72vw"
-                      className="object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] group-active:scale-[1.02]"
+                      sizes="(min-width: 768px) 19rem, 15rem"
+                      className="object-cover transition-transform duration-[1.2s] ease-suave group-hover/foto:scale-[1.06]"
                     />
                   </div>
                   {p && (
                     <p className="mt-3 flex items-center justify-between text-[11px] uppercase tracking-marca text-crema/80">
                       {p.nombre}
-                      <span aria-hidden="true" className="text-marron">
+                      <span aria-hidden="true" className="text-marron transition-transform duration-500 ease-suave group-hover/foto:translate-x-1">
                         →
                       </span>
                     </p>
                   )}
                 </a>
-              </Reveal>
-            </li>
-          );
-        })}
-      </CarruselVivo>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </section>
   );
 }

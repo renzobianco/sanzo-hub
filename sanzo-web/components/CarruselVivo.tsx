@@ -15,6 +15,14 @@ export function CarruselVivo({ className = "", children }: { className?: string;
     let frame = 0;
     const actualizar = () => {
       frame = 0;
+      // Si entra todo (ej. grilla en PC), no hay carrusel: tarjetas normales.
+      if (ul.scrollWidth <= ul.clientWidth + 2) {
+        for (const li of Array.from(ul.children) as HTMLElement[]) {
+          li.style.transform = "";
+          li.style.opacity = "";
+        }
+        return;
+      }
       const centro = ul.scrollLeft + ul.clientWidth / 2;
       for (const li of Array.from(ul.children) as HTMLElement[]) {
         const d = Math.min(1, Math.abs(li.offsetLeft + li.offsetWidth / 2 - centro) / ul.clientWidth);

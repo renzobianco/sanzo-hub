@@ -42,6 +42,8 @@ export interface EstiloParche {
 }
 
 const TALLES = ["XS", "S", "M", "L"];
+/** El arnés (y lo que lo incluye) viene solo en S y M. */
+const TALLES_ARNES = ["S", "M"];
 
 // -----------------------------------------------------------------------------
 // Textos generales
@@ -52,8 +54,8 @@ export const sitio = {
     titulo: "SACALO COMO SE MERECE",
     subtitulo: "Accesorios para perros, pensados para salir juntos.",
     boton: "Ver el kit",
-    /** Foto grande del hero, ej. "/productos/hero.jpg". Vacío → fondo placeholder. */
-    imagen: "/productos/hero.jpg",
+    /** Fotos de la portada: van cambiando solas. La primera es la que carga primero. */
+    imagenes: ["/productos/hero/1.jpg", "/productos/hero/2.jpg", "/productos/hero/3.jpg", "/productos/hero/4.jpg"],
   },
   kit: {
     bajada: "Todo lo que necesita para salir. Combinado.",
@@ -151,11 +153,11 @@ export const kit: Producto = {
   descripcion: "Arnés, correa, collar, moño, bandana y porta bolsitas. Todo lo que necesita para salir. Combinado.",
   incluye: ["arnes", "correa", "collar", "mono", "bandana", "poo-bag"],
   precio: 67000,
-  imagenes: ["/productos/arnes.jpg", "/productos/kit-1.jpg", "/productos/kit-2.jpg", "/productos/kit-3.jpg"],
+  imagenes: ["/productos/arnes/1.jpg", "/productos/kit-1.jpg", "/productos/kit-2.jpg", "/productos/kit-3.jpg"],
   envioGratis: true,
   linkPago: "",
   disponible: true,
-  opcion: { nombre: "Talle", valores: TALLES },
+  opcion: { nombre: "Talle", valores: TALLES_ARNES },
   personalizable: true,
 };
 
@@ -169,8 +171,8 @@ export const combos: Producto[] = [
     tipo: "combo",
     descripcion: "Lo justo para el paseo de todos los días.",
     incluye: ["correa", "collar", "poo-bag"],
-    precio: null,
-    imagenes: ["/productos/combo-paseo.jpg"],
+    precio: 33000,
+    imagenes: ["/productos/combo-paseo/1.jpg", "/productos/combo-paseo/2.jpg", "/productos/combo-paseo/3.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -182,8 +184,8 @@ export const combos: Producto[] = [
     tipo: "combo",
     descripcion: "Para que salga con onda. Y se note.",
     incluye: ["collar", "mono", "bandana"],
-    precio: null,
-    imagenes: ["/productos/combo-estilo.jpg"],
+    precio: 27000,
+    imagenes: ["/productos/combo-estilo/1.jpg", "/productos/combo-estilo/2.jpg", "/productos/combo-estilo/3.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -195,18 +197,18 @@ export const combos: Producto[] = [
     tipo: "combo",
     descripcion: "Arnés y correa que van juntos a todos lados.",
     incluye: ["arnes", "correa"],
-    precio: null,
-    imagenes: ["/productos/combo-aventura.jpg"],
+    precio: 39000,
+    imagenes: ["/productos/combo-aventura/1.jpg", "/productos/combo-aventura/2.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,
-    opcion: { nombre: "Talle", valores: TALLES },
+    opcion: { nombre: "Talle", valores: TALLES_ARNES },
     personalizable: true,
   },
 ];
 
 // -----------------------------------------------------------------------------
-// Productos individuales
+// Productos individuales (fotos: SOLO el producto, sin perros)
 // -----------------------------------------------------------------------------
 export const individuales: Producto[] = [
   {
@@ -215,12 +217,12 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Terracota, liviano y a su medida.",
     incluye: [],
-    precio: null,
-    imagenes: ["/productos/arnes.jpg", "/productos/arnes-2.jpg"],
+    precio: 29000,
+    imagenes: ["/productos/solo/arnes/1.jpg", "/productos/solo/arnes/2.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,
-    opcion: { nombre: "Talle", valores: TALLES },
+    opcion: { nombre: "Talle", valores: TALLES_ARNES },
     personalizable: true,
   },
   {
@@ -229,8 +231,8 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "La que combina con todo lo demás.",
     incluye: [],
-    precio: null,
-    imagenes: ["/productos/correa.jpg"],
+    precio: 16000,
+    imagenes: ["/productos/solo/correa/1.jpg", "/productos/solo/correa/2.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -241,8 +243,8 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Simple, prolijo, a su medida.",
     incluye: [],
-    precio: null,
-    imagenes: ["/productos/collar.jpg"],
+    precio: 14000,
+    imagenes: ["/productos/solo/collar/1.jpg", "/productos/solo/collar/2.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -254,8 +256,8 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "El detalle que le cambia la cara al paseo.",
     incluye: [],
-    precio: null,
-    imagenes: ["/productos/mono.jpg", "/productos/mono-2.jpg"],
+    precio: 8000,
+    imagenes: ["/productos/solo/mono/1.jpg", "/productos/solo/mono/2.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -266,8 +268,8 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Al cuello, sobre el pecho. Como tiene que ir.",
     incluye: [],
-    precio: null,
-    imagenes: ["/productos/bandana.jpg", "/productos/bandana-2.jpg"],
+    precio: 9000,
+    imagenes: ["/productos/solo/bandana/1.jpg", "/productos/solo/bandana/2.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -278,8 +280,8 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Porta bolsitas. Siempre a mano, en la correa.",
     incluye: [],
-    precio: null,
-    imagenes: ["/productos/poo-bag.jpg"],
+    precio: 8000,
+    imagenes: ["/productos/solo/poo-bag/1.jpg", "/productos/solo/poo-bag/2.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -290,8 +292,8 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Para vos. Que combine con el paseo.",
     incluye: [],
-    precio: null,
-    imagenes: ["/productos/gorra.jpg"],
+    precio: 15000,
+    imagenes: ["/productos/solo/gorra/1.jpg", "/productos/solo/gorra/2.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -303,8 +305,8 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Para el sol de la plaza.",
     incluye: [],
-    precio: null,
-    imagenes: ["/productos/piluso.jpg"],
+    precio: 15000,
+    imagenes: ["/productos/solo/piluso/1.jpg", "/productos/solo/piluso/2.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -329,9 +331,9 @@ export interface Promo {
 }
 
 export const promos: Promo[] = [
-  { id: "correa-mono", lleva: ["correa", "mono"], tipo: "ahorro", monto: null },
-  { id: "collar-bandana", lleva: ["collar", "bandana"], tipo: "ahorro", monto: null },
-  { id: "arnes-correa-poo", lleva: ["arnes", "correa", "poo-bag"], tipo: "regalo", regalo: "poo-bag" },
+  { id: "correa-mono", lleva: ["correa", "mono"], tipo: "ahorro", monto: 2000 },
+  { id: "collar-bandana", lleva: ["collar", "bandana"], tipo: "ahorro", monto: 2000 },
+  { id: "arnes-collar-poo", lleva: ["arnes", "collar", "poo-bag"], tipo: "regalo", regalo: "poo-bag" },
 ];
 
 // -----------------------------------------------------------------------------
@@ -343,7 +345,7 @@ export const porQue = {
   titulo: "¿Por qué nuestro arnés?",
   video: "",
   /** Foto que se muestra si no hay video (y portada del video si hay). */
-  poster: "/productos/arnes-2.jpg",
+  poster: "/productos/arnes/3.jpg",
   razones: [
     { titulo: "Se pone en segundos", texto: "Sin vueltas, para salir apenas te mira." },
     { titulo: "A su medida", texto: "Cuatro talles y una guía para no errarle." },
@@ -383,11 +385,11 @@ export const galeria = {
   eyebrow: "Salen con sanzo",
   titulo: "Cada paseo, con estilo",
   fotos: [
-    { imagen: "/productos/galeria-1.jpg", producto: "bandana" },
-    { imagen: "/productos/galeria-2.jpg", producto: "mono" },
-    { imagen: "/productos/galeria-3.jpg", producto: "gorra" },
-    { imagen: "/productos/galeria-4.jpg", producto: "piluso" },
-    { imagen: "/productos/galeria-5.jpg", producto: "mono" },
+    { imagen: "/productos/galeria/1.jpg", producto: "collar" },
+    { imagen: "/productos/galeria/2.jpg", producto: "bandana" },
+    { imagen: "/productos/galeria/3.jpg", producto: "collar" },
+    { imagen: "/productos/galeria/4.jpg", producto: "piluso" },
+    { imagen: "/productos/galeria/5.jpg", producto: "gorra" },
   ],
 };
 
@@ -400,9 +402,20 @@ export const clientes = {
   texto: "clientes satisfechos",
   /** Al lado del número, con un puntito que late. Vacío → no aparece. */
   sumando: "y sumando",
-  bajada: "Perros que ya salen con sanzo, en todo el país.",
-  /** Fotitos redondas que acompañan el número. */
-  fotos: ["/productos/galeria-1.jpg", "/productos/galeria-2.jpg", "/productos/galeria-3.jpg", "/productos/galeria-5.jpg"],
+  bajada: "Perros que ya salen con sanzo. Mirá cómo les queda.",
+  /**
+   * Videos de clientes usándolos (verticales 9:16, cortos, sin sonido): ruta en /public, ej. "/videos/clientes/lola.mp4".
+   * `foto` se muestra mientras carga el video, o sola si todavía no hay video.
+   * `perro`: nombre y barrio, ej. "Lola · Caballito". Opcional.
+   */
+  videos: [
+    { video: "", foto: "/productos/clientes/1.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/2.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/3.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/4.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/5.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/6.jpg", perro: "" },
+  ] as { video: string; foto: string; perro: string }[],
 };
 
 // -----------------------------------------------------------------------------

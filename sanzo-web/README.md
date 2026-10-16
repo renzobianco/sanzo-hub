@@ -20,9 +20,9 @@ Abrí http://localhost:3000. Sin variables de entorno, los pedidos se imprimen e
 imagenes: ["/productos/kit/1.jpg", "/productos/kit/2.jpg"],
 ```
 
-- La primera foto es la principal. En productos individuales, la segunda aparece al pasar el mouse. En el kit, todas aparecen en la galería.
+- La primera foto es la principal; si hay varias, van cambiando solas. En productos individuales, solo fotos del producto (sin perros).
 - Proporción recomendada: 4:5 vertical (ej. 1080×1350). Combos: 5:4.
-- Foto del hero: `sitio.hero.imagen` en `data/products.ts` (ej. `"/productos/hero.jpg"`).
+- Fotos del hero (van rotando): `sitio.hero.imagenes` en `data/products.ts`.
 - Logo: subí `public/logo-sanzo.png` y aparece solo (hasta entonces se muestra el texto "sanzo").
 - Imagen para compartir en redes (Open Graph): para usar una foto, borrá `app/opengraph-image.tsx` y poné `app/opengraph-image.jpg` (1200×630).
 

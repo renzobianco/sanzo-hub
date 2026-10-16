@@ -149,6 +149,11 @@
   .animate-entrada,
   .animate-subir,
   .animate-balanceo,
+  .animate-respirar,
+  .animate-salto,
+  .animate-pop,
+  .animate-flotar,
+  .animate-cinta-lenta,
   .animate-zoom-lento,
   .animate-cinta,
   .animate-bajar,
@@ -159,5 +164,24 @@
   *::before,
   *::after {
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Piezas del kit/combo: aparecen una por una con un pequeño rebote. */
+.js .reveal .pieza {
+  opacity: 0;
+  transform: translateY(10px) scale(0.85);
+  transition:
+    opacity 0.6s var(--suave),
+    transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.js .reveal.is-visible .pieza {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal .pieza {
+    opacity: 1;
+    transform: none;
   }
 }

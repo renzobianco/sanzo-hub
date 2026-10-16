@@ -3,13 +3,19 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { clientes } from "@/data/products";
+import { CarruselVivo } from "./CarruselVivo";
+import { Reveal } from "./Reveal";
 
-/** "+150 clientes satisfechos": el número cuenta hacia arriba cuando aparece en pantalla. */
+/**
+ * "+150 clientes satisfechos · y sumando" + carrusel vertical tipo reels con videos de clientes
+ * usando los productos. Mientras no haya video, se ve la foto con un zoom lento.
+ */
 export function SeccionClientes() {
   const ref = useRef<HTMLElement>(null);
   const objetivo = clientes.numero ?? 0;
   const [valor, setValor] = useState(objetivo);
 
+  // El número cuenta hacia arriba la primera vez que aparece en pantalla.
   useEffect(() => {
     const el = ref.current;
     if (!el || !objetivo || !("IntersectionObserver" in window)) return;
@@ -28,7 +34,7 @@ export function SeccionClientes() {
         };
         frame = requestAnimationFrame(paso);
       },
-      { threshold: 0.4 },
+      { threshold: 0.3 },
     );
     io.observe(el);
     return () => {
@@ -40,16 +46,9 @@ export function SeccionClientes() {
   if (!clientes.numero) return null;
 
   return (
-    <section ref={ref} aria-label={`Más de ${clientes.numero} ${clientes.texto}`} className="bg-crema py-20 text-center md:py-28">
-      <div className="mx-auto max-w-xl px-4">
-        <ul className="flex justify-center" aria-hidden="true">
-          {clientes.fotos.map((src, i) => (
-            <li key={src} className={`relative h-14 w-14 overflow-hidden rounded-full border-2 border-crema ${i > 0 ? "-ml-3" : ""}`}>
-              <Image src={src} alt="" fill sizes="56px" className="object-cover" />
-            </li>
-          ))}
-        </ul>
-        <p aria-hidden="true" className="mt-7 text-[4.5rem] font-extralight leading-none tracking-wide text-marron tabular-nums md:text-[6rem]">
+    <section ref={ref} id="clientes" aria-label={`Más de ${clientes.numero} ${clientes.texto}`} className="overflow-hidden bg-crema py-20 md:py-28">
+      <div className="mx-auto max-w-xl px-4 text-center">
+        <p aria-hidden="true" className="text-[4.5rem] font-extralight leading-none tracking-wide text-marron tabular-nums md:text-[7rem]">
           +{valor}
         </p>
         <p className="mt-3 text-[13px] uppercase tracking-amplio">{clientes.texto}</p>
@@ -66,9 +65,45 @@ export function SeccionClientes() {
             {clientes.sumando}
           </p>
         )}
-        <div aria-hidden="true" className="mx-auto mt-6 h-px w-10 bg-tinta/25" />
         <p className="mt-6 text-[16px] font-light text-tinta/80">{clientes.bajada}</p>
       </div>
+
+      {clientes.videos.length > 0 && (
+        <CarruselVivo className="sin-scrollbar mt-12 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[19%] md:mx-auto md:mt-16 md:grid md:max-w-7xl md:grid-cols-6 md:gap-4 md:overflow-visible md:px-8">
+          {clientes.videos.map((v, i) => (
+            <li key={v.foto + i} className={`w-[62%] shrink-0 snap-center will-change-transform sm:w-[38%] md:w-auto ${i % 2 ? "md:translate-y-8" : ""}`}>
+              <Reveal delay={Math.min(i, 4) * 80}>
+                <Reel {...v} />
+              </Reveal>
+            </li>
+          ))}
+        </CarruselVivo>
+      )}
     </section>
+  );
+}
+
+/** Tarjeta vertical: video que se reproduce solo cuando está en pantalla, o foto con zoom lento. */
+function Reel({ video, foto, perro }: { video: string; foto: string; perro: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(([e]) => (e.isIntersecting ? v.play().catch(() => {}) : v.pause()), { threshold: 0.5 });
+    io.observe(v);
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <figure className="img-revelar relative aspect-[9/16] overflow-hidden rounded-[1.25rem] bg-lino shadow-[0_18px_40px_-18px_rgb(var(--tinta)/0.45)]">
+      {video ? (
+        <video ref={ref} src={video} poster={foto} muted loop playsInline preload="metadata" className="h-full w-full object-cover" />
+      ) : (
+        <Image src={foto} alt="" fill sizes="(min-width: 768px) 18rem, 62vw" className="animate-respirar object-cover" />
+      )}
+      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-tinta/55 to-transparent" />
+      {perro && <figcaption className="absolute bottom-4 left-4 text-[11px] uppercase tracking-marca text-crema">{perro}</figcaption>}
+    </figure>
   );
 }
