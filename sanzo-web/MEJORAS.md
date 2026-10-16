@@ -90,5 +90,5 @@ Lo que definió Santi (2026-10-16):
 - **Combos = suma de la base**: Paseo 27.000 · Estilo 24.500 · Aventura 25.000.
 - **Sueltos = base +25%** (redondeado a $500): arnés 19.000 · correa 12.500 · collar 10.500 · moño 9.500 · bandana 10.500 · poo bag 10.500. Gorra y piluso quedan a 11.000 (no entran en combos).
 - Promos del carrito = lo que se ahorra frente a la base: correa+moño −4.500 · collar+bandana −4.000 · arnés+collar+poo bag −8.000.
-- [ ] **Kit: definir.** Web 67.000 (Renzo) · Hub 60.000 · con la regla sería 58.500.
+- [x] Kit $59.999 (Santi). Todos los precios terminan en 999: kit 59.999 · combos 26.999 / 24.499 / 24.999 · sueltos 18.999 / 12.499 / 10.499 / 9.499 / 10.499 / 10.499 · gorra y piluso 10.999. Promos: −4.499 / −3.999 / −7.998 (dejan el par en la base del Hub −1).
 - [ ] Actualizar en el Hub el precio de los sueltos si se publican estos (hoy el Hub tiene la base).
