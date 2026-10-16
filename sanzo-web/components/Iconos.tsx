@@ -146,3 +146,10 @@ export const IconoX = (p: P) => (
     <path d="M5 4.5h4l10 15h-4L5 4.5ZM18.5 4.5l-5.6 6.4M5.5 19.5l5.6-6.4" />
   </svg>
 );
+
+/** Girar (vista 360°). */
+export const IconoGirar = (p: P) => (
+  <svg viewBox="0 0 24 24" width={16} height={16} {...base} {...p}>
+    <path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v4h-4" />
+  </svg>
+);

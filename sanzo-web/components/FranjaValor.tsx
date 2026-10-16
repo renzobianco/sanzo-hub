@@ -16,7 +16,7 @@ export function FranjaValor() {
   }
 
   return (
-    <section aria-label="Por qué sanzo" className="bg-lino py-16 md:py-20">
+    <section aria-label="Por qué sanzo" className="bg-tinta py-16 text-crema md:py-20">
       <ul className="mx-auto grid max-w-6xl grid-cols-2 gap-x-4 gap-y-12 px-4 md:flex md:gap-8 md:px-8">
         {items.map(({ icono, texto }, i) => {
           const Icono = ICONOS[icono];

@@ -420,6 +420,22 @@ export const clientes = {
 };
 
 // -----------------------------------------------------------------------------
+// Vista 360° del arnés (sección debajo del kit).
+// Hoy: frente y espalda, se gira arrastrando con el dedo.
+// Cuando estén las fotos de la vuelta completa (24-36, en orden, mismo encuadre y fondo),
+// ponelas en `cuadros` y el visor pasa solo a 360° real cuadro por cuadro.
+// -----------------------------------------------------------------------------
+export const vista360 = {
+  activo: true,
+  eyebrow: "360°",
+  titulo: "Miralo de todos lados",
+  texto: "Deslizá para girarlo.",
+  frente: "/productos/360/frente.jpg",
+  espalda: "/productos/360/espalda.jpg",
+  cuadros: [] as string[],
+};
+
+// -----------------------------------------------------------------------------
 // Legales (Argentina). Obligatorios en tiendas online:
 // - Botón de arrepentimiento (Res. 424/2020): link visible en la home → /arrepentimiento.
 // - Link a Defensa de las y los Consumidores (Res. 38/2017).

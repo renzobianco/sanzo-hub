@@ -47,6 +47,8 @@ Lo que definió Santi (2026-10-16):
 
 ## Arnés 360° (real)
 
+- 2026-10-16 · Sección "Miralo de todos lados" (`Seccion360`, datos en `vista360`): frente/espalda en 3D que se gira con el dedo, botones Frente/Espalda/Girar, balanceo suave. Fotos: `public/productos/360/` (de items-sin-logo). Cuando estén las fotos de la vuelta completa, cargarlas en `vista360.cuadros` y pasa a 360° real cuadro por cuadro.
+
 - Con fotos del arnés real: base giratoria + celu en trípode, misma luz y distancia, 24-36 fotos dando la vuelta (o un video lento de una vuelta y se sacan los cuadros).
 - En la web: visor que cambia de foto al deslizar el dedo. Falta: las fotos (el arnés todavía no llegó).
 
