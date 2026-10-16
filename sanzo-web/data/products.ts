@@ -135,7 +135,7 @@ export const kit: Producto = {
   tipo: "kit",
   descripcion: "Arnés, correa, collar, moño, bandana y porta bolsitas. Todo lo que necesita para salir. Combinado.",
   incluye: ["arnes", "correa", "collar", "mono", "bandana", "poo-bag"],
-  precio: null,
+  precio: 67000,
   imagenes: [],
   envioGratis: true,
   linkPago: "",
