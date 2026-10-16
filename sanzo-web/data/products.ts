@@ -35,6 +35,8 @@ export interface EstiloParche {
   nombre: string;
   /** Foto del arnés de frente con este parche (mismo encuadre en todas). */
   imagen: string;
+  /** Foto del parche solo, sin fondo (PNG transparente). Se muestra en el botón para elegirlo. */
+  parche: string;
   /** Zona del parche donde se escribe el nombre, en píxeles de la foto: centro (x, y), ancho y alto. */
   texto: { x: number; y: number; ancho: number; alto: number };
 }
@@ -104,10 +106,10 @@ export const personalizacion: {
   maxNombre: 12,
   /** Los estilos, en el orden en que se muestran. */
   estilos: [
-    { id: "cinta", nombre: "Cinta", imagen: "/productos/arnes/estilo-cinta.jpg", texto: { x: 578, y: 873, ancho: 230, alto: 56 } },
-    { id: "hueso", nombre: "Hueso", imagen: "/productos/arnes/estilo-hueso.jpg", texto: { x: 550, y: 840, ancho: 150, alto: 52 } },
-    { id: "clasica", nombre: "Clásica", imagen: "/productos/arnes/estilo-clasica.jpg", texto: { x: 550, y: 855, ancho: 175, alto: 52 } },
-    { id: "redondeada", nombre: "Redondeada", imagen: "/productos/arnes/estilo-redondeada.jpg", texto: { x: 561, y: 856, ancho: 210, alto: 54 } },
+    { id: "cinta", nombre: "Cinta", imagen: "/productos/arnes/estilo-cinta.jpg", parche: "/productos/arnes/parche-cinta.png", texto: { x: 578, y: 873, ancho: 230, alto: 56 } },
+    { id: "hueso", nombre: "Hueso", imagen: "/productos/arnes/estilo-hueso.jpg", parche: "/productos/arnes/parche-hueso.png", texto: { x: 550, y: 840, ancho: 150, alto: 52 } },
+    { id: "clasica", nombre: "Clásica", imagen: "/productos/arnes/estilo-clasica.jpg", parche: "/productos/arnes/parche-clasica.png", texto: { x: 550, y: 855, ancho: 175, alto: 52 } },
+    { id: "redondeada", nombre: "Redondeada", imagen: "/productos/arnes/estilo-redondeada.jpg", parche: "/productos/arnes/parche-redondeada.png", texto: { x: 561, y: 856, ancho: 210, alto: 54 } },
   ],
 };
 

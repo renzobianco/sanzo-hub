@@ -100,26 +100,16 @@ export function VistaArnes({ estilo, nombre, telefono = "" }: Props) {
   );
 }
 
-/** Recorte de la foto centrado en el parche, para los botones de estilo. */
+/** El parche solo (sin fondo), para los botones de estilo. */
 export function MiniParche({ estilo }: { estilo: EstiloParche }) {
-  const { tamFoto } = personalizacion;
-  const ancho = estilo.texto.ancho * 1.6;
-  const alto = ancho / 2;
-  const x = estilo.texto.x - ancho / 2;
-  const y = estilo.texto.y - alto / 2;
   return (
-    <span className="relative block aspect-[2/1] w-full overflow-hidden bg-lino">
+    <span className="relative block aspect-[2/1] w-full">
       <Image
-        src={estilo.imagen}
+        src={estilo.parche}
         alt=""
-        width={tamFoto.ancho}
-        height={tamFoto.alto}
-        sizes={SIZES_FOTO}
-        className="absolute left-0 top-0 max-w-none mix-blend-multiply"
-        style={{
-          width: `${(tamFoto.ancho / ancho) * 100}%`,
-          transform: `translate(${(-x / tamFoto.ancho) * 100}%, ${(-y / tamFoto.alto) * 100}%)`,
-        }}
+        fill
+        sizes="160px"
+        className="object-contain p-2 drop-shadow-[0_2px_3px_rgb(var(--tinta)/0.25)]"
       />
     </span>
   );
