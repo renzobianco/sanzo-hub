@@ -27,7 +27,8 @@ const ORDEN: Campo[] = [
   "codigoPostal",
 ];
 
-export function FormularioCheckout() {
+/** `pagoOnline`: hay credenciales de Mercado Pago cargadas → se paga en el momento. */
+export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
   const router = useRouter();
   const { totales, listo, ubicacion, setUbicacion, vaciar } = useCarrito();
   const [d, setD] = useState<DatosCheckout>(datosVacios);
@@ -100,7 +101,7 @@ export function FormularioCheckout() {
       if (!res.ok || !data.ok || !data.numero) throw new Error(data.error || "Error");
 
       try {
-        window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ numero: data.numero, nombre: d.nombre }));
+        window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ numero: data.numero, nombre: d.nombre, pago: data.redirigirA }));
       } catch {
         // sin almacenamiento: /gracias igual recibe el número por la URL
       }
@@ -136,6 +137,8 @@ export function FormularioCheckout() {
   }
 
   const { lineas, subtotal, envio, total } = totales;
+  // Con envío "a cotizar" no hay total cerrado: el pedido se confirma y le escribimos con el link.
+  const pagaAhora = pagoOnline && envio.tipo !== "cotizar";
 
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-12 md:grid-cols-[1fr_380px] md:gap-16">
@@ -414,12 +417,21 @@ export function FormularioCheckout() {
         </dl>
 
         <button type="submit" disabled={enviando} className="btn-primario mt-8 w-full py-4">
-          {enviando ? "Enviando…" : "Confirmar pedido"}
+          {enviando ? (pagaAhora ? "Yendo a pagar…" : "Enviando…") : pagaAhora ? "Ir a pagar" : "Confirmar pedido"}
         </button>
         <p role="alert" className="mt-3 text-sm text-marron empty:hidden">
           {errorEnvio || (intentado && Object.keys(errores).length > 0 ? "Revisá los campos marcados." : "")}
         </p>
-        <p className="mt-4 text-xs leading-relaxed text-tinta/70">El pago se hace por Mercado Pago.</p>
+        {pagaAhora ? (
+          <div className="mt-4 space-y-1 text-[15px] leading-snug">
+            <p>Pagás con tarjeta de crédito, débito o Mercado Pago.</p>
+            <p className="text-tinta/70">No hace falta tener cuenta. El pago se hace en la página segura de Mercado Pago.</p>
+          </div>
+        ) : (
+          <p className="mt-4 text-[15px] leading-snug text-tinta/80">
+            Confirmás el pedido y te escribimos para coordinar el envío y el pago.
+          </p>
+        )}
       </aside>
     </form>
   );
