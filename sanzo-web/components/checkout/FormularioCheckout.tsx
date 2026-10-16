@@ -199,7 +199,7 @@ export function FormularioCheckout() {
         </Grupo>
 
         <fieldset>
-          <legend className="mb-5 text-sm uppercase tracking-marca">Entrega</legend>
+          <legend className="titulo-form">Entrega</legend>
           <div className="grid gap-3 sm:grid-cols-2">
             {(
               [
@@ -216,7 +216,7 @@ export function FormularioCheckout() {
                   onChange={() => set("entrega", valor)}
                   className="peer sr-only"
                 />
-                <span className="flex h-full items-center gap-3 border border-tinta/20 px-4 py-4 text-[15px] transition-colors peer-checked:border-tinta peer-checked:bg-lino/60 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
+                <span className="flex h-full items-center gap-3 rounded-lg border border-tinta/30 px-4 py-4 text-[15px] transition-colors peer-checked:border-tinta peer-checked:bg-lino/60 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
                   <span
                     aria-hidden="true"
                     className={`h-4 w-4 shrink-0 rounded-full border border-tinta ${
@@ -360,7 +360,7 @@ export function FormularioCheckout() {
       </div>
 
       <aside aria-labelledby="resumen-titulo" className="h-fit bg-lino/70 p-6 md:sticky md:top-24 md:p-8">
-        <h2 id="resumen-titulo" className="text-sm uppercase tracking-marca">
+        <h2 id="resumen-titulo" className="text-lg font-normal tracking-wide">
           Tu pedido
         </h2>
         <ul className="mt-5 divide-y divide-tinta/10">
@@ -428,8 +428,8 @@ export function FormularioCheckout() {
 function Grupo({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
     <fieldset>
-      <legend className="mb-5 text-sm uppercase tracking-marca">{titulo}</legend>
-      <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">{children}</div>
+      <legend className="titulo-form">{titulo}</legend>
+      <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">{children}</div>
     </fieldset>
   );
 }
@@ -451,13 +451,13 @@ function Campo({
 }) {
   return (
     <div className={className}>
-      <label htmlFor={`f-${id}`} className="eyebrow block">
+      <label htmlFor={`f-${id}`} className="etiqueta">
         {label}
-        {opcional && <span className="ml-1 normal-case tracking-normal text-tinta/60">(opcional)</span>}
+        {opcional && <span className="ml-1 text-tinta/60">(opcional)</span>}
       </label>
       {children}
       {error && (
-        <p id={`e-${id}`} className="mt-1.5 text-sm text-marron">
+        <p id={`e-${id}`} className="mt-1.5 text-[15px] font-normal text-marron">
           {error}
         </p>
       )}
