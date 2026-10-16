@@ -59,9 +59,13 @@ export const sitio = {
     bajada: "Todo lo que necesita para salir. Combinado.",
     boton: "Comprar el kit",
   },
+  /** Redes que se muestran en el footer. Vacío → no se muestra. */
   redes: {
-    instagram: "", // ej. "https://www.instagram.com/sanzo"
+    instagram: "sanzo_pets", // usuario, sin @
+    facebook: "", // link completo de la página, ej. "https://www.facebook.com/sanzo.pets"
     tiktok: "", // ej. "https://www.tiktok.com/@sanzo"
+    /** Número de WhatsApp con código de área, sin 0 ni 15 (ej. "11 5969 4816"). */
+    whatsapp: "11 5969 4816",
   },
   email: "", // mail de contacto que se muestra en el footer
   hechoEn: "Hecho en Buenos Aires",

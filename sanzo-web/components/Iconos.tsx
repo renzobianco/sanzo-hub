@@ -84,6 +84,20 @@ export const IconoInstagram = (p: P) => (
   </svg>
 );
 
+export const IconoFacebook = (p: P) => (
+  <svg viewBox="0 0 24 24" width={20} height={20} {...base} {...p}>
+    <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+    <path d="M15.5 8h-1.6c-1.2 0-1.9.7-1.9 1.9V20.5M10 12.5h5" />
+  </svg>
+);
+
+export const IconoWhatsapp = (p: P) => (
+  <svg viewBox="0 0 24 24" width={20} height={20} {...base} {...p}>
+    <path d="M4.2 19.8 5.3 16A8.2 8.2 0 1 1 8.4 19l-4.2.8Z" />
+    <path d="M9.3 8.6c-.3 1.6.9 3.6 2.4 4.9 1.4 1.2 3 1.9 4 1.5l.6-1.2-1.6-.9-.8.7c-1-.4-2-1.3-2.6-2.3l.6-.9-.8-1.7-1.2-.1c-.3 0-.5 0-.6 0Z" />
+  </svg>
+);
+
 export const IconoTiktok = (p: P) => (
   <svg viewBox="0 0 24 24" width={20} height={20} {...base} {...p}>
     <path d="M14 3.5v11.2a3.8 3.8 0 1 1-3.8-3.8" />
