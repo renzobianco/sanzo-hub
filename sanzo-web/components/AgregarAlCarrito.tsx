@@ -15,9 +15,11 @@ interface Props {
   grande?: boolean;
   /** Algo a la derecha del título de la opción (ej. link a la guía de talles). */
   extraOpcion?: React.ReactNode;
+  /** Avisa qué valor eligió (ej. para mostrar la foto de ese color). */
+  onSeleccion?: (valor: string) => void;
 }
 
-export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout, grande, extraOpcion }: Props) {
+export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout, grande, extraOpcion, onSeleccion }: Props) {
   const { agregar } = useCarrito();
   const router = useRouter();
   const [seleccion, setSeleccion] = useState<string>("");
@@ -64,6 +66,7 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
                   checked={seleccion === v}
                   onChange={() => {
                     setSeleccion(v);
+                    onSeleccion?.(v);
                     setAviso("");
                   }}
                   className="peer sr-only"
@@ -73,6 +76,13 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
                     grande ? "h-12 min-w-[3.25rem] px-4 text-sm" : "h-9 min-w-[2.5rem] px-2.5 text-[11px]"
                   }`}
                 >
+                  {opcion.colores?.[v] && (
+                    <span
+                      aria-hidden="true"
+                      className="mr-1.5 inline-block h-3 w-3 shrink-0 rounded-full ring-1 ring-tinta/20 ring-offset-1 ring-offset-transparent"
+                      style={{ backgroundColor: opcion.colores[v] }}
+                    />
+                  )}
                   {v}
                 </span>
               </label>

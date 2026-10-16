@@ -31,9 +31,12 @@ export function BotonWhatsapp() {
 
   if (!numero) return null;
 
+  // El contenedor no toma clics (si no, la tarjeta invisible tapa los botones de abajo a la derecha):
+  // solo el botón y la tarjeta abierta los reciben.
+
   return (
     <div
-      className={`fixed bottom-5 right-4 z-40 flex flex-col items-end transition-all duration-700 ease-suave md:bottom-8 md:right-8 ${
+      className={`pointer-events-none fixed bottom-5 right-4 z-40 flex flex-col items-end transition-all duration-700 ease-suave md:bottom-8 md:right-8 ${
         visible || abierto ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
       }`}
     >
@@ -43,7 +46,7 @@ export function BotonWhatsapp() {
         role="dialog"
         aria-label={titulo}
         className={`mb-3 w-[min(19rem,calc(100vw-2rem))] origin-bottom-right bg-crema p-5 shadow-[0_18px_50px_rgb(var(--tinta)/0.22)] transition-all duration-500 ease-suave ${
-          abierto ? "scale-100 opacity-100" : "pointer-events-none scale-90 opacity-0"
+          abierto ? "pointer-events-auto scale-100 opacity-100" : "pointer-events-none scale-90 opacity-0"
         }`}
         aria-hidden={!abierto}
       >
@@ -94,7 +97,7 @@ export function BotonWhatsapp() {
         aria-expanded={abierto}
         aria-controls="whatsapp-tarjeta"
         aria-label={abierto ? "Cerrar ayuda por WhatsApp" : "Escribinos por WhatsApp"}
-        className="relative flex h-14 w-14 items-center justify-center rounded-full bg-tinta text-crema shadow-[0_10px_30px_rgb(var(--tinta)/0.3)] transition-transform duration-300 ease-suave active:scale-90"
+        className={`relative flex h-14 w-14 items-center justify-center rounded-full bg-tinta text-crema ${visible || abierto ? "pointer-events-auto" : ""} shadow-[0_10px_30px_rgb(var(--tinta)/0.3)] transition-transform duration-300 ease-suave active:scale-90`}
       >
         {!abierto && <span aria-hidden="true" className="absolute inset-0 animate-ping rounded-full bg-marron/30 [animation-duration:2.6s]" />}
         <span className={`transition-transform duration-500 ease-suave ${abierto ? "rotate-90" : ""}`}>

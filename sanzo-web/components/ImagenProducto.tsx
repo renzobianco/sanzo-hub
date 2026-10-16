@@ -21,6 +21,8 @@ interface Props {
   intervalo?: number;
   /** Corrimiento para que las tarjetas vecinas no cambien todas a la vez (ms). */
   desfase?: number;
+  /** Fija una foto (ej. la del color elegido) y deja de rotar. */
+  fija?: number;
 }
 
 /**
@@ -40,6 +42,7 @@ export function ImagenProducto({
   fondo = "bg-lino",
   intervalo = 3800,
   desfase = 0,
+  fija,
 }: Props) {
   const fotos = (srcs && srcs.length > 0 ? srcs : src ? [src] : []).filter(Boolean);
   const [activa, setActiva] = useState(0);
@@ -51,6 +54,10 @@ export function ImagenProducto({
 
   useEffect(() => {
     const el = ref.current;
+    if (fija !== undefined) {
+      setActiva(Math.min(fija, fotos.length - 1));
+      return;
+    }
     if (!el || fotos.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let timer: ReturnType<typeof setInterval> | undefined;
     let arranque: ReturnType<typeof setTimeout> | undefined;
@@ -69,7 +76,7 @@ export function ImagenProducto({
       clearInterval(timer);
       clearTimeout(arranque);
     };
-  }, [fotos.length, intervalo, desfase]);
+  }, [fotos.length, intervalo, desfase, fija]);
 
   return (
     <div ref={ref} className={`img-revelar relative overflow-hidden ${fondo} ${aspecto} ${className}`}>

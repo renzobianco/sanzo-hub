@@ -95,3 +95,8 @@ Lo que definió Santi (2026-10-16):
 - Promos del carrito = lo que se ahorra frente a la base: correa+moño −4.500 · collar+bandana −4.000 · arnés+collar+poo bag −8.000.
 - [x] Kit $59.999 (Santi). Todos los precios terminan en 999: kit 59.999 · combos 26.999 / 24.499 / 24.999 · sueltos 18.999 / 12.499 / 10.499 / 9.499 / 10.499 / 10.499 · gorra y piluso 10.999. Promos: −4.499 / −3.999 / −7.998 (dejan el par en la base del Hub −1).
 - [ ] Actualizar en el Hub el precio de los sueltos si se publican estos (hoy el Hub tiene la base).
+
+## 2026-10-16 · Colores y talles
+- Arreglado: el botón flotante de WhatsApp tapaba los clics abajo a la derecha (por eso no andaba "Jade" ni otros botones de esa zona).
+- Botones de color con muestra del color (`opcion.colores`) y la foto de la tarjeta pasa al color elegido (`opcion.fotos`). Gorra: beige/celeste. Piluso: granate/jade.
+- Todo lo que tiene talle (arnés, collar, kit, combos) solo en S y M. Guía de talles con S y M (faltan las medidas).

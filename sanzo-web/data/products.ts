@@ -23,8 +23,11 @@ export interface Producto {
   envioGratis: boolean;
   linkPago: string;
   disponible: boolean;
-  /** Opción que el cliente elige al agregar (talle o color). Opcional. */
-  opcion?: { nombre: string; valores: string[] };
+  /**
+   * Opción que el cliente elige al agregar (talle o color). Opcional.
+   * colores: muestra de color de cada valor (hex). fotos: índice de `imagenes` que se muestra al elegir ese valor.
+   */
+  opcion?: { nombre: string; valores: string[]; colores?: Record<string, string>; fotos?: Record<string, number> };
   /** true → muestra el botón "Personalizar" (pieza con el nombre sobre el arnés). */
   personalizable?: boolean;
 }
@@ -41,9 +44,9 @@ export interface EstiloParche {
   texto: { x: number; y: number; ancho: number; alto: number };
 }
 
-const TALLES = ["XS", "S", "M", "L"];
-/** El arnés (y lo que lo incluye) viene solo en S y M. */
-const TALLES_ARNES = ["S", "M"];
+/** Todo lo que lleva talle (arnés, collar, kit y combos) viene solo en S y M. */
+const TALLES = ["S", "M"];
+const TALLES_ARNES = TALLES;
 
 // -----------------------------------------------------------------------------
 // Textos generales
@@ -136,10 +139,8 @@ export const personalizacion: {
 export const guiaTalles = {
   nota: "Medí a tu perro con una cinta métrica, sin ajustar de más.",
   filas: [
-    { talle: "XS", pecho: "", cuello: "" },
     { talle: "S", pecho: "", cuello: "" },
     { talle: "M", pecho: "", cuello: "" },
-    { talle: "L", pecho: "", cuello: "" },
   ],
 };
 
@@ -298,7 +299,12 @@ export const individuales: Producto[] = [
     envioGratis: false,
     linkPago: "",
     disponible: true,
-    opcion: { nombre: "Color", valores: ["Beige", "Celeste"] },
+    opcion: {
+      nombre: "Color",
+      valores: ["Beige", "Celeste"],
+      colores: { Beige: "#C9AE8B", Celeste: "#A8C3DB" },
+      fotos: { Beige: 0, Celeste: 1 },
+    },
   },
   {
     id: "piluso",
@@ -311,7 +317,12 @@ export const individuales: Producto[] = [
     envioGratis: false,
     linkPago: "",
     disponible: true,
-    opcion: { nombre: "Color", valores: ["Granate", "Jade"] },
+    opcion: {
+      nombre: "Color",
+      valores: ["Granate", "Jade"],
+      colores: { Granate: "#7B2331", Jade: "#8FBDB2" },
+      fotos: { Granate: 0, Jade: 1 },
+    },
   },
 ];
 
