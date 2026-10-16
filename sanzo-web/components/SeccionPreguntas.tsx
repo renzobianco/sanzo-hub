@@ -1,3 +1,4 @@
+import { Palabras } from "./Palabras";
 import { preguntas } from "@/data/products";
 import { IconoMas } from "./Iconos";
 import { Reveal } from "./Reveal";
@@ -8,7 +9,7 @@ export function SeccionPreguntas() {
       <div className="mx-auto max-w-3xl px-4 md:px-8">
         <Reveal className="mb-10 text-center md:mb-14">
           <h2 id="preguntas-titulo" className="titulo-seccion">
-            Preguntas frecuentes
+            <Palabras texto="Preguntas frecuentes" />
           </h2>
         </Reveal>
         <Reveal>

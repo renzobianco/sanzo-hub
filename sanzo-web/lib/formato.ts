@@ -10,9 +10,6 @@ export function formatearPrecio(monto: number) {
   return ars.format(monto);
 }
 
-export function textoPrecio(precio: number | null) {
-  return precio === null ? "Precio próximamente" : formatearPrecio(precio);
-}
 
 export function textoEnvio(envio: EstadoEnvio) {
   switch (envio.tipo) {

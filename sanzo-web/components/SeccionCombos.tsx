@@ -1,5 +1,6 @@
+import { Palabras } from "./Palabras";
 import { combos } from "@/data/products";
-import { textoPrecio } from "@/lib/formato";
+import { formatearPrecio } from "@/lib/formato";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
 import { ImagenProducto } from "./ImagenProducto";
 import { MiniPiezas } from "./MiniPiezas";
@@ -12,7 +13,7 @@ export function SeccionCombos() {
         <Reveal className="mb-10 text-center md:mb-14">
           <p className="eyebrow">Armados para combinar</p>
           <h2 id="combos-titulo" className="titulo-seccion mt-3">
-            Combos
+            <Palabras texto="Combos" />
           </h2>
         </Reveal>
       </div>
@@ -22,14 +23,14 @@ export function SeccionCombos() {
         {combos.map((c, i) => (
           <li key={c.id} className="w-[82%] shrink-0 snap-start sm:w-[60%] md:w-auto">
             <Reveal delay={i * 100} className="flex h-full flex-col bg-crema">
-              <ImagenProducto src={c.imagenes[0]} nombre={c.nombre} sizes="(min-width: 768px) 33vw, 82vw" aspecto="aspect-[5/4]" fondo="bg-topo/35" />
+              <ImagenProducto src={c.imagenes[0]} nombre={c.nombre} sizes="(min-width: 768px) 33vw, 82vw" aspecto="aspect-[4/5]" fondo="bg-topo/35" />
               <div className="flex flex-1 flex-col p-5 md:p-7">
                 <h3 className="text-xl font-light uppercase tracking-marca">{c.nombre}</h3>
                 <p className="mt-2 text-[15px] text-tinta/80">{c.descripcion}</p>
                 <div className="mt-6">
                   <MiniPiezas incluye={c.incluye} />
                 </div>
-                <p className="mt-6 text-lg font-light">{textoPrecio(c.precio)}</p>
+                {c.precio !== null && <p className="mt-6 text-lg font-light">{formatearPrecio(c.precio)}</p>}
                 <div className="mt-auto pt-5">
                   <AgregarAlCarrito producto={c} />
                 </div>

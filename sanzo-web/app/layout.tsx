@@ -8,6 +8,7 @@ import { CarritoDrawer } from "@/components/carrito/CarritoDrawer";
 import { BarraSuperior } from "@/components/BarraSuperior";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { BotonWhatsapp } from "@/components/BotonWhatsapp";
 
 const jost = Jost({ subsets: ["latin"], variable: "--font-jost", display: "swap" });
 
@@ -59,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Header hayLogo={hayLogo} />
           <main id="contenido">{children}</main>
           <Footer hayLogo={hayLogo} />
+          <BotonWhatsapp />
           <CarritoDrawer />
         </CarritoProvider>
       </body>

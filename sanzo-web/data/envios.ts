@@ -62,6 +62,8 @@ export const zonas: ZonaEnvio[] = [
 export const envioInfo = {
   correo: "Correo Argentino",
   texto: "Enviamos a todo el país por Correo Argentino. Elegí entrega a domicilio o retiro en sucursal.",
+  /** Envío gratis para pedidos desde este monto (en pesos). null → solo el kit viaja gratis. */
+  gratisDesde: null as number | null,
 };
 
 const ZONA_2: string[] = ["Buenos Aires", "Córdoba", "Santa Fe", "Entre Ríos", "La Pampa"];

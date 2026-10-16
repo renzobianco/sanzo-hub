@@ -97,3 +97,45 @@ export const IconoMail = (p: P) => (
     <path d="m4 7 8 6 8-6" />
   </svg>
 );
+
+/** Cambio de talle: flechas que van y vuelven. */
+export const IconoCambio = (p: P) => (
+  <svg viewBox="0 0 48 48" width={44} height={44} {...base} {...p}>
+    <path d="M10 18h26l-6-6M38 30H12l6 6" />
+  </svg>
+);
+
+/** Cuotas: tarjeta. */
+export const IconoCuotas = (p: P) => (
+  <svg viewBox="0 0 48 48" width={44} height={44} {...base} {...p}>
+    <rect x="7" y="13" width="34" height="22" rx="3" />
+    <path d="M7 20h34M13 29h8" />
+  </svg>
+);
+
+export const IconoPlay = (p: P) => (
+  <svg viewBox="0 0 24 24" width={22} height={22} {...base} {...p}>
+    <path d="M8 5.5v13l10.5-6.5L8 5.5Z" />
+  </svg>
+);
+
+/** Garantía: escudo con tilde. */
+export const IconoGarantia = (p: P) => (
+  <svg viewBox="0 0 48 48" width={44} height={44} {...base} {...p}>
+    <path d="M24 7l14 5v10c0 9-6 16-14 19-8-3-14-10-14-19V12l14-5Z" />
+    <path d="M18 24l4.5 4.5L31 20" />
+  </svg>
+);
+
+export const IconoWhatsapp = (p: P) => (
+  <svg viewBox="0 0 24 24" width={26} height={26} {...base} {...p}>
+    <path d="M4 20l1.2-4A8 8 0 1 1 8.3 19L4 20Z" />
+    <path d="M9 8.8c0 3.3 2.9 6.2 6.2 6.2l1.1-1.4-1.9-1-0.9 0.8a4.4 4.4 0 0 1-2.9-2.9l0.8-0.9-1-1.9L9 8.8Z" />
+  </svg>
+);
+
+export const IconoX = (p: P) => (
+  <svg viewBox="0 0 24 24" width={18} height={18} {...base} {...p}>
+    <path d="M5 4.5h4l10 15h-4L5 4.5ZM18.5 4.5l-5.6 6.4M5.5 19.5l5.6-6.4" />
+  </svg>
+);

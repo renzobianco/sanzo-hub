@@ -1,5 +1,6 @@
 import { getProducto, type Producto } from "@/data/products";
-import { zonaPorProvincia, type ZonaEnvio } from "@/data/envios";
+import { envioInfo, zonaPorProvincia, type ZonaEnvio } from "@/data/envios";
+import { calcularPromos, type DescuentoAplicado, type Sugerencia } from "./promos";
 
 export interface LineaCarrito {
   key: string;
@@ -30,10 +31,17 @@ export interface Totales {
   lineas: LineaResuelta[];
   unidades: number;
   subtotal: number;
+  /** Promos completadas (se restan del subtotal). */
+  descuentos: DescuentoAplicado[];
+  ahorro: number;
+  /** Piezas que le faltan al carrito para completar una promo. */
+  sugerencias: Sugerencia[];
   envio: EstadoEnvio;
-  /** Total con envío; si el envío no tiene precio, es igual al subtotal. */
+  /** Total con promos y envío; si el envío no tiene precio, no lo suma. */
   total: number;
   contieneKit: boolean;
+  /** Cuánto falta para el envío gratis por monto (null si no aplica). */
+  faltaParaGratis: number | null;
 }
 
 export const MAX_CANTIDAD = 10;
@@ -55,15 +63,30 @@ export function resolverLineas(lineas: LineaCarrito[]): LineaResuelta[] {
   return out;
 }
 
-/** Regla: si el carrito tiene un producto con envío gratis (el kit), el envío es $0 para todo el pedido. */
+/**
+ * Reglas:
+ * - Promos (data/products.ts → promos): se descuentan solas cuando el carrito las completa.
+ * - Envío: si el carrito tiene un producto con envío gratis (el kit), o lo que se paga por los
+ *   productos llega a `envioInfo.gratisDesde`, el envío es $0 para todo el pedido.
+ */
 export function calcularTotales(lineas: LineaCarrito[], ubicacion: Ubicacion): Totales {
   const resueltas = resolverLineas(lineas);
   const subtotal = resueltas.reduce((s, l) => s + l.subtotal, 0);
   const unidades = resueltas.reduce((s, l) => s + l.cantidad, 0);
   const contieneKit = resueltas.some((l) => l.producto.envioGratis);
 
+  const porProducto: Record<string, number> = {};
+  for (const l of resueltas) porProducto[l.productoId] = (porProducto[l.productoId] ?? 0) + l.cantidad;
+  const { descuentos, sugerencias } = calcularPromos(porProducto);
+  const ahorro = descuentos.reduce((s, d) => s + d.monto, 0);
+  const productos = subtotal - ahorro;
+
   let envio: EstadoEnvio;
-  if (contieneKit) {
+  const umbral = envioInfo.gratisDesde;
+  const llegaAlMonto = umbral !== null && productos >= umbral;
+  const faltaParaGratis = umbral !== null && !contieneKit && !llegaAlMonto && productos > 0 ? umbral - productos : null;
+
+  if (contieneKit || llegaAlMonto) {
     envio = { tipo: "gratis" };
   } else {
     const zona = zonaPorProvincia(ubicacion.provincia, ubicacion.enGBA);
@@ -72,6 +95,6 @@ export function calcularTotales(lineas: LineaCarrito[], ubicacion: Ubicacion): T
     else envio = { tipo: "precio", zona, monto: zona.precio };
   }
 
-  const total = subtotal + (envio.tipo === "precio" ? envio.monto : 0);
-  return { lineas: resueltas, unidades, subtotal, envio, total, contieneKit };
+  const total = productos + (envio.tipo === "precio" ? envio.monto : 0);
+  return { lineas: resueltas, unidades, subtotal, descuentos, ahorro, sugerencias, envio, total, contieneKit, faltaParaGratis };
 }

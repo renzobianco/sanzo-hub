@@ -1,9 +1,9 @@
 import { sitio } from "@/data/products";
-import { IconoInstagram, IconoMail, IconoTiktok } from "./Iconos";
+import { IconoInstagram, IconoMail, IconoTiktok, IconoX } from "./Iconos";
 import { Logo } from "./Logo";
 
 export function Footer({ hayLogo }: { hayLogo: boolean }) {
-  const { instagram, tiktok } = sitio.redes;
+  const { instagram, tiktok, x } = sitio.redes;
   return (
     <footer className="bg-crema">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-8 px-4 py-16 text-center md:flex-row md:justify-between md:px-8 md:text-left">
@@ -20,6 +20,13 @@ export function Footer({ hayLogo }: { hayLogo: boolean }) {
             <li>
               <a href={tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok de sanzo" className="hover:text-marron">
                 <IconoTiktok />
+              </a>
+            </li>
+          )}
+          {x && (
+            <li>
+              <a href={x} target="_blank" rel="noopener noreferrer" aria-label="X de sanzo" className="hover:text-marron">
+                <IconoX />
               </a>
             </li>
           )}

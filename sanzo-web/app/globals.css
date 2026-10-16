@@ -9,6 +9,8 @@
   --crema: 244 237 227; /* #F4EDE3 */
   --lino: 232 220 203; /* #E8DCCB */
   --tinta: 37 29 22; /* #251D16 */
+  /* Curva de movimiento: arranca rápido y frena largo (tipo Apple). */
+  --suave: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @layer base {
@@ -43,8 +45,9 @@
   .eyebrow {
     @apply text-[11px] font-normal uppercase tracking-amplio text-tinta/70;
   }
+  /* Tacto de botón de iPhone: se hunde apenas al tocarlo. */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-[13px] font-normal uppercase tracking-marca transition-colors duration-300 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-[13px] font-normal uppercase tracking-marca transition-[color,background-color,border-color,transform] duration-300 ease-suave active:scale-[0.97] disabled:cursor-not-allowed disabled:active:scale-100;
   }
   .btn-primario {
     @apply btn bg-tinta text-crema hover:bg-marron disabled:bg-tinta/30 disabled:text-crema/90;
@@ -66,27 +69,83 @@
   }
 }
 
-/* Aparición al scrollear: solo si hay JS (la clase la pone un script en <head>). */
+/* ---------------------------------------------------------------------------
+   Movimiento estilo Apple. Todo solo con JS (clase .js en <html>) y apagado con
+   prefers-reduced-motion. Curva común: arranca rápido y frena largo.
+   --------------------------------------------------------------------------- */
+
+/* Aparición al scrollear: sube, se enfoca y se agranda apenas. */
 .js .reveal {
   opacity: 0;
-  transform: translateY(18px);
+  transform: translateY(28px) scale(0.985);
+  filter: blur(6px);
   transition:
-    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 1.1s var(--suave),
+    transform 1.1s var(--suave),
+    filter 1.1s var(--suave);
 }
 .js .reveal.is-visible {
   opacity: 1;
   transform: none;
+  filter: none;
+}
+
+/* Títulos: cada palabra sube desde atrás de una máscara. */
+.palabra {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.palabra > span {
+  display: inline-block;
+}
+.js .reveal .palabra > span {
+  transform: translateY(110%);
+  transition: transform 1s var(--suave);
+}
+.js .reveal.is-visible .palabra > span {
+  transform: none;
+}
+
+/* Fotos dentro de un Reveal: se destapan como un telón y la foto se acomoda. */
+.js .reveal .img-revelar {
+  clip-path: inset(10% 6% 0 6%);
+  transition: clip-path 1.4s var(--suave);
+}
+.js .reveal .img-revelar img {
+  transform: scale(1.14);
+  transition:
+    transform 1.8s var(--suave),
+    opacity 0.7s ease,
+    filter 0.7s ease;
+}
+.js .reveal.is-visible .img-revelar {
+  clip-path: inset(0 0 0 0);
+}
+.js .reveal.is-visible .img-revelar img {
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .js .reveal {
+  .js .reveal,
+  .js .reveal .palabra > span,
+  .js .reveal .img-revelar,
+  .js .reveal .img-revelar img {
     opacity: 1;
     transform: none;
+    filter: none;
+    clip-path: none;
     transition: none;
   }
   .animate-entrada,
-  .animate-giro {
+  .animate-subir,
+  .animate-balanceo,
+  .animate-zoom-lento,
+  .animate-cinta,
+  .animate-bajar,
+  .animate-ping {
     animation: none !important;
   }
   *,

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useCarrito } from "./CarritoProvider";
 import { SelectorZona } from "./SelectorZona";
+import { SugerenciasPromo } from "./SugerenciasPromo";
 import { ImagenProducto } from "../ImagenProducto";
 import { IconoCerrar, IconoMas, IconoMenos } from "../Iconos";
 import { formatearPrecio, textoEnvio } from "@/lib/formato";
@@ -12,7 +13,7 @@ import { MAX_CANTIDAD } from "@/lib/carrito";
 export function CarritoDrawer() {
   const { abierto, cerrar, totales, cambiarCantidad, quitar } = useCarrito();
   const botonCerrar = useRef<HTMLButtonElement>(null);
-  const { lineas, subtotal, envio, total } = totales;
+  const { lineas, subtotal, descuentos, envio, total, contieneKit, faltaParaGratis } = totales;
 
   useEffect(() => {
     if (!abierto) return;
@@ -62,7 +63,8 @@ export function CarritoDrawer() {
           </div>
         ) : (
           <>
-            <ul className="flex-1 divide-y divide-tinta/10 overflow-y-auto px-5">
+            <div className="flex-1 overflow-y-auto px-5">
+            <ul className="divide-y divide-tinta/10">
               {lineas.map((l) => (
                 <li key={l.key} className="flex gap-4 py-5">
                   <ImagenProducto
@@ -119,18 +121,33 @@ export function CarritoDrawer() {
                 </li>
               ))}
             </ul>
+            <SugerenciasPromo />
+            </div>
 
             <div className="space-y-4 border-t border-tinta/10 bg-lino/50 px-5 pb-6 pt-5">
+              {faltaParaGratis !== null && (
+                <p className="text-sm text-marron">
+                  Te faltan {formatearPrecio(faltaParaGratis)} para el envío gratis.
+                </p>
+              )}
               {envio.tipo !== "gratis" && <SelectorZona />}
               <dl className="space-y-2 text-[15px]">
                 <div className="flex justify-between">
                   <dt>Subtotal</dt>
                   <dd>{formatearPrecio(subtotal)}</dd>
                 </div>
+                {descuentos.map((d) => (
+                  <div key={d.promoId} className="flex justify-between text-marron">
+                    <dt>{d.texto}</dt>
+                    <dd>− {formatearPrecio(d.monto)}</dd>
+                  </div>
+                ))}
                 <div className="flex justify-between">
                   <dt>
                     Envío
-                    {envio.tipo === "gratis" && <span className="text-tinta/70"> · con el kit completo</span>}
+                    {envio.tipo === "gratis" && (
+                      <span className="text-tinta/70"> · {contieneKit ? "con el kit completo" : "por monto"}</span>
+                    )}
                     {(envio.tipo === "precio" || envio.tipo === "cotizar") && (
                       <span className="text-tinta/70"> · {envio.zona.nombre}</span>
                     )}

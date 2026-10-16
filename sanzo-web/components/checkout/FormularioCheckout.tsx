@@ -129,7 +129,7 @@ export function FormularioCheckout() {
     );
   }
 
-  const { lineas, subtotal, envio, total } = totales;
+  const { lineas, subtotal, descuentos, envio, total } = totales;
 
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-12 md:grid-cols-[1fr_380px] md:gap-16">
@@ -383,13 +383,19 @@ export function FormularioCheckout() {
             <dt>Subtotal</dt>
             <dd>{formatearPrecio(subtotal)}</dd>
           </div>
+          {descuentos.map((d) => (
+            <div key={d.promoId} className="flex justify-between text-marron">
+              <dt>{d.texto}</dt>
+              <dd>− {formatearPrecio(d.monto)}</dd>
+            </div>
+          ))}
           <div className="flex justify-between gap-4">
             <dt>
               Envío
               {(envio.tipo === "precio" || envio.tipo === "cotizar") && (
                 <span className="block text-xs text-tinta/70">{envio.zona.nombre}</span>
               )}
-              {envio.tipo === "gratis" && <span className="block text-xs text-tinta/70">Incluido con el kit completo</span>}
+              {envio.tipo === "gratis" && <span className="block text-xs text-tinta/70">{totales.contieneKit ? "Incluido con el kit completo" : "Por el monto de tu pedido"}</span>}
             </dt>
             <dd className={envio.tipo === "gratis" ? "text-marron" : ""}>{textoEnvio(envio)}</dd>
           </div>

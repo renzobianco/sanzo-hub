@@ -86,6 +86,7 @@ function armarMail(numero: string, c: DatosCheckout, t: Totales) {
         )
         .join("")}
       <tr><td colspan="3" align="right" ${td}>Subtotal</td><td align="right" ${td}>${formatearPrecio(t.subtotal)}</td></tr>
+      ${t.descuentos.map((d) => `<tr><td colspan="3" align="right" ${td}>Promo: ${esc(d.texto)}</td><td align="right" ${td}>− ${formatearPrecio(d.monto)}</td></tr>`).join("")}
       <tr><td colspan="3" align="right" ${td}>Envío</td><td align="right" ${td}>${esc(envio)}</td></tr>
       <tr><td colspan="3" align="right" ${td}><b>Total</b></td><td align="right" ${td}><b>${formatearPrecio(t.total)}${
         t.envio.tipo === "cotizar" ? " + envío" : ""
@@ -100,6 +101,7 @@ function armarMail(numero: string, c: DatosCheckout, t: Totales) {
     "",
     ...items.map((i) => `${i.cantidad} x ${i.nombre} — ${i.subtotal}`),
     `Subtotal: ${formatearPrecio(t.subtotal)}`,
+    ...t.descuentos.map((d) => `Promo ${d.texto}: − ${formatearPrecio(d.monto)}`),
     `Envío: ${envio}`,
     `Total: ${formatearPrecio(t.total)}${t.envio.tipo === "cotizar" ? " + envío" : ""}`,
   ].join("\n");

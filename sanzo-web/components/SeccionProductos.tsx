@@ -1,5 +1,6 @@
+import { Palabras } from "./Palabras";
 import { individuales } from "@/data/products";
-import { textoPrecio } from "@/lib/formato";
+import { formatearPrecio } from "@/lib/formato";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
 import { ImagenProducto } from "./ImagenProducto";
 import { Reveal } from "./Reveal";
@@ -11,7 +12,7 @@ export function SeccionProductos() {
         <Reveal className="mb-10 text-center md:mb-14">
           <p className="eyebrow">Pieza por pieza</p>
           <h2 id="productos-titulo" className="titulo-seccion mt-3">
-            Productos
+            <Palabras texto="Productos" />
           </h2>
         </Reveal>
 
@@ -27,7 +28,7 @@ export function SeccionProductos() {
                 />
                 <div className="mt-4 flex flex-1 flex-col">
                   <h3 className="text-[15px] uppercase tracking-[0.16em]">{p.nombre}</h3>
-                  <p className="mt-1 text-sm text-tinta/75">{textoPrecio(p.precio)}</p>
+                  {p.precio !== null && <p className="mt-1 text-sm text-tinta/75">{formatearPrecio(p.precio)}</p>}
                   <div className="mt-auto pt-4">
                     <AgregarAlCarrito producto={p} />
                   </div>

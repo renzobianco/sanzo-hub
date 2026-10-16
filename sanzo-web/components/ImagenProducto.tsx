@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
 
 interface Props {
   src?: string;
@@ -16,7 +19,10 @@ interface Props {
   fondo?: string;
 }
 
-/** Foto del producto con next/image, o placeholder elegante en lino con el nombre centrado. */
+/**
+ * Foto del producto con next/image: aparece con un fundido suave al cargar y, dentro de un
+ * <Reveal>, se "destapa" al entrar en pantalla. Si no hay foto o falla, placeholder con el nombre.
+ */
 export function ImagenProducto({
   src,
   srcHover,
@@ -28,9 +34,12 @@ export function ImagenProducto({
   tamTexto = "text-sm md:text-base",
   fondo = "bg-lino",
 }: Props) {
+  const [cargada, setCargada] = useState(false);
+  const [fallo, setFallo] = useState(false);
+
   return (
-    <div className={`relative overflow-hidden ${fondo} ${aspecto} ${className}`}>
-      {src ? (
+    <div className={`img-revelar relative overflow-hidden ${fondo} ${aspecto} ${className}`}>
+      {src && !fallo ? (
         <>
           <Image
             src={src}
@@ -38,7 +47,11 @@ export function ImagenProducto({
             fill
             sizes={sizes}
             priority={priority}
-            className={`object-cover transition-opacity duration-700 ${srcHover ? "group-hover:opacity-0" : ""}`}
+            onLoad={() => setCargada(true)}
+            onError={() => setFallo(true)}
+            className={`object-cover transition-[opacity,filter] duration-700 ${cargada ? "opacity-100 blur-0" : "opacity-0 blur-md"} ${
+              srcHover ? "group-hover:opacity-0" : ""
+            }`}
           />
           {srcHover && (
             <Image

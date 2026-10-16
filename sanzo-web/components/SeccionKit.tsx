@@ -1,11 +1,11 @@
+import { Palabras } from "./Palabras";
 import { contadorKits, kit, sitio } from "@/data/products";
-import { textoPrecio } from "@/lib/formato";
+import { formatearPrecio } from "@/lib/formato";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
 import { GuiaTalles } from "./GuiaTalles";
 import { KitGaleria } from "./KitGaleria";
 import { MiniPiezas } from "./MiniPiezas";
 import { Reveal } from "./Reveal";
-import { SelloEnvioGratis } from "./SelloEnvioGratis";
 
 export function SeccionKit() {
   const { restantes, total } = contadorKits;
@@ -20,16 +20,14 @@ export function SeccionKit() {
 
         <Reveal delay={120} className="flex flex-col md:pt-6">
           <p className="eyebrow">El protagonista</p>
-          <div className="mt-3 flex items-center justify-between gap-4">
+          <div className="mt-3">
             <h2 id="kit-titulo" className="text-3xl font-light uppercase leading-tight tracking-marca md:text-5xl">
-              {kit.nombre}
+              <Palabras texto={kit.nombre} />
             </h2>
-            {kit.envioGratis && <SelloEnvioGratis id="kit" tam={112} className="md:hidden" />}
-            {kit.envioGratis && <SelloEnvioGratis id="kit-desk" tam={136} className="hidden md:block" />}
           </div>
 
           <p className="mt-6 max-w-md text-lg font-light leading-relaxed text-tinta/85">{sitio.kit.bajada}</p>
-          <p className="mt-6 text-2xl font-light tracking-wide">{textoPrecio(kit.precio)}</p>
+          {kit.precio !== null && <p className="mt-6 text-2xl font-light tracking-wide">{formatearPrecio(kit.precio)}</p>}
 
           <div className="mt-10">
             <p className="eyebrow mb-4">Incluye {kit.incluye.length} piezas</p>
