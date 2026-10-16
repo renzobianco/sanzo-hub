@@ -25,7 +25,12 @@ export interface Producto {
   disponible: boolean;
   /** Opción que el cliente elige al agregar (talle o color). Opcional. */
   opcion?: { nombre: string; valores: string[] };
+  /** true → muestra el botón "Personalizar" (pieza con el nombre sobre el arnés). */
+  personalizable?: boolean;
 }
+
+/** Formas de la pieza grabada. Los dibujos están en components/personalizar/PiezaGrabada.tsx. */
+export type FormaPieza = "hueso" | "corazon" | "placa";
 
 const TALLES = ["XS", "S", "M", "L"];
 
@@ -63,6 +68,39 @@ export const contadorKits: { restantes: number | null; total: number } = {
 };
 
 // -----------------------------------------------------------------------------
+// Personalización: pieza recortada con el nombre del perro (y su teléfono, si
+// quieren) que va sobre el arnés. Se activa por producto con `personalizable: true`.
+// -----------------------------------------------------------------------------
+export const personalizacion: {
+  boton: string;
+  titulo: string;
+  bajada: string;
+  imagenArnes: string;
+  posicion: { x: number; y: number; ancho: number };
+  precioExtra: number;
+  maxNombre: number;
+  estilos: { id: FormaPieza; nombre: string }[];
+} = {
+  boton: "Personalizar",
+  titulo: "Hacelo suyo",
+  bajada: "Elegí la forma y poné su nombre.",
+  /** Foto del arnés de frente, ej. "/productos/arnes/frente.png". Vacío → dibujo de referencia. */
+  imagenArnes: "",
+  /** Dónde va la pieza sobre la foto, en % de la imagen: centro (x, y) y ancho. Ajustalo cuando cargues la foto. */
+  posicion: { x: 50, y: 66, ancho: 38 },
+  /** Lo que suma la personalización al precio de cada unidad. 0 = sin costo extra. */
+  precioExtra: 0,
+  /** Máximo de letras del nombre. */
+  maxNombre: 12,
+  /** Los 3 estilos, en el orden en que se muestran. */
+  estilos: [
+    { id: "hueso", nombre: "Hueso" },
+    { id: "corazon", nombre: "Corazón" },
+    { id: "placa", nombre: "Placa" },
+  ],
+};
+
+// -----------------------------------------------------------------------------
 // Guía de talles (modal). Completá las medidas; vacío se muestra como "—".
 // -----------------------------------------------------------------------------
 export const guiaTalles = {
@@ -90,6 +128,7 @@ export const kit: Producto = {
   linkPago: "",
   disponible: true,
   opcion: { nombre: "Talle", valores: TALLES },
+  personalizable: true,
 };
 
 // -----------------------------------------------------------------------------
@@ -134,6 +173,7 @@ export const combos: Producto[] = [
     linkPago: "",
     disponible: true,
     opcion: { nombre: "Talle", valores: TALLES },
+    personalizable: true,
   },
 ];
 
@@ -153,6 +193,7 @@ export const individuales: Producto[] = [
     linkPago: "",
     disponible: true,
     opcion: { nombre: "Talle", valores: TALLES },
+    personalizable: true,
   },
   {
     id: "correa",

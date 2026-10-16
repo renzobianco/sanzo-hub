@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PROVINCIAS } from "@/data/envios";
 import { formatearPrecio, textoEnvio } from "@/lib/formato";
 import { CLAVE_ULTIMO_PEDIDO, type PedidoEntrada, type PedidoRespuesta } from "@/lib/pedido";
+import { textoPersonalizacion } from "@/lib/personalizacion";
 import { datosVacios, validarCheckout, type DatosCheckout } from "@/lib/validacion";
 import { useCarrito } from "../carrito/CarritoProvider";
 import { ImagenProducto } from "../ImagenProducto";
@@ -81,7 +82,12 @@ export function FormularioCheckout() {
     setEnviando(true);
     const payload: PedidoEntrada = {
       cliente: d,
-      lineas: totales.lineas.map((l) => ({ productoId: l.productoId, opcion: l.opcion, cantidad: l.cantidad })),
+      lineas: totales.lineas.map((l) => ({
+        productoId: l.productoId,
+        opcion: l.opcion,
+        personalizacion: l.personalizacion,
+        cantidad: l.cantidad,
+      })),
       empresa,
     };
     try {
@@ -373,6 +379,9 @@ export function FormularioCheckout() {
                   {l.opcion && l.producto.opcion ? `${l.producto.opcion.nombre} ${l.opcion} · ` : ""}
                   {l.cantidad} u.
                 </p>
+                {l.personalizacion && (
+                  <p className="text-sm text-marron">{textoPersonalizacion(l.personalizacion)}</p>
+                )}
               </div>
               <p className="text-[15px]">{formatearPrecio(l.subtotal)}</p>
             </li>

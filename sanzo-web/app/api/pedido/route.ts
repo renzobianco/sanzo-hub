@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { calcularTotales, type LineaCarrito, type Totales } from "@/lib/carrito";
 import { formatearPrecio, textoEnvio } from "@/lib/formato";
 import type { PedidoEntrada, PedidoRespuesta } from "@/lib/pedido";
+import { textoPersonalizacion, type Personalizacion } from "@/lib/personalizacion";
 import { validarCheckout, type DatosCheckout } from "@/lib/validacion";
 
 export const runtime = "nodejs";
@@ -17,6 +18,17 @@ function esc(s: string) {
 
 function str(v: unknown, max = 300) {
   return typeof v === "string" ? v.slice(0, max) : "";
+}
+
+/** Solo recorta y tipa; la validación real la hace resolverLineas (descarta la línea si no es válida). */
+function limpiarPersonalizacion(p: unknown): Personalizacion | undefined {
+  if (!p || typeof p !== "object") return undefined;
+  const o = p as Record<string, unknown>;
+  return {
+    estilo: str(o.estilo, 20) as Personalizacion["estilo"],
+    nombre: str(o.nombre, 40),
+    telefono: typeof o.telefono === "string" ? str(o.telefono, 30) : undefined,
+  };
 }
 
 function limpiarCliente(c: Partial<DatosCheckout> | undefined): DatosCheckout {
@@ -64,9 +76,12 @@ function armarMail(numero: string, c: DatosCheckout, t: Totales) {
   ];
 
   const items = t.lineas.map((l) => ({
-    nombre: l.producto.nombre + (l.opcion && l.producto.opcion ? ` (${l.producto.opcion.nombre} ${l.opcion})` : ""),
+    nombre:
+      l.producto.nombre +
+      (l.opcion && l.producto.opcion ? ` (${l.producto.opcion.nombre} ${l.opcion})` : "") +
+      (l.personalizacion ? ` — PERSONALIZADO: ${textoPersonalizacion(l.personalizacion)}` : ""),
     cantidad: l.cantidad,
-    unitario: formatearPrecio(l.producto.precio ?? 0),
+    unitario: formatearPrecio(l.unitario),
     subtotal: formatearPrecio(l.subtotal),
   }));
 
@@ -128,6 +143,7 @@ export async function POST(req: Request) {
     key: "",
     productoId: str(l?.productoId, 60),
     opcion: str(l?.opcion, 30) || undefined,
+    personalizacion: limpiarPersonalizacion(l?.personalizacion),
     cantidad: Number(l?.cantidad) || 1,
   }));
 
@@ -180,7 +196,10 @@ export async function POST(req: Request) {
   // Eso permite cobrar cualquier carrito y no solo un producto suelto.
   const unica = totales.lineas.length === 1 && totales.lineas[0].cantidad === 1 ? totales.lineas[0] : null;
   const sinEnvioACobrar = totales.envio.tipo === "gratis" || (totales.envio.tipo === "precio" && totales.envio.monto === 0);
-  const redirigirA = unica && unica.producto.linkPago && sinEnvioACobrar ? unica.producto.linkPago : undefined;
+  // El link de MP tiene el precio del producto solo: si la personalización suma, le escribimos con el link.
+  const precioFijo = unica !== null && unica.unitario === unica.producto.precio;
+  const redirigirA =
+    unica && precioFijo && unica.producto.linkPago && sinEnvioACobrar ? unica.producto.linkPago : undefined;
 
   return NextResponse.json<PedidoRespuesta>({ ok: true, numero, redirigirA });
 }

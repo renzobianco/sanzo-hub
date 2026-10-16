@@ -8,6 +8,7 @@ import { ImagenProducto } from "../ImagenProducto";
 import { IconoCerrar, IconoMas, IconoMenos } from "../Iconos";
 import { formatearPrecio, textoEnvio } from "@/lib/formato";
 import { MAX_CANTIDAD } from "@/lib/carrito";
+import { textoPersonalizacion } from "@/lib/personalizacion";
 
 export function CarritoDrawer() {
   const { abierto, cerrar, totales, cambiarCantidad, quitar } = useCarrito();
@@ -80,6 +81,9 @@ export function CarritoDrawer() {
                           <p className="text-sm text-tinta/70">
                             {l.producto.opcion.nombre} {l.opcion}
                           </p>
+                        )}
+                        {l.personalizacion && (
+                          <p className="text-sm text-marron">{textoPersonalizacion(l.personalizacion)}</p>
                         )}
                       </div>
                       <p className="whitespace-nowrap text-[15px]">{formatearPrecio(l.subtotal)}</p>

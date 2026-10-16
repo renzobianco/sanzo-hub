@@ -1,11 +1,14 @@
-import { getProducto, type Producto } from "@/data/products";
+import { getProducto, personalizacion as configPersonalizacion, type Producto } from "@/data/products";
 import { zonaPorProvincia, type ZonaEnvio } from "@/data/envios";
+import { clavePersonalizacion, normalizarPersonalizacion, type Personalizacion } from "./personalizacion";
 
 export interface LineaCarrito {
   key: string;
   productoId: string;
   /** Valor de la opción elegida (talle o color), si aplica. */
   opcion?: string;
+  /** Pieza con el nombre del perro, si la personalizó. */
+  personalizacion?: Personalizacion;
   cantidad: number;
 }
 
@@ -23,6 +26,8 @@ export type EstadoEnvio =
 
 export interface LineaResuelta extends LineaCarrito {
   producto: Producto;
+  /** Precio por unidad, con la personalización incluida. */
+  unitario: number;
   subtotal: number;
 }
 
@@ -38,8 +43,9 @@ export interface Totales {
 
 export const MAX_CANTIDAD = 10;
 
-export function claveLinea(productoId: string, opcion?: string) {
-  return opcion ? `${productoId}__${opcion}` : productoId;
+export function claveLinea(productoId: string, opcion?: string, personalizacion?: Personalizacion) {
+  const base = opcion ? `${productoId}__${opcion}` : productoId;
+  return personalizacion ? `${base}__${clavePersonalizacion(personalizacion)}` : base;
 }
 
 /** Descarta líneas de productos que ya no existen o no se pueden comprar. */
@@ -49,8 +55,12 @@ export function resolverLineas(lineas: LineaCarrito[]): LineaResuelta[] {
     const producto = getProducto(l.productoId);
     if (!producto || producto.precio === null || !producto.disponible) continue;
     if (producto.opcion && (!l.opcion || !producto.opcion.valores.includes(l.opcion))) continue;
+    // Personalización que ya no es válida (ej. se sacó un estilo): mejor no vender algo distinto a lo pedido.
+    const personalizacion = l.personalizacion ? normalizarPersonalizacion(producto, l.personalizacion) : undefined;
+    if (personalizacion === null) continue;
     const cantidad = Math.min(MAX_CANTIDAD, Math.max(1, Math.floor(l.cantidad) || 1));
-    out.push({ ...l, cantidad, producto, subtotal: producto.precio * cantidad });
+    const unitario = producto.precio + (personalizacion ? configPersonalizacion.precioExtra : 0);
+    out.push({ ...l, personalizacion, cantidad, producto, unitario, subtotal: unitario * cantidad });
   }
   return out;
 }
