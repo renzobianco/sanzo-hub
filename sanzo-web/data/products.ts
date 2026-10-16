@@ -420,9 +420,32 @@ export const clientes = {
 };
 
 // -----------------------------------------------------------------------------
+// Legales (Argentina). Obligatorios en tiendas online:
+// - Botón de arrepentimiento (Res. 424/2020): link visible en la home → /arrepentimiento.
+// - Link a Defensa de las y los Consumidores (Res. 38/2017).
+// -----------------------------------------------------------------------------
+export const legal = {
+  arrepentimiento: {
+    boton: "Botón de arrepentimiento",
+    titulo: "Botón de arrepentimiento",
+    texto:
+      "Tenés 10 días corridos desde que recibiste tu pedido para arrepentirte de la compra, sin dar explicaciones y sin costo. Completá el formulario y te respondemos para coordinar la devolución y el reintegro.",
+    listo: "Recibimos tu pedido de arrepentimiento. Guardá este código de trámite:",
+  },
+  defensaConsumidor: {
+    texto: "Defensa de las y los Consumidores. Para reclamos ingresá acá",
+    url: "https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario",
+  },
+};
+
+// -----------------------------------------------------------------------------
 // Preguntas frecuentes (placeholders: revisalas antes de publicar)
 // -----------------------------------------------------------------------------
 export const preguntas: { pregunta: string; respuesta: string }[] = [
+  {
+    pregunta: "¿Me puedo arrepentir de la compra?",
+    respuesta: "Sí. Tenés 10 días corridos desde que lo recibís. Usá el botón de arrepentimiento al pie de la página y lo coordinamos.",
+  },
   {
     pregunta: "¿Tienen garantía?",
     respuesta: "Sí, un año. Si algo falla, escribinos y lo resolvemos.",

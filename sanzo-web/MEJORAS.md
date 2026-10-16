@@ -80,7 +80,8 @@ Lo que definió Santi (2026-10-16):
 - Más vida: header que se esconde al bajar y vuelve al subir, bolsa que salta al agregar, subrayado animado en el menú, tira de fotos "Salen con sanzo" que se mueve sola, piezas del kit que aparecen una por una.
 
 ### Falta
-- [ ] Precios reales (reemplazar los provisorios).
+- [x] Precios reales (regla de combos, terminados en 999).
+- [x] Legales: botón de arrepentimiento (/arrepentimiento, con código de trámite y mail) y link a Defensa del Consumidor en el footer (2026-10-16).
 - [ ] Videos de clientes → `clientes.videos[].video`.
 - [ ] Foto linda de la correa sola (estilo "artículo").
 
