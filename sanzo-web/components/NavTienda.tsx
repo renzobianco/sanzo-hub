@@ -40,11 +40,7 @@ export function NavTienda() {
   }, [activa]);
 
   return (
-    <nav aria-label="Tienda" className="sticky top-0 z-30 border-b border-tinta/10 bg-crema/95">
-      {/* Línea marrón con brillo tipo neón: marca la frontera entre el principio y la tienda. */}
-      <div aria-hidden="true" className="relative z-10 h-[3px] bg-marron shadow-[0_0_8px_1px_rgb(var(--marron)/0.9),0_0_22px_4px_rgb(var(--marron)/0.45)]">
-        <span className="absolute inset-0 overflow-hidden"><span className="absolute inset-y-0 left-0 w-1/4 animate-brillo bg-gradient-to-r from-transparent via-crema/80 to-transparent motion-reduce:hidden" /></span>
-      </div>
+    <nav aria-label="Tienda" className="sticky top-0 z-30 bg-crema/95">
       <div className="relative mx-auto flex w-max max-w-full gap-0.5 px-2 py-2.5">
         {pildora && (
           <span
@@ -68,6 +64,10 @@ export function NavTienda() {
             {s.label}
           </a>
         ))}
+      </div>
+      {/* Línea marrón con brillo tipo neón: marca la frontera entre el principio y la tienda. */}
+      <div aria-hidden="true" className="relative z-10 h-[3px] bg-marron shadow-[0_0_8px_1px_rgb(var(--marron)/0.9),0_0_22px_4px_rgb(var(--marron)/0.45)]">
+        <span className="absolute inset-0 overflow-hidden"><span className="absolute inset-y-0 left-0 w-1/4 animate-brillo bg-gradient-to-r from-transparent via-crema/80 to-transparent motion-reduce:hidden" /></span>
       </div>
     </nav>
   );
