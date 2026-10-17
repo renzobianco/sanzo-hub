@@ -6,12 +6,12 @@ import { sitio } from "@/data/products";
 import { Palabras } from "./Palabras";
 
 /**
- * Portada. Celu: foto a pantalla completa con el texto encima. PC: texto a la izquierda sobre
+ * Portada. Celu: foto a media pantalla con el título encima. PC: texto a la izquierda sobre
  * tinta y la foto a la derecha. Las fotos van cambiando con un fundido y zoom lento, y al
  * scrollear hay parallax tipo Apple (variable CSS --p, de 0 a 1).
  */
 export function Hero() {
-  const { titulo, subtitulo, boton, imagenes } = sitio.hero;
+  const { titulo, imagenes } = sitio.hero;
   const ref = useRef<HTMLElement>(null);
   const [activa, setActiva] = useState(0);
   const [lista, setLista] = useState<Record<number, boolean>>({});
@@ -48,7 +48,7 @@ export function Hero() {
   return (
     <section
       ref={ref}
-      className="relative flex h-[82svh] min-h-[30rem] items-end overflow-hidden bg-tinta text-crema [--p:0] md:grid md:h-[calc(100svh-6rem)] md:min-h-[36rem] md:grid-cols-[1fr_1.05fr] md:items-stretch"
+      className="relative flex h-[50svh] min-h-[18rem] items-end overflow-hidden bg-tinta text-crema [--p:0] md:grid md:h-[calc(100svh-6rem)] md:min-h-[36rem] md:grid-cols-[1fr_1.05fr] md:items-stretch"
     >
       {/* Fotos */}
       <div className="absolute inset-0 md:relative md:order-2 md:overflow-hidden">
@@ -88,26 +88,13 @@ export function Hero() {
 
       {/* Texto */}
       <div
-        className="relative mx-auto w-full max-w-7xl px-4 pb-16 text-center will-change-transform md:order-1 md:flex md:flex-col md:justify-center md:px-14 md:pb-0 md:text-left lg:px-20"
+        className="relative mx-auto w-full max-w-7xl px-4 pb-8 text-center will-change-transform md:order-1 md:flex md:flex-col md:justify-center md:px-14 md:pb-0 md:text-left lg:px-20"
         style={{ transform: "translate3d(0, calc(var(--p) * -90px), 0)", opacity: "calc(1 - var(--p) * 1.6)" }}
       >
         <h1 className="text-[2.15rem] font-light uppercase leading-[1.15] tracking-marca sm:text-5xl md:text-[3.4rem] lg:text-7xl">
           <Palabras texto={titulo} alCargar retraso={150} />
         </h1>
-        <p className="mx-auto mt-4 max-w-md animate-entrada text-base font-light text-crema/90 [animation-delay:600ms] md:mx-0 md:mt-6 md:text-lg">
-          {subtitulo}
-        </p>
-        <div className="animate-entrada [animation-delay:750ms]">
-          <a href="#kit" className="btn-claro mt-8 md:mt-10">
-            {boton}
-          </a>
-        </div>
       </div>
-
-      {/* Indicador de scroll: una línea que baja. */}
-      <span aria-hidden="true" className="absolute bottom-0 left-1/2 h-10 w-px -translate-x-1/2 overflow-hidden md:left-[24%]">
-        <span className="block h-full w-full animate-bajar bg-crema/70" />
-      </span>
     </section>
   );
 }

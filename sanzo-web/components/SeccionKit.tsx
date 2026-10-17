@@ -29,8 +29,7 @@ export function SeccionKit() {
         </Reveal>
 
         <Reveal delay={120} className="flex flex-col md:pt-6">
-          <p className="eyebrow">El protagonista</p>
-          <div className="mt-3">
+          <div>
             <h2 id="kit-titulo" className="text-3xl font-light uppercase leading-tight tracking-marca md:text-5xl">
               <Palabras texto={kit.nombre} />
             </h2>

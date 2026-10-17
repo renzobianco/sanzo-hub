@@ -90,8 +90,6 @@ export const sitio = {
   barraSuperior: "ENVÍO GRATIS EN EL KIT COMPLETO · GARANTÍA POR UN AÑO",
   hero: {
     titulo: "SACALO COMO SE MERECE",
-    subtitulo: "Accesorios para perros, pensados para salir juntos.",
-    boton: "Ver el kit",
     /** Fotos de la portada: van cambiando solas. La primera es la que carga primero. */
     imagenes: ["/productos/hero/1.jpg", "/productos/hero/2.jpg", "/productos/hero/3.jpg", "/productos/hero/4.jpg"],
   },
