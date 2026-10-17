@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { LineaNeon } from "./LineaNeon";
 import { Logo } from "./Logo";
 import { IconoBolsa, IconoCerrar, IconoMenu } from "./Iconos";
 import { useCarrito } from "./carrito/CarritoProvider";
@@ -56,9 +57,9 @@ export function Header({ hayLogo }: { hayLogo: boolean }) {
 
   return (
     <header
-      className={`sticky top-0 z-40 border-b bg-crema/85 backdrop-blur-xl transition-[transform,box-shadow,border-color] duration-500 ease-suave ${
+      className={`sticky top-0 z-40 bg-crema/85 backdrop-blur-xl transition-[transform,box-shadow,border-color] duration-500 ease-suave ${
         oculto && !menu ? "-translate-y-full" : "translate-y-0"
-      } ${movido ? "border-tinta/10 shadow-[0_8px_30px_-12px_rgb(var(--tinta)/0.18)]" : "border-transparent"}`}
+      } ${movido ? "shadow-[0_8px_30px_-12px_rgb(var(--tinta)/0.18)]" : ""}`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
         <button
@@ -106,6 +107,7 @@ export function Header({ hayLogo }: { hayLogo: boolean }) {
           )}
         </button>
       </div>
+      <LineaNeon />
 
       <nav
         id="menu-mobile"
