@@ -7,7 +7,6 @@ import { KitGaleria } from "./KitGaleria";
 import { MiniPiezas } from "./MiniPiezas";
 import { Reveal } from "./Reveal";
 
-/** El kit va en un bloque oscuro (`tema-oscuro`) para que se despegue del resto de la tienda. */
 export function SeccionKit() {
   const { restantes, total } = contadorKits;
   // Lo que saldrían las piezas compradas sueltas (solo si todas tienen precio).
@@ -17,7 +16,7 @@ export function SeccionKit() {
   const porcentaje = restantes === null ? 0 : Math.max(0, Math.min(100, (restantes / total) * 100));
 
   return (
-    <section id="kit" aria-labelledby="kit-titulo" className="tema-oscuro bg-crema pb-20 text-tinta md:py-32">
+    <section id="kit" aria-labelledby="kit-titulo" className="bg-crema pb-20 md:py-32">
       <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.15fr_1fr] md:gap-16 md:px-8 lg:gap-24">
         {/* En el celu la foto va de borde a borde. */}
         <Reveal className="relative">
