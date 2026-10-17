@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { LineaNeon } from "./LineaNeon";
 import { Logo } from "./Logo";
 import { IconoBolsa, IconoCerrar, IconoMenu } from "./Iconos";
 import { useCarrito } from "./carrito/CarritoProvider";
@@ -107,7 +106,7 @@ export function Header({ hayLogo }: { hayLogo: boolean }) {
           )}
         </button>
       </div>
-      <LineaNeon discreta />
+      <div aria-hidden="true" className="h-px bg-tinta" />
 
       <nav
         id="menu-mobile"
