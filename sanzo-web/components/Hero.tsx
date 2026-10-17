@@ -6,7 +6,7 @@ import { sitio } from "@/data/products";
 import { Palabras } from "./Palabras";
 
 /**
- * Portada. Celu: foto a media pantalla con el título encima. PC: texto a la izquierda sobre
+ * Portada. Celu: foto a un cuarto de pantalla con el título encima. PC: texto a la izquierda sobre
  * tinta y la foto a la derecha. Las fotos van cambiando con un fundido y zoom lento, y al
  * scrollear hay parallax tipo Apple (variable CSS --p, de 0 a 1).
  */
@@ -48,7 +48,7 @@ export function Hero() {
   return (
     <section
       ref={ref}
-      className="relative flex h-[50svh] min-h-[18rem] items-end overflow-hidden bg-tinta text-crema [--p:0] md:grid md:h-[calc(100svh-6rem)] md:min-h-[36rem] md:grid-cols-[1fr_1.05fr] md:items-stretch"
+      className="relative flex h-[25svh] min-h-[11rem] items-end overflow-hidden bg-tinta text-crema [--p:0] md:grid md:h-[calc(100svh-6rem)] md:min-h-[36rem] md:grid-cols-[1fr_1.05fr] md:items-stretch"
     >
       {/* Fotos */}
       <div className="absolute inset-0 md:relative md:order-2 md:overflow-hidden">
