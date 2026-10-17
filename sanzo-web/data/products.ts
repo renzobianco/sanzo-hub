@@ -379,9 +379,9 @@ export const individuales: Producto[] = [
     disponible: true,
     opcion: {
       nombre: "Color",
-      valores: ["Beige", "Celeste"],
-      colores: { Beige: "#C9AE8B", Celeste: "#A8C3DB" },
-      fotos: { Beige: 0, Celeste: 1 },
+      valores: ["Beige", "Océano"],
+      colores: { Beige: "#C9AE8B", Océano: "#A8C3DB" },
+      fotos: { Beige: 0, Océano: 1 },
     },
   },
   {
