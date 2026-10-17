@@ -107,7 +107,7 @@ export function Header({ hayLogo }: { hayLogo: boolean }) {
           )}
         </button>
       </div>
-      <LineaNeon />
+      <LineaNeon discreta />
 
       <nav
         id="menu-mobile"
