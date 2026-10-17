@@ -31,11 +31,10 @@ export function Hero() {
           {cierre}
         </span>
       </h1>
-      {bajada && <p className="mt-4 animate-entrada text-[15px] text-tinta/75 [animation-delay:500ms]">{bajada}</p>}
 
       <a
         href={link}
-        className="relative mt-5 block aspect-[16/10] overflow-hidden rounded-2xl bg-lino shadow-[0_14px_30px_-20px_rgb(var(--tinta)/0.6)]"
+        className="relative mt-6 block aspect-[16/10] overflow-hidden rounded-2xl bg-lino shadow-[0_14px_30px_-20px_rgb(var(--tinta)/0.6)]"
       >
         {fotos.map((src, i) => {
           // Se montan la actual, la siguiente y las ya cargadas: nunca queda un cuadro vacío.
@@ -57,6 +56,7 @@ export function Hero() {
         })}
         <span className="btn-claro absolute bottom-3 right-3 px-5 py-2.5 text-[11px]">{boton}</span>
       </a>
+      {bajada && <p className="mt-4 text-center text-[15px] text-tinta/75">{bajada}</p>}
     </section>
   );
 }
