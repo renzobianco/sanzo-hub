@@ -97,7 +97,7 @@ export function BotonWhatsapp() {
         aria-expanded={abierto}
         aria-controls="whatsapp-tarjeta"
         aria-label={abierto ? "Cerrar ayuda por WhatsApp" : "Escribinos por WhatsApp"}
-        className={`relative flex h-14 w-14 items-center justify-center rounded-full bg-tinta text-crema ${visible || abierto ? "pointer-events-auto" : ""} shadow-[0_10px_30px_rgb(var(--tinta)/0.3)] transition-transform duration-300 ease-suave active:scale-90`}
+        className={`relative flex h-14 w-14 items-center justify-center rounded-full bg-tinta text-crema ring-1 ring-crema/25 ${visible || abierto ? "pointer-events-auto" : ""} shadow-[0_10px_30px_rgb(var(--tinta)/0.3)] transition-transform duration-300 ease-suave active:scale-90`}
       >
         {!abierto && <span aria-hidden="true" className="absolute inset-0 animate-ping rounded-full bg-marron/30 [animation-duration:2.6s]" />}
         <span className={`transition-transform duration-500 ease-suave ${abierto ? "rotate-90" : ""}`}>

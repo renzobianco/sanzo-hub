@@ -7,6 +7,7 @@ import { KitGaleria } from "./KitGaleria";
 import { MiniPiezas } from "./MiniPiezas";
 import { Reveal } from "./Reveal";
 
+/** El kit va en un bloque oscuro (`tema-oscuro`) para que se despegue del resto de la tienda. */
 export function SeccionKit() {
   const { restantes, total } = contadorKits;
   // Lo que saldrían las piezas compradas sueltas (solo si todas tienen precio).
@@ -16,8 +17,9 @@ export function SeccionKit() {
   const porcentaje = restantes === null ? 0 : Math.max(0, Math.min(100, (restantes / total) * 100));
 
   return (
-    <section id="kit" aria-labelledby="kit-titulo" className="bg-crema py-20 md:py-32">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 md:grid-cols-[1.15fr_1fr] md:gap-16 md:px-8 lg:gap-24">
+    <section id="kit" aria-labelledby="kit-titulo" className="tema-oscuro bg-crema pb-20 text-tinta md:py-32">
+      <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.15fr_1fr] md:gap-16 md:px-8 lg:gap-24">
+        {/* En el celu la foto va de borde a borde. */}
         <Reveal className="relative">
           <KitGaleria imagenes={kit.imagenes} nombre={kit.nombre} />
           {kit.etiqueta && (
@@ -28,28 +30,34 @@ export function SeccionKit() {
           )}
         </Reveal>
 
-        <Reveal delay={120} className="flex flex-col md:pt-6">
-          <div>
-            <h2 id="kit-titulo" className="text-3xl font-light uppercase leading-tight tracking-marca md:text-5xl">
-              <Palabras texto={kit.nombre} />
-            </h2>
-          </div>
+        <Reveal delay={120} className="flex flex-col px-5 md:px-0 md:pt-6">
+          <h2 id="kit-titulo" className="text-[2.6rem] font-extralight uppercase leading-[1.05] tracking-[0.12em] md:text-6xl">
+            <Palabras texto={kit.nombre} />
+          </h2>
+          <span aria-hidden="true" className="mt-6 block h-px w-14 bg-marron" />
+          <p className="mt-6 max-w-md text-lg font-light leading-relaxed text-tinta/80">{sitio.kit.bajada}</p>
 
-          <p className="mt-6 max-w-md text-lg font-light leading-relaxed text-tinta/85">{sitio.kit.bajada}</p>
           {kit.precio !== null && (
-            <div className="mt-6">
-              <p className="text-2xl font-light tracking-wide">{formatearPrecio(kit.precio)}</p>
+            <div className="mt-8">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <p className="text-[2.6rem] font-light leading-none tracking-wide">{formatearPrecio(kit.precio)}</p>
+                {kit.envioGratis && (
+                  <span className="rounded-full border border-tinta/30 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-tinta/85">
+                    Envío gratis
+                  </span>
+                )}
+              </div>
               {/* Una línea discreta: lo que saldrían las piezas sueltas y cuánto ahorra. */}
               {ahorro > 0 && porSeparado !== null && (
-                <p className="mt-1.5 text-[13px] text-tinta/55">
+                <p className="mt-3 text-[13px] text-tinta/60">
                   {sitio.kit.porSeparado} <s>{formatearPrecio(porSeparado)}</s> · {sitio.kit.ahorro.toLowerCase()} {formatearPrecio(ahorro)}
                 </p>
               )}
             </div>
           )}
 
-          <div className="mt-10">
-            <p className="eyebrow mb-4">Incluye {kit.incluye.length} piezas</p>
+          <div className="mt-10 rounded-2xl border border-tinta/15 px-4 pb-5 pt-4">
+            <p className="eyebrow mb-4 text-center">Incluye {kit.incluye.length} piezas</p>
             <MiniPiezas incluye={kit.incluye} columnas="grid-cols-3 sm:grid-cols-6 md:grid-cols-3 lg:grid-cols-6" />
           </div>
 

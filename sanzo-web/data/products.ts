@@ -87,7 +87,7 @@ const TALLES_ARNES = TALLES;
 // Textos generales
 // -----------------------------------------------------------------------------
 export const sitio = {
-  barraSuperior: "ENVÍO GRATIS EN EL KIT COMPLETO · GARANTÍA POR UN AÑO",
+  barraSuperior: "ENVÍO GRATIS EN EL KIT COMPLETO",
   hero: {
     titulo: "SACALO COMO SE MERECE",
     /** Fotos de la portada: van cambiando solas. La primera es la que carga primero. */
