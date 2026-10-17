@@ -88,11 +88,16 @@ const TALLES_ARNES = TALLES;
 // -----------------------------------------------------------------------------
 export const sitio = {
   barraSuperior: "ENVÍO GRATIS EN EL KIT COMPLETO",
-  hero: {
-    titulo: "SACALO COMO SE MERECE",
-    /** Fotos de la portada: van cambiando solas. La primera es la que carga primero. */
-    imagenes: ["/productos/hero/1.jpg", "/productos/hero/2.jpg", "/productos/hero/3.jpg", "/productos/hero/4.jpg"],
-  },
+  /**
+   * Banners del principio (estilo Puppis): foto a la izquierda y panel de color con texto a la derecha.
+   * Van pasando solos. link: a qué parte de la página lleva. color: "tinta" | "marron" | "topo" | "lino".
+   */
+  hero: [
+    { foto: "/productos/hero/1.jpg", color: "tinta", arriba: "Kit completo", titulo: "Sacalo como se merece", boton: "Ver el kit", link: "#kit" },
+    { foto: "/productos/hero/3.jpg", color: "marron", arriba: "Combos", titulo: "Armados para combinar", boton: "Ver combos", link: "#combos" },
+    { foto: "/productos/hero/4.jpg", color: "lino", arriba: "Individuales", titulo: "Sumale lo que le falta", boton: "Ver todo", link: "#productos" },
+    { foto: "/productos/hero/2.jpg", color: "topo", arriba: "Personalizado", titulo: "Con su nombre", boton: "Personalizar", link: "#kit" },
+  ] as { foto: string; color: "tinta" | "marron" | "topo" | "lino"; arriba: string; titulo: string; boton: string; link: string }[],
   /** Chips fijos arriba mientras se recorre la tienda. id = id de la sección. */
   secciones: [
     { id: "kit", label: "Kit completo" },

@@ -1,100 +1,82 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { sitio } from "@/data/products";
-import { Palabras } from "./Palabras";
+
+// Clases completas para que Tailwind las genere. Texto claro sobre los fondos oscuros.
+const PANEL = {
+  tinta: { fondo: "bg-tinta", texto: "text-crema", boton: "bg-crema text-tinta" },
+  marron: { fondo: "bg-marron", texto: "text-crema", boton: "bg-crema text-tinta" },
+  topo: { fondo: "bg-topo", texto: "text-tinta", boton: "bg-tinta text-crema" },
+  lino: { fondo: "bg-lino", texto: "text-tinta", boton: "bg-tinta text-crema" },
+};
 
 /**
- * Portada. Celu: foto a un cuarto de pantalla con el título encima. PC: texto a la izquierda sobre
- * tinta y la foto a la derecha. Las fotos van cambiando con un fundido y zoom lento, y al
- * scrollear hay parallax tipo Apple (variable CSS --p, de 0 a 1).
+ * Principio de la página (estilo Puppis): un banner con bordes redondeados y margen a los costados.
+ * Foto a la izquierda, panel de color con el texto a la derecha. Pasan solos con un fundido;
+ * los puntitos de abajo marcan cuál se ve y se pueden tocar. Sin deslizar.
  */
 export function Hero() {
-  const { titulo, imagenes } = sitio.hero;
-  const ref = useRef<HTMLElement>(null);
-  const [activa, setActiva] = useState(0);
-  const [lista, setLista] = useState<Record<number, boolean>>({});
-  const listaRef = useRef(lista);
-  listaRef.current = lista;
+  const banners = sitio.hero;
+  const [activo, setActivo] = useState(0);
+  const [pausa, setPausa] = useState(0);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let frame = 0;
-    const actualizar = () => {
-      frame = 0;
-      const p = Math.min(1, Math.max(0, window.scrollY / el.offsetHeight));
-      el.style.setProperty("--p", p.toFixed(4));
-    };
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(actualizar);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    actualizar();
-    // Rotación de fotos.
-    // Solo pasa a la siguiente si ya cargó: nunca queda un cuadro vacío.
-    const timer =
-      imagenes.length > 1
-        ? setInterval(() => setActiva((a) => (listaRef.current[(a + 1) % imagenes.length] ? (a + 1) % imagenes.length : a)), 6000)
-        : undefined;
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(frame);
-      clearInterval(timer);
-    };
-  }, [imagenes.length]);
+    if (banners.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const t = setInterval(() => setActivo((a) => (a + 1) % banners.length), 5000);
+    return () => clearInterval(t);
+  }, [banners.length, pausa]);
 
   return (
-    <section
-      ref={ref}
-      className="relative flex h-[25svh] min-h-[11rem] items-end overflow-hidden bg-tinta text-crema [--p:0] md:grid md:h-[calc(100svh-6rem)] md:min-h-[36rem] md:grid-cols-[1fr_1.05fr] md:items-stretch"
-    >
-      {/* Fotos */}
-      <div className="absolute inset-0 md:relative md:order-2 md:overflow-hidden">
-        <div
-          className="absolute inset-0 will-change-transform"
-          style={{ transform: "translate3d(0, calc(var(--p) * 18%), 0) scale(calc(1 + var(--p) * 0.1))" }}
-        >
-          {imagenes.map((src, i) => {
-            const montar = i === 0 || i === activa || i === (activa + 1) % imagenes.length || lista[i];
-            if (!montar) return null;
-            return (
-              <Image
-                key={src}
-                src={src}
-                alt=""
-                fill
-                priority={i === 0}
-                sizes="(min-width: 768px) 52vw, 100vw"
-                onLoad={() => setLista((l) => ({ ...l, [i]: true }))}
-                className={`object-cover object-[50%_30%] transition-[opacity,transform] duration-[1800ms] ease-suave ${
-                  i === activa && (lista[i] || i === 0) ? "scale-100 opacity-100" : "scale-[1.08] opacity-0"
-                } ${i === activa ? "animate-zoom-lento" : ""}`}
-              />
-            );
-          })}
-        </div>
-        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-tinta/80 via-tinta/20 to-transparent md:hidden" />
-        {/* Puntitos de qué foto se ve */}
-        {imagenes.length > 1 && (
-          <div aria-hidden="true" className="absolute bottom-6 right-6 hidden gap-1.5 md:flex">
-            {imagenes.map((src, i) => (
-              <span key={src} className={`h-[3px] rounded-full bg-crema transition-all duration-700 ease-suave ${i === activa ? "w-6" : "w-2 opacity-50"}`} />
-            ))}
-          </div>
-        )}
+    <section aria-label="Destacados" aria-roledescription="carrusel" className="px-4 pb-2 pt-4">
+      <div className="grid overflow-hidden rounded-2xl shadow-[0_14px_30px_-20px_rgb(var(--tinta)/0.6)]">
+        {banners.map((b, i) => {
+          const p = PANEL[b.color];
+          const visible = i === activo;
+          return (
+            <a
+              key={b.titulo}
+              href={b.link}
+              aria-hidden={!visible}
+              tabIndex={visible ? 0 : -1}
+              aria-label={`${b.arriba}: ${b.titulo}`}
+              className={`flex aspect-[16/10] transition-opacity duration-700 ease-suave [grid-area:1/1] ${p.fondo} ${
+                visible ? "opacity-100" : "pointer-events-none opacity-0"
+              }`}
+            >
+              <span className="relative block w-[48%] shrink-0">
+                <Image src={b.foto} alt="" fill priority={i === 0} sizes="48vw" className="object-cover" />
+              </span>
+              <span className={`flex flex-1 flex-col items-center justify-center px-3 text-center ${p.texto}`}>
+                <span className="text-[10px] uppercase tracking-[0.24em] opacity-80">{b.arriba}</span>
+                <span className="mt-2 text-[1.2rem] font-light uppercase leading-[1.2] tracking-[0.1em]">{b.titulo}</span>
+                <span className={`mt-4 rounded-full px-4 py-2 text-[10px] uppercase tracking-[0.18em] ${p.boton}`}>{b.boton}</span>
+              </span>
+            </a>
+          );
+        })}
       </div>
 
-      {/* Texto */}
-      <div
-        className="relative mx-auto w-full max-w-7xl px-4 pb-8 text-center will-change-transform md:order-1 md:flex md:flex-col md:justify-center md:px-14 md:pb-0 md:text-left lg:px-20"
-        style={{ transform: "translate3d(0, calc(var(--p) * -90px), 0)", opacity: "calc(1 - var(--p) * 1.6)" }}
-      >
-        <h1 className="text-[2.15rem] font-light uppercase leading-[1.15] tracking-marca sm:text-5xl md:text-[3.4rem] lg:text-7xl">
-          <Palabras texto={titulo} alCargar retraso={150} />
-        </h1>
-      </div>
+      {banners.length > 1 && (
+        <div className="mt-3 flex items-center justify-center gap-1">
+          {banners.map((b, i) => (
+            <button
+              key={b.titulo}
+              type="button"
+              onClick={() => {
+                setActivo(i);
+                setPausa((n) => n + 1); // reinicia el contador para que no pase enseguida
+              }}
+              aria-label={`Ver ${b.arriba}`}
+              aria-current={i === activo}
+              className="flex h-6 items-center px-1"
+            >
+              <span className={`block h-1.5 rounded-full transition-all duration-500 ease-suave ${i === activo ? "w-6 bg-marron" : "w-1.5 bg-tinta/25"}`} />
+            </button>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
