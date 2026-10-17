@@ -1,6 +1,5 @@
 import { Hero } from "@/components/Hero";
 import { Cinta } from "@/components/Cinta";
-import { LineaNeon } from "@/components/LineaNeon";
 import { SeccionKit } from "@/components/SeccionKit";
 import { SeccionCombos } from "@/components/SeccionCombos";
 import { SeccionProductos } from "@/components/SeccionProductos";
@@ -14,9 +13,8 @@ export default function Inicio() {
     <>
       <Hero />
       <Cinta />
-      {/* La tienda primero: kit, combos e individuales. La línea marca dónde empieza. */}
+      {/* La tienda primero: kit, combos e individuales. */}
       <div>
-        <LineaNeon />
         <SeccionKit />
         <SeccionCombos />
         <SeccionProductos />

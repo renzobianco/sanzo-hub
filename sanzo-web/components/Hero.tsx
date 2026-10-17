@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { sitio } from "@/data/products";
+import { LineaNeon } from "./LineaNeon";
 import { Palabras } from "./Palabras";
 
 /**
@@ -56,7 +57,17 @@ export function Hero() {
         })}
         <span className="btn-claro absolute bottom-3 right-3 px-5 py-2.5 text-[11px]">{boton}</span>
       </a>
-      {bajada && <p className="mt-4 text-center text-[15px] text-tinta/75">{bajada}</p>}
+      {/* La frase va subrayada con la línea marrón con brillo. */}
+      {bajada && (
+        <p className="mt-5 text-center text-[15px] text-tinta/80">
+          <span className="relative inline-block pb-2.5">
+            {bajada}
+            <span className="absolute inset-x-0 bottom-0">
+              <LineaNeon />
+            </span>
+          </span>
+        </p>
+      )}
     </section>
   );
 }
