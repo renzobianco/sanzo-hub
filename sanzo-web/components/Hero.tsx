@@ -6,8 +6,8 @@ import { sitio } from "@/data/products";
 import { Palabras } from "./Palabras";
 
 /**
- * Principio de la página: la frase grande arriba sobre el crema y abajo la foto con bordes
- * redondeados y el botón. Las fotos cambian solas con un fundido (sin deslizar).
+ * Principio de la página: la frase grande arriba sobre el crema y abajo la foto de borde a borde
+ * con el botón. Las fotos cambian solas con un fundido (sin deslizar).
  */
 export function Hero() {
   const { titulo, cierre, bajada, boton, link, fotos } = sitio.hero;
@@ -34,7 +34,7 @@ export function Hero() {
 
       <a
         href={link}
-        className="relative mt-6 block aspect-[10/9] overflow-hidden rounded-2xl bg-lino shadow-[0_14px_30px_-20px_rgb(var(--tinta)/0.6)]"
+        className="relative -mx-4 mt-6 block aspect-[10/9] overflow-hidden bg-lino"
       >
         {fotos.map((src, i) => {
           // Se montan la actual, la siguiente y las ya cargadas: nunca queda un cuadro vacío.

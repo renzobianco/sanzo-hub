@@ -16,13 +16,13 @@ export function SeccionKit() {
   const porcentaje = restantes === null ? 0 : Math.max(0, Math.min(100, (restantes / total) * 100));
 
   return (
-    <section id="kit" aria-labelledby="kit-titulo" className="bg-crema pb-20 md:py-32">
+    <section id="kit" aria-labelledby="kit-titulo" className="bg-crema pb-20 pt-6 md:py-32">
       <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.15fr_1fr] md:gap-16 md:px-8 lg:gap-24">
-        {/* En el celu la foto va de borde a borde. */}
-        <Reveal className="relative">
+        {/* Con margen a los costados y esquinas redondeadas. */}
+        <Reveal className="relative px-4 md:px-0">
           <KitGaleria imagenes={kit.imagenes} nombre={kit.nombre} />
           {kit.etiqueta && (
-            <p className="pointer-events-none absolute left-3 top-3 flex animate-entrada items-center gap-1.5 rounded-full bg-tinta px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-crema [animation-delay:900ms]">
+            <p className="pointer-events-none absolute left-7 top-3 flex animate-entrada md:left-3 items-center gap-1.5 rounded-full bg-tinta px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-crema [animation-delay:900ms]">
               <span aria-hidden="true" className="text-marron">★</span>
               {kit.etiqueta}
             </p>

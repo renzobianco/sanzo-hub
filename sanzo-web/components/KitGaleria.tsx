@@ -24,7 +24,7 @@ export function KitGaleria({ imagenes, nombre }: { imagenes: string[]; nombre: s
     <div className="relative">
       <ul
         ref={pista}
-        className="sin-scrollbar flex snap-x snap-mandatory overflow-x-auto"
+        className="sin-scrollbar flex snap-x snap-mandatory overflow-x-auto rounded-2xl"
         onScroll={(e) => {
           const el = e.currentTarget;
           setActiva(Math.round(el.scrollLeft / el.clientWidth));
