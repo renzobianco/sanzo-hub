@@ -23,7 +23,7 @@ export function Hero() {
   return (
     <section aria-labelledby="hero-titulo" className="px-4 pb-12 pt-5">
       <h1 id="hero-titulo" className="uppercase">
-        <span className="block text-[4.4rem] font-light leading-[0.95] tracking-[0.06em]">
+        <span className="block text-[2.9rem] font-light leading-none tracking-[0.12em]">
           <Palabras texto={titulo} alCargar retraso={100} />
         </span>
         <span className="mt-3 flex animate-entrada items-center gap-3 text-[1.05rem] font-normal tracking-[0.32em] text-marron [animation-delay:350ms]">
