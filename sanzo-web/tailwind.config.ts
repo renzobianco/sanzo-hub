@@ -36,6 +36,10 @@ const config: Config = {
           from: { transform: "scale(1.08)" },
           to: { transform: "scale(1)" },
         },
+        cintaDerecha: {
+          from: { transform: "translateX(-50%)" },
+          to: { transform: "translateX(0)" },
+        },
         cinta: {
           to: { transform: "translateX(-50%)" },
         },
@@ -80,6 +84,7 @@ const config: Config = {
         subir: "subir 1.1s cubic-bezier(0.16, 1, 0.3, 1) both",
         "zoom-lento": "zoomLento 14s cubic-bezier(0.22, 1, 0.36, 1) both",
         cinta: "cinta 32s linear infinite",
+        "cinta-derecha": "cintaDerecha 70s linear infinite",
         bajar: "bajar 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite",
       },
     },

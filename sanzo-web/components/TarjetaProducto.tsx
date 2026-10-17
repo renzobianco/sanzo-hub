@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Producto } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
+import { ConZoom } from "./ConZoom";
 import { ImagenProducto } from "./ImagenProducto";
 
 /** Tarjeta de producto suelto. Si la opción es de color, al elegirlo se muestra la foto de ese color. */
@@ -14,13 +15,15 @@ export function TarjetaProducto({ producto, desfase = 0 }: { producto: Producto;
   return (
     <>
       <div className="overflow-hidden rounded-[0.9rem] transition-[transform,box-shadow] duration-700 ease-suave md:group-hover:-translate-y-1.5 md:group-hover:shadow-[0_22px_40px_-22px_rgb(var(--tinta)/0.45)]">
-        <ImagenProducto
-          srcs={producto.imagenes}
-          desfase={desfase}
-          fija={fija}
-          nombre={valor ? `${producto.nombre} ${valor}` : producto.nombre}
-          sizes="(min-width: 768px) 25vw, 50vw"
-        />
+        <ConZoom fotos={producto.imagenes} nombre={producto.nombre} inicial={fija ?? 0}>
+          <ImagenProducto
+            srcs={producto.imagenes}
+            desfase={desfase}
+            fija={fija}
+            nombre={valor ? `${producto.nombre} ${valor}` : producto.nombre}
+            sizes="(min-width: 768px) 25vw, 50vw"
+          />
+        </ConZoom>
       </div>
       <div className="mt-4 flex flex-1 flex-col">
         <h3 className="text-[15px] uppercase tracking-[0.16em]">{producto.nombre}</h3>

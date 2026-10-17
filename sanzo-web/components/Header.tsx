@@ -9,7 +9,7 @@ import { useCarrito } from "./carrito/CarritoProvider";
 const LINKS = [
   { href: "/#kit", label: "Kit" },
   { href: "/#combos", label: "Combos" },
-  { href: "/#productos", label: "Productos" },
+  { href: "/#productos", label: "Individuales" },
   { href: "/#preguntas", label: "Preguntas" },
 ];
 

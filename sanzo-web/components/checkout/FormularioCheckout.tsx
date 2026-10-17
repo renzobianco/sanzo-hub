@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PROVINCIAS } from "@/data/envios";
 import { formatearPrecio, textoEnvio } from "@/lib/formato";
 import { CLAVE_ULTIMO_PEDIDO, type PedidoEntrada, type PedidoRespuesta } from "@/lib/pedido";
-import { textoPersonalizacion } from "@/lib/personalizacion";
+import { sinImagen, textoPersonalizacion } from "@/lib/personalizacion";
 import { datosVacios, validarCheckout, type DatosCheckout } from "@/lib/validacion";
 import { useCarrito } from "../carrito/CarritoProvider";
 import { ImagenProducto } from "../ImagenProducto";
@@ -86,7 +86,7 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
       lineas: totales.lineas.map((l) => ({
         productoId: l.productoId,
         opcion: l.opcion,
-        personalizacion: l.personalizacion,
+        personalizacion: sinImagen(l.personalizacion),
         cantidad: l.cantidad,
       })),
       empresa,

@@ -10,7 +10,7 @@ export function SeccionProductos() {
         <Reveal className="mb-10 text-center md:mb-14">
           <p className="eyebrow">Pieza por pieza</p>
           <h2 id="productos-titulo" className="titulo-seccion mt-3">
-            <Palabras texto="Productos" />
+            <Palabras texto="Individuales" />
           </h2>
         </Reveal>
 

@@ -27,6 +27,9 @@ function limpiarPersonalizacion(p: unknown): Personalizacion | undefined {
   const o = p as Record<string, unknown>;
   return {
     estilo: str(o.estilo, 30),
+    material: str(o.material, 30),
+    tamano: str(o.tamano, 30),
+    modo: o.modo === "imagen" ? "imagen" : "nombre",
     nombre: str(o.nombre, 40),
     telefono: typeof o.telefono === "string" ? str(o.telefono, 30) : undefined,
   };

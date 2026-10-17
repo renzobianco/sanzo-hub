@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import type { Producto } from "@/data/products";
-import type { Personalizacion } from "@/lib/personalizacion";
+import { esPersonalizable, type Personalizacion } from "@/lib/personalizacion";
 import { useCarrito } from "./carrito/CarritoProvider";
 import { Personalizar } from "./personalizar/Personalizar";
 
@@ -91,8 +91,8 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
         </fieldset>
       )}
 
-      {producto.personalizable && (
-        <Personalizar valor={personalizacion} onCambio={setPersonalizacion} grande={grande} />
+      {esPersonalizable(producto) && (
+        <Personalizar producto={producto} valor={personalizacion} onCambio={setPersonalizacion} grande={grande} />
       )}
 
       <button

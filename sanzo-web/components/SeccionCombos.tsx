@@ -2,6 +2,7 @@ import { Palabras } from "./Palabras";
 import { combos } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
+import { ConZoom } from "./ConZoom";
 import { ImagenProducto } from "./ImagenProducto";
 import { MiniPiezas } from "./MiniPiezas";
 import { Reveal } from "./Reveal";
@@ -18,12 +19,14 @@ export function SeccionCombos() {
         </Reveal>
       </div>
 
-      {/* Carrusel deslizable en mobile, grilla de 3 en desktop. */}
-      <ul className="sin-scrollbar mx-auto flex max-w-6xl snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-4 px-4 pb-2 md:grid md:grid-cols-3 md:gap-7 md:overflow-visible md:px-8">
+      {/* Carrusel deslizable en mobile, grilla de 3 en desktop. `relative`: sin él, lo absoluto de adentro se escapa del recorte y ensancha la página en el celu. */}
+      <ul className="sin-scrollbar relative mx-auto flex max-w-6xl snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-4 px-4 pb-2 md:grid md:grid-cols-3 md:gap-7 md:overflow-visible md:px-8">
         {combos.map((c, i) => (
           <li key={c.id} className="w-[82%] shrink-0 snap-start sm:w-[60%] md:w-auto">
             <Reveal delay={i * 100} className="group flex h-full flex-col overflow-hidden rounded-[1rem] bg-crema transition-[transform,box-shadow] duration-700 ease-suave md:hover:-translate-y-1.5 md:hover:shadow-[0_26px_50px_-26px_rgb(var(--tinta)/0.45)]">
-              <ImagenProducto srcs={c.imagenes} desfase={i * 1300} intervalo={4200} nombre={c.nombre} sizes="(min-width: 768px) 30vw, 82vw" aspecto="aspect-[4/5]" fondo="bg-topo/35" />
+              <ConZoom fotos={c.imagenes} nombre={c.nombre}>
+                <ImagenProducto srcs={c.imagenes} desfase={i * 1300} intervalo={4200} nombre={c.nombre} sizes="(min-width: 768px) 30vw, 82vw" aspecto="aspect-[4/5]" fondo="bg-topo/35" />
+              </ConZoom>
               <div className="flex flex-1 flex-col p-5 md:p-7">
                 <h3 className="text-xl font-light uppercase tracking-marca">{c.nombre}</h3>
                 <p className="mt-2 text-[15px] text-tinta/80">{c.descripcion}</p>

@@ -3,15 +3,22 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { clientes } from "@/data/products";
-import { CarruselVivo } from "./CarruselVivo";
-import { Reveal } from "./Reveal";
 
 /**
- * "+150 clientes satisfechos · y sumando" + carrusel vertical tipo reels con videos de clientes
+ * "+150 clientes satisfechos · y sumando" + tira tipo reels (fotos/videos de clientes) que corre sola de izquierda a derecha
  * usando los productos. Mientras no haya video, se ve la foto con un zoom lento.
  */
 export function SeccionClientes() {
   const ref = useRef<HTMLElement>(null);
+  // La tira solo se mueve mientras se ve: fuera de pantalla no gasta (scroll más fluido).
+  const [enPantalla, setEnPantalla] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !("IntersectionObserver" in window)) return setEnPantalla(true);
+    const io = new IntersectionObserver(([e]) => setEnPantalla(e.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
   const objetivo = clientes.numero ?? 0;
   const [valor, setValor] = useState(objetivo);
 
@@ -46,7 +53,7 @@ export function SeccionClientes() {
   if (!clientes.numero) return null;
 
   return (
-    <section ref={ref} id="clientes" aria-label={`Más de ${clientes.numero} ${clientes.texto}`} className="overflow-hidden bg-crema py-20 md:py-28">
+    <section ref={ref} id="clientes" aria-label={`Más de ${clientes.numero} ${clientes.texto}`} className="overflow-hidden bg-lino py-20 md:py-28">
       <div className="mx-auto max-w-xl px-4 text-center">
         <p aria-hidden="true" className="text-[4.5rem] font-extralight leading-none tracking-wide text-marron tabular-nums md:text-[7rem]">
           +{valor}
@@ -69,15 +76,22 @@ export function SeccionClientes() {
       </div>
 
       {clientes.videos.length > 0 && (
-        <CarruselVivo className="sin-scrollbar mt-12 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[19%] md:mx-auto md:mt-16 md:grid md:max-w-7xl md:grid-cols-6 md:gap-4 md:overflow-visible md:px-8">
-          {clientes.videos.map((v, i) => (
-            <li key={v.foto + i} className={`w-[62%] shrink-0 snap-center will-change-transform sm:w-[38%] md:w-auto ${i % 2 ? "md:translate-y-8" : ""}`}>
-              <Reveal delay={Math.min(i, 4) * 80}>
-                <Reel {...v} />
-              </Reveal>
-            </li>
-          ))}
-        </CarruselVivo>
+        // Tira sin fin que corre de izquierda a derecha (contenido duplicado para que no tenga corte).
+        // Se frena mientras la tocás; con "reducir movimiento" queda quieta y se desliza a mano.
+        <div className="sin-scrollbar mt-12 overflow-hidden motion-reduce:overflow-x-auto md:mt-16">
+          <ul
+            className={`flex w-max animate-cinta-derecha gap-3${enPantalla ? "" : " [animation-play-state:paused]"} px-1.5 pb-6 hover:[animation-play-state:paused] active:[animation-play-state:paused] motion-reduce:animate-none md:gap-4`}
+          >
+            {[...clientes.videos, ...clientes.videos].map((v, i) => {
+              const copia = i >= clientes.videos.length;
+              return (
+                <li key={v.foto + i} aria-hidden={copia} className={`w-[9.5rem] shrink-0 md:w-[13rem] ${i % 2 ? "translate-y-5" : ""}`}>
+                  <Reel {...v} />
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       )}
     </section>
   );
@@ -96,11 +110,11 @@ function Reel({ video, foto, perro }: { video: string; foto: string; perro: stri
   }, []);
 
   return (
-    <figure className="img-revelar relative aspect-[9/16] overflow-hidden rounded-[1.25rem] bg-lino shadow-[0_18px_40px_-18px_rgb(var(--tinta)/0.45)]">
+    <figure className="relative aspect-[9/16] overflow-hidden rounded-[1.25rem] bg-lino shadow-[0_18px_40px_-18px_rgb(var(--tinta)/0.45)]">
       {video ? (
         <video ref={ref} src={video} poster={foto} muted loop playsInline preload="metadata" className="h-full w-full object-cover" />
       ) : (
-        <Image src={foto} alt="" fill sizes="(min-width: 768px) 18rem, 62vw" className="animate-respirar object-cover" />
+        <Image src={foto} alt="" fill sizes="(min-width: 768px) 13rem, 9.5rem" className="object-cover" />
       )}
       <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-tinta/55 to-transparent" />
       {perro && <figcaption className="absolute bottom-4 left-4 text-[11px] uppercase tracking-marca text-crema">{perro}</figcaption>}

@@ -59,6 +59,16 @@ export const IconoPaseo = (p: P) => (
   </svg>
 );
 
+/** Rápido: cronómetro. */
+export const IconoReloj = (p: P) => (
+  <svg viewBox="0 0 48 48" width={44} height={44} {...base} {...p}>
+    <circle cx="24" cy="27" r="13" />
+    <path d="M20 9h8M24 9v5M35 15.5l2.5-2.5" />
+    <path d="M24 27l5.5-5.5" />
+    <circle cx="24" cy="27" r="1" />
+  </svg>
+);
+
 /** Todo combina: círculos entrelazados. */
 export const IconoCombina = (p: P) => (
   <svg viewBox="0 0 48 48" width={44} height={44} {...base} {...p}>

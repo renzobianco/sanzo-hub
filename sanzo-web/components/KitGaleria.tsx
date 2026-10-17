@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { ConZoom } from "./ConZoom";
 import { ImagenProducto } from "./ImagenProducto";
 
 /** Galería del kit: se desliza con el dedo, con puntitos que muestran en qué foto estás. */
@@ -32,13 +33,15 @@ export function KitGaleria({ imagenes, nombre }: { imagenes: string[]; nombre: s
       >
         {imagenes.map((src, i) => (
           <li key={src} className="w-full shrink-0 snap-center">
-            <ImagenProducto
-              src={src}
-              nombre={`${nombre}, foto ${i + 1}`}
-              sizes="(min-width: 768px) 55vw, 100vw"
-              aspecto="aspect-square"
-              priority={i === 0}
-            />
+            <ConZoom fotos={imagenes} nombre={nombre} inicial={i}>
+              <ImagenProducto
+                src={src}
+                nombre={`${nombre}, foto ${i + 1}`}
+                sizes="(min-width: 768px) 55vw, 100vw"
+                aspecto="aspect-square"
+                priority={i === 0}
+              />
+            </ConZoom>
           </li>
         ))}
       </ul>

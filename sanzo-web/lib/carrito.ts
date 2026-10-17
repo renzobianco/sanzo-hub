@@ -1,6 +1,6 @@
-import { getProducto, personalizacion as configPersonalizacion, type Producto } from "@/data/products";
+import { getProducto, type Producto } from "@/data/products";
 import { envioInfo, zonaPorProvincia, type ZonaEnvio } from "@/data/envios";
-import { clavePersonalizacion, normalizarPersonalizacion, type Personalizacion } from "./personalizacion";
+import { clavePersonalizacion, normalizarPersonalizacion, precioPersonalizacion, type Personalizacion } from "./personalizacion";
 import { calcularPromos, type DescuentoAplicado, type Sugerencia } from "./promos";
 
 export interface LineaCarrito {
@@ -67,7 +67,7 @@ export function resolverLineas(lineas: LineaCarrito[]): LineaResuelta[] {
     const personalizacion = l.personalizacion ? normalizarPersonalizacion(producto, l.personalizacion) : undefined;
     if (personalizacion === null) continue;
     const cantidad = Math.min(MAX_CANTIDAD, Math.max(1, Math.floor(l.cantidad) || 1));
-    const unitario = producto.precio + (personalizacion ? configPersonalizacion.precioExtra : 0);
+    const unitario = producto.precio + (personalizacion ? precioPersonalizacion(producto, personalizacion) : 0);
     out.push({ ...l, personalizacion, cantidad, producto, unitario, subtotal: unitario * cantidad });
   }
   return out;

@@ -154,6 +154,7 @@
   .animate-pop,
   .animate-flotar,
   .animate-cinta-lenta,
+  .animate-cinta-derecha,
   .animate-zoom-lento,
   .animate-cinta,
   .animate-bajar,
@@ -183,5 +184,25 @@
   .js .reveal .pieza {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* Parche de la vista previa: aparece con un pequeño rebote al elegirlo. */
+@media (prefers-reduced-motion: no-preference) {
+  .parche-aparece {
+    animation: parche-aparece 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+@keyframes parche-aparece {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
   }
 }

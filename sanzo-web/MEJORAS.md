@@ -100,3 +100,52 @@ Lo que definió Santi (2026-10-16):
 - Arreglado: el botón flotante de WhatsApp tapaba los clics abajo a la derecha (por eso no andaba "Jade" ni otros botones de esa zona).
 - Botones de color con muestra del color (`opcion.colores`) y la foto de la tarjeta pasa al color elegido (`opcion.fotos`). Gorra: beige/celeste. Piluso: granate/jade.
 - Todo lo que tiene talle (arnés, collar, kit, combos) solo en S y M. Guía de talles con S y M (faltan las medidas).
+
+## 2026-10-17 · Reformulación de la home (pedido de Santi: "parece de baja calidad")
+
+- **Orden nuevo**: portada → cinta → **kit completo → combos → individuales** → clientes → ¿por qué sanzo? → reseñas → preguntas.
+- **Chips fijos "Kit completo · Combos · Individuales"** (`NavTienda`, datos en `sitio.secciones`): quedan arriba mientras recorrés la tienda, marcan dónde estás con una píldora que se desliza y llevan a cada sección con un toque. "Productos" pasó a llamarse **Individuales** (también en el menú).
+- **"Incluye 6 piezas"**: sacadas las fotos con logo; ahora muestra el artículo solo (`miniatura` de cada individual, fotos de `items-sin-logo` en `public/productos/piezas/`). **Son provisorias**: reemplazar por las fotos definitivas en `miniatura`.
+- **360° adentro de Personalizar**: ya no es sección aparte. En el editor hay un control "Su diseño | 360°" (`Visor360`, datos en `vista360`). Se borró `Seccion360`.
+- **Clientes**: tira de 15 fotos (clientes + las de la galería y la portada) que corre sola de izquierda a derecha, sin fin; se frena al tocarla. La galería oscura "Salen con sanzo" se sacó (sus fotos pasaron acá).
+- **"¿Por qué nuestro arnés?" → "¿Por qué sanzo?"** en grilla tipo bento (`porQue`): foto grande con frase, "Todo combina" destacada en oscuro y tarjetas de garantía, cambio de talle, envíos, "se pone en segundos". Envío gratis y cuotas se suman solas cuando se carguen. Absorbe la franja de confianza (se borró `FranjaValor`). Se sacó "Cuatro talles" (era falso: solo S y M).
+- **Bug arreglado**: el carrusel de combos ensanchaba toda la página en el celu (se veía achicada/desprolija). Ahora mide 390 px justos.
+- Ideas de namethatui usadas: chips con scrollspy, control segmentado, marquee, bento grid.
+
+### Falta
+- [ ] Fotos definitivas de cada pieza → `miniatura` en `data/products.ts`.
+- [ ] Videos de clientes → `clientes.videos[].video`.
+- [ ] Ideas para seguir subiendo calidad (a decidir): título de la portada con palabra que rota, ficha de producto en hoja deslizable (sheet) al tocar una tarjeta, tipografía de títulos menos "IA".
+
+## 2026-10-17 (tarde) · Kit, personalización para todo y zoom
+
+- **Kit: ahorro en una línea discreta** debajo del precio: "Por separado ~~$72.494~~ · ahorrás $12.495". Se calcula solo con los precios reales de las piezas sueltas (Santi pidió "100 mil y pico", pero la suma real es $72.494; poner un precio de referencia inventado es publicidad engañosa). Primero hice una etiqueta marrón "Ahorrás" y a Santi no le gustó: muy llamativa.
+- **Kit "Más vendido"**: cartelito sobre la foto (`kit.etiqueta`; sirve para cualquier producto).
+- **Ícono de "Se pone en segundos"**: huellas → cronómetro (`IconoReloj`).
+- **Personalizar todo menos el moño**: el botón aparece en cada producto con alguna pieza personalizable (arnés, correa, collar, bandana, poo bag, gorra, piluso, kit y combos). En kits/combos el parche va en todas sus piezas y en la vista hay pestañas por pieza (+ 360° si está el arnés).
+  - Vista previa de cada pieza: foto del artículo sin logo con el parche elegido encima y el nombre (`personalizacion.piezas`: posición, tamaño y giro del parche). El arnés sigue con sus fotos reales. **Gorra, piluso y poo bag: posición estimada, revisar.**
+  - **Material del parche** (`personalizacion.materiales`): Cuerina (elegible) y Bordado ("Muy pronto"). Cada uno puede sumar precio.
+  - **Precio**: `precioExtra` se cobra por cada pieza personalizada (un kit con 5 piezas suma 5 veces) + el extra del material. **PENDIENTE: poner los montos** (hoy 0, no se muestra).
+  - El material va en el carrito, checkout, mail y Mercado Pago (texto de la personalización).
+- **Zoom en las fotos** (`ConZoom`): ícono de lupa en kit, combos e individuales; al tocar se abre a pantalla completa con todas las fotos; tocás y se acerca donde tocaste, movés el dedo para recorrerla, otro toque la aleja.
+
+### Falta
+- [ ] Montos de personalización (`precioExtra`, y por material).
+- [ ] Revisar/ajustar la posición del parche en gorra, piluso y poo bag (`personalizacion.piezas`).
+- [ ] **Pros de cada ítem** (pedido de Santi): 2-3 líneas simples por producto (calidad, material, detalle útil). Cargarlas en `data/products.ts` y mostrarlas en la tarjeta. Solo cosas reales del producto.
+- [ ] Confirmar que "Más vendido" sea real.
+- 2026-10-17 · Editor de Personalizar más grande en PC: dos columnas (vista grande a la izquierda, formulario a la derecha). Las fotos de las piezas llenan todo el recuadro (sin rectángulo gris).
+- [ ] Santi va a pasar las fotos buenas para la vista previa de cada pieza: cargarlas en `personalizacion.piezas` y ajustar posición/tamaño del parche. Por ahora la función queda andando con fotos provisorias.
+
+## 2026-10-17 (noche) · Tamaño del parche e imagen propia con grabado láser
+
+- **Bug del scroll arreglado** (Santi confirmó): el servidor local se caía generando fotos de 3840 px (sobre todo las del zoom). Ahora `deviceSizes` llega a 1920, las fotos del zoom se cargan recién al abrirlo, los chips fijos no usan desenfoque y la tira de clientes se pausa fuera de pantalla.
+- **Editor de Personalizar en dos columnas desde 640 px** (antes desde 768 y en pantallas medianas se veía chico).
+- **Tamaño del parche** (`personalizacion.tamanos`): Chico / Mediano / Grande. Grande = el espacio máximo de cada pieza (`piezas[x].parche`). Cada tamaño puede sumar precio (PENDIENTE: montos, a más grande más caro).
+- **"¿Qué grabamos?" → Su nombre | Tu imagen**: sube cualquier imagen y la vista previa la muestra como quedaría grabada con láser (escala de grises con niveles automáticos, lo oscuro quemado en marrón y lo claro transparente; `lib/laser.ts`). Aviso: "Después del pedido nos mandás la imagen original por WhatsApp" (`avisoImagen`). La vista previa queda en el carrito del navegador; al pedido llega "Imagen propia" (sin la imagen). PENDIENTE: `precioImagen`.
+- Todas las piezas (también el arnés) usan ahora el mismo sistema de vista previa (`Vista.tsx`). Se borró `VistaArnes` y los datos de las fotos del arnés con cada parche (las fotos siguen en `public/productos/arnes/` por si se vuelven a usar).
+
+### Falta
+- [ ] Precios: `precioImagen` y `tamanos[].precioExtra`.
+- [ ] Cuando entre un pedido con "Imagen propia", pedirle la imagen por WhatsApp. Más adelante: subirla directo en el checkout (necesita guardar archivos, ej. Supabase Storage).
+- [ ] Fotos buenas de cada pieza para la vista previa (Santi las pasa).
