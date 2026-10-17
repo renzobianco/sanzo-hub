@@ -463,7 +463,7 @@ export const confianza = {
 // -----------------------------------------------------------------------------
 // Cinta que corre debajo del hero. Vacía → no aparece.
 // -----------------------------------------------------------------------------
-export const cinta = ["Envíos a todo el país", "Cambio de talle sin vueltas", "Todo combina con todo"];
+export const cinta: string[] = [];
 
 // -----------------------------------------------------------------------------
 // Clientes: "+150 clientes satisfechos". El número tiene que ser REAL.
