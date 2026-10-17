@@ -21,7 +21,7 @@ export function Hero() {
   }, [fotos.length]);
 
   return (
-    <section aria-labelledby="hero-titulo" className="px-4 pb-6 pt-5">
+    <section aria-labelledby="hero-titulo" className="px-4 pb-12 pt-5">
       <h1 id="hero-titulo" className="uppercase">
         <span className="block text-[4.4rem] font-light leading-[0.95] tracking-[0.06em]">
           <Palabras texto={titulo} alCargar retraso={100} />
