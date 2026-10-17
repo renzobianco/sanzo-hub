@@ -17,9 +17,11 @@ interface Props {
   extraOpcion?: React.ReactNode;
   /** Avisa qué valor eligió (ej. para mostrar la foto de ese color). */
   onSeleccion?: (valor: string) => void;
+  /** Ficha del kit: talle en una sola línea, botón de comprar y "Personalizalo" como link debajo. */
+  compacto?: boolean;
 }
 
-export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout, grande, extraOpcion, onSeleccion }: Props) {
+export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout, grande, extraOpcion, onSeleccion, compacto }: Props) {
   const { agregar } = useCarrito();
   const router = useRouter();
   const [seleccion, setSeleccion] = useState<string>("");
@@ -44,6 +46,59 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
 
   let texto = etiqueta;
   if (!producto.disponible) texto = "Sin unidades por ahora";
+
+  const aviso_ = (
+    <p id={`${id}-aviso`} role="status" className="min-h-0 text-sm text-marron empty:hidden">
+      {aviso}
+    </p>
+  );
+
+  if (compacto) {
+    return (
+      <div className="space-y-4">
+        {opcion && (
+          <fieldset disabled={deshabilitado} className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-4">
+              <legend className="eyebrow float-left">{opcion.nombre}</legend>
+              <div className="flex gap-2">
+                {opcion.valores.map((v) => (
+                  <label key={v} className="cursor-pointer">
+                    <input
+                      type="radio"
+                      name={`opcion-${id}`}
+                      value={v}
+                      checked={seleccion === v}
+                      onChange={() => {
+                        setSeleccion(v);
+                        onSeleccion?.(v);
+                        setAviso("");
+                      }}
+                      className="peer sr-only"
+                    />
+                    <span className="flex h-11 min-w-[2.9rem] items-center justify-center border border-tinta/30 px-3 text-sm uppercase tracking-[0.12em] transition-colors peer-checked:border-tinta peer-checked:bg-tinta peer-checked:text-crema peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
+                      {v}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            {extraOpcion}
+          </fieldset>
+        )}
+        <button
+          type="button"
+          onClick={onAgregar}
+          disabled={deshabilitado}
+          className="btn-primario w-full py-[1.1rem] text-sm"
+          aria-describedby={aviso ? `${id}-aviso` : undefined}
+        >
+          {texto}
+        </button>
+        {aviso_}
+        {esPersonalizable(producto) && <Personalizar producto={producto} valor={personalizacion} onCambio={setPersonalizacion} grande comoLink />}
+      </div>
+    );
+  }
 
   return (
     <div className={grande ? "space-y-6" : "space-y-3"}>
@@ -104,9 +159,7 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
       >
         {texto}
       </button>
-      <p id={`${id}-aviso`} role="status" className="min-h-0 text-sm text-marron empty:hidden">
-        {aviso}
-      </p>
+      {aviso_}
     </div>
   );
 }

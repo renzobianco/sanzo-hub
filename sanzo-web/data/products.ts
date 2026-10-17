@@ -148,6 +148,8 @@ export const contadorKits: { restantes: number | null; total: number } = {
 // -----------------------------------------------------------------------------
 export const personalizacion: {
   boton: string;
+  /** En el kit va como link debajo de "Comprar": pregunta + acción subrayada. */
+  link: { pregunta: string; accion: string };
   titulo: string;
   bajada: string;
   precioExtra: number;
@@ -162,6 +164,7 @@ export const personalizacion: {
   piezas: Record<string, PiezaPersonalizable>;
 } = {
   boton: "Personalizar",
+  link: { pregunta: "¿Con su nombre?", accion: "Personalizalo" },
   titulo: "Hacelo suyo",
   bajada: "Elegí el parche, el tamaño y poné su nombre o tu imagen.",
   /**

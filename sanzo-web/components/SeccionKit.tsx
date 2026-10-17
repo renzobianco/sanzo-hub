@@ -1,10 +1,10 @@
+import Image from "next/image";
 import { Palabras } from "./Palabras";
 import { contadorKits, getProducto, kit, sitio } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
 import { GuiaTalles } from "./GuiaTalles";
 import { KitGaleria } from "./KitGaleria";
-import { MiniPiezas } from "./MiniPiezas";
 import { Reveal } from "./Reveal";
 
 export function SeccionKit() {
@@ -13,6 +13,10 @@ export function SeccionKit() {
   const sueltos = kit.incluye.map((id) => getProducto(id)?.precio ?? null);
   const porSeparado = sueltos.every((p) => p !== null) ? sueltos.reduce<number>((a, p) => a + (p ?? 0), 0) : null;
   const ahorro = porSeparado !== null && kit.precio !== null ? porSeparado - kit.precio : 0;
+  const piezas = kit.incluye.map((id) => getProducto(id)).filter((p) => !!p);
+  // "Arnés, correa, collar, moño, bandana y poo bag"
+  const nombres = piezas.map((p, i) => (i === 0 ? p.nombre : p.nombre.toLowerCase()));
+  const listaPiezas = nombres.length > 1 ? `${nombres.slice(0, -1).join(", ")} y ${nombres[nombres.length - 1]}` : nombres.join("");
   const porcentaje = restantes === null ? 0 : Math.max(0, Math.min(100, (restantes / total) * 100));
 
   return (
@@ -29,39 +33,46 @@ export function SeccionKit() {
           )}
         </Reveal>
 
+        {/* Jerarquía: dato chico en marrón → nombre → precio grande → piezas → talle → comprar. */}
         <Reveal delay={120} className="flex flex-col px-5 md:px-0 md:pt-6">
-          <h2 id="kit-titulo" className="text-[2.6rem] font-extralight uppercase leading-[1.05] tracking-[0.12em] md:text-6xl">
+          <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-marron">
+            {kit.incluye.length} piezas{kit.envioGratis && " · Envío gratis"}
+          </p>
+          <h2 id="kit-titulo" className="mt-2 text-[1.65rem] font-normal uppercase leading-tight tracking-[0.14em] md:text-4xl">
             <Palabras texto={kit.nombre} />
           </h2>
-          <span aria-hidden="true" className="mt-6 block h-px w-14 bg-marron" />
-          <p className="mt-6 max-w-md text-lg font-light leading-relaxed text-tinta/80">{sitio.kit.bajada}</p>
+          <p className="mt-1.5 text-[15px] text-tinta/60">{sitio.kit.bajada}</p>
 
           {kit.precio !== null && (
-            <div className="mt-8">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                <p className="text-[2.6rem] font-light leading-none tracking-wide">{formatearPrecio(kit.precio)}</p>
-                {kit.envioGratis && (
-                  <span className="rounded-full border border-tinta/30 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-tinta/85">
-                    Envío gratis
+            <div className="mt-6">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[2.75rem] font-medium leading-none tracking-tight">{formatearPrecio(kit.precio)}</p>
+                {ahorro > 0 && (
+                  <span className="whitespace-nowrap rounded-full border border-marron px-3 py-1.5 text-[12px] tracking-wide text-marron">
+                    {sitio.kit.ahorro} {formatearPrecio(ahorro)}
                   </span>
                 )}
               </div>
-              {/* Una línea discreta: lo que saldrían las piezas sueltas y cuánto ahorra. */}
-              {ahorro > 0 && porSeparado !== null && (
-                <p className="mt-3 text-[13px] text-tinta/60">
-                  {sitio.kit.porSeparado} <s>{formatearPrecio(porSeparado)}</s> · {sitio.kit.ahorro.toLowerCase()} {formatearPrecio(ahorro)}
+              {porSeparado !== null && ahorro > 0 && (
+                <p className="mt-2 text-[13px] text-tinta/55">
+                  {sitio.kit.porSeparado} <s>{formatearPrecio(porSeparado)}</s>
                 </p>
               )}
             </div>
           )}
 
-          <div className="mt-10 rounded-2xl border border-tinta/15 px-4 pb-5 pt-4">
-            <p className="eyebrow mb-4 text-center">Incluye {kit.incluye.length} piezas</p>
-            <MiniPiezas incluye={kit.incluye} columnas="grid-cols-3 sm:grid-cols-6 md:grid-cols-3 lg:grid-cols-6" />
-          </div>
+          {/* Las piezas en una sola fila chiquita + la lista en una línea. */}
+          <ul className="mt-6 flex gap-2" aria-label={`Incluye ${kit.incluye.length} piezas`}>
+            {piezas.map((p) => (
+              <li key={p.id} className="relative aspect-square flex-1 overflow-hidden rounded-full bg-lino">
+                {p.miniatura && <Image src={p.miniatura} alt={p.nombre} fill sizes="64px" className="object-contain p-1 mix-blend-multiply" />}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2.5 text-[13px] text-tinta/65">{listaPiezas}.</p>
 
           {restantes !== null && (
-            <div className="mt-10">
+            <div className="mt-8">
               <p className="text-sm uppercase tracking-marca">
                 Quedan <span className="text-marron">{restantes}</span> de {total} kits
               </p>
@@ -78,12 +89,12 @@ export function SeccionKit() {
             </div>
           )}
 
-          <div className="mt-10">
+          <div className="mt-7">
             <AgregarAlCarrito
               producto={kit}
               etiqueta={sitio.kit.boton}
               irAlCheckout
-              grande
+              compacto
               extraOpcion={kit.opcion?.nombre === "Talle" ? <GuiaTalles /> : null}
             />
           </div>

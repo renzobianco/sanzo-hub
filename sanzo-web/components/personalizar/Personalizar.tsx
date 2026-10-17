@@ -25,13 +25,15 @@ interface Props {
   valor?: Personalizacion;
   onCambio: (p: Personalizacion | undefined) => void;
   grande?: boolean;
+  /** El botón se muestra como link de texto ("¿Con su nombre? Personalizalo"). */
+  comoLink?: boolean;
 }
 
 /**
  * Botón "Personalizar" + editor: parche → material → tamaño → nombre (y teléfono) o imagen propia, con la vista previa
  * arriba. En kits y combos se puede ver cada pieza (y el arnés en 360°) con las pestañas de la vista.
  */
-export function Personalizar({ producto, valor, onCambio, grande }: Props) {
+export function Personalizar({ producto, valor, onCambio, grande, comoLink }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
   const [estilo, setEstilo] = useState<string | undefined>(valor?.estilo);
@@ -128,6 +130,12 @@ export function Personalizar({ producto, valor, onCambio, grande }: Props) {
             </button>
           </div>
         </div>
+      ) : comoLink ? (
+        <button type="button" onClick={abrir} className="mx-auto block py-1 text-[15px] text-marron">
+          {config.link.pregunta}{" "}
+          <span className="font-normal underline underline-offset-4">{config.link.accion}</span>
+          {extra && <span className="ml-1 text-tinta/60">{extra}</span>}
+        </button>
       ) : (
         <button
           type="button"
