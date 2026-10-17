@@ -101,12 +101,6 @@ export const sitio = {
     link: "#kit",
     fotos: ["/productos/hero/3.jpg", "/productos/hero/1.jpg", "/productos/hero/4.jpg", "/productos/hero/2.jpg"],
   },
-  /** Chips fijos arriba mientras se recorre la tienda. id = id de la sección. */
-  secciones: [
-    { id: "kit", label: "Kit completo" },
-    { id: "combos", label: "Combos" },
-    { id: "productos", label: "Individuales" },
-  ],
   kit: {
     bajada: "Todo lo que necesita para salir. Combinado.",
     boton: "Comprar el kit",
