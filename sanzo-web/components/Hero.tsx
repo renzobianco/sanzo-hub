@@ -3,80 +3,54 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { sitio } from "@/data/products";
-
-// Clases completas para que Tailwind las genere. Texto claro sobre los fondos oscuros.
-const PANEL = {
-  tinta: { fondo: "bg-tinta", texto: "text-crema", boton: "bg-crema text-tinta" },
-  marron: { fondo: "bg-marron", texto: "text-crema", boton: "bg-crema text-tinta" },
-  topo: { fondo: "bg-topo", texto: "text-tinta", boton: "bg-tinta text-crema" },
-  lino: { fondo: "bg-lino", texto: "text-tinta", boton: "bg-tinta text-crema" },
-};
+import { Palabras } from "./Palabras";
 
 /**
- * Principio de la página (estilo Puppis): un banner con bordes redondeados y margen a los costados.
- * Foto a la izquierda, panel de color con el texto a la derecha. Pasan solos con un fundido;
- * los puntitos de abajo marcan cuál se ve y se pueden tocar. Sin deslizar.
+ * Principio de la página: la frase grande arriba sobre el crema y abajo la foto con bordes
+ * redondeados y el botón. Las fotos cambian solas con un fundido (sin deslizar).
  */
 export function Hero() {
-  const banners = sitio.hero;
-  const [activo, setActivo] = useState(0);
-  const [pausa, setPausa] = useState(0);
+  const { titulo, bajada, boton, link, fotos } = sitio.hero;
+  const [activa, setActiva] = useState(0);
+  const [cargadas, setCargadas] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
-    if (banners.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const t = setInterval(() => setActivo((a) => (a + 1) % banners.length), 5000);
+    if (fotos.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const t = setInterval(() => setActiva((a) => (a + 1) % fotos.length), 5000);
     return () => clearInterval(t);
-  }, [banners.length, pausa]);
+  }, [fotos.length]);
 
   return (
-    <section aria-label="Destacados" aria-roledescription="carrusel" className="px-4 pb-2 pt-4">
-      <div className="grid overflow-hidden rounded-2xl shadow-[0_14px_30px_-20px_rgb(var(--tinta)/0.6)]">
-        {banners.map((b, i) => {
-          const p = PANEL[b.color];
-          const visible = i === activo;
+    <section aria-labelledby="hero-titulo" className="px-4 pb-6 pt-5">
+      <h1 id="hero-titulo" className="text-[2.1rem] font-extralight uppercase leading-[1.12] tracking-[0.12em] [text-wrap:balance]">
+        <Palabras texto={titulo} alCargar retraso={100} />
+      </h1>
+      {bajada && <p className="mt-3 animate-entrada text-[15px] text-tinta/75 [animation-delay:400ms]">{bajada}</p>}
+
+      <a
+        href={link}
+        className="relative mt-5 block aspect-[16/10] overflow-hidden rounded-2xl bg-lino shadow-[0_14px_30px_-20px_rgb(var(--tinta)/0.6)]"
+      >
+        {fotos.map((src, i) => {
+          // Se montan la actual, la siguiente y las ya cargadas: nunca queda un cuadro vacío.
+          if (!(i === 0 || i === activa || i === (activa + 1) % fotos.length || cargadas[i])) return null;
           return (
-            <a
-              key={b.titulo}
-              href={b.link}
-              aria-hidden={!visible}
-              tabIndex={visible ? 0 : -1}
-              aria-label={`${b.arriba}: ${b.titulo}`}
-              className={`flex aspect-[16/10] transition-opacity duration-700 ease-suave [grid-area:1/1] ${p.fondo} ${
-                visible ? "opacity-100" : "pointer-events-none opacity-0"
+            <Image
+              key={src}
+              src={src}
+              alt=""
+              fill
+              priority={i === 0}
+              sizes="100vw"
+              onLoad={() => setCargadas((c) => ({ ...c, [i]: true }))}
+              className={`object-cover object-[50%_35%] transition-opacity duration-[1200ms] ease-suave ${
+                i === activa && (cargadas[i] || i === 0) ? "opacity-100" : "opacity-0"
               }`}
-            >
-              <span className="relative block w-[48%] shrink-0">
-                <Image src={b.foto} alt="" fill priority={i === 0} sizes="48vw" className="object-cover" />
-              </span>
-              <span className={`flex flex-1 flex-col items-center justify-center px-3 text-center ${p.texto}`}>
-                <span className="text-[10px] uppercase tracking-[0.24em] opacity-80">{b.arriba}</span>
-                <span className="mt-2 text-[1.2rem] font-light uppercase leading-[1.2] tracking-[0.1em]">{b.titulo}</span>
-                <span className={`mt-4 rounded-full px-4 py-2 text-[10px] uppercase tracking-[0.18em] ${p.boton}`}>{b.boton}</span>
-              </span>
-            </a>
+            />
           );
         })}
-      </div>
-
-      {banners.length > 1 && (
-        <div className="mt-3 flex items-center justify-center gap-1">
-          {banners.map((b, i) => (
-            <button
-              key={b.titulo}
-              type="button"
-              onClick={() => {
-                setActivo(i);
-                setPausa((n) => n + 1); // reinicia el contador para que no pase enseguida
-              }}
-              aria-label={`Ver ${b.arriba}`}
-              aria-current={i === activo}
-              className="flex h-6 items-center px-1"
-            >
-              <span className={`block h-1.5 rounded-full transition-all duration-500 ease-suave ${i === activo ? "w-6 bg-marron" : "w-1.5 bg-tinta/25"}`} />
-            </button>
-          ))}
-        </div>
-      )}
+        <span className="btn-claro absolute bottom-3 right-3 px-5 py-2.5 text-[11px]">{boton}</span>
+      </a>
     </section>
   );
 }
