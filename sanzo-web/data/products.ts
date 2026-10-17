@@ -93,7 +93,9 @@ export const sitio = {
    * Las fotos van cambiando solas con un fundido. link: a qué parte de la página lleva el botón.
    */
   hero: {
-    titulo: "Sacalo como se merece",
+    /** El título va en dos partes: la primera palabra grande y el cierre más chico, en marrón. */
+    titulo: "Sacalo",
+    cierre: "como se merece",
     bajada: "Accesorios para perros, pensados para salir juntos.",
     boton: "Ver el kit",
     link: "#kit",

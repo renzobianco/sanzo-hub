@@ -10,7 +10,7 @@ import { Palabras } from "./Palabras";
  * redondeados y el botón. Las fotos cambian solas con un fundido (sin deslizar).
  */
 export function Hero() {
-  const { titulo, bajada, boton, link, fotos } = sitio.hero;
+  const { titulo, cierre, bajada, boton, link, fotos } = sitio.hero;
   const [activa, setActiva] = useState(0);
   const [cargadas, setCargadas] = useState<Record<number, boolean>>({});
 
@@ -22,10 +22,16 @@ export function Hero() {
 
   return (
     <section aria-labelledby="hero-titulo" className="px-4 pb-6 pt-5">
-      <h1 id="hero-titulo" className="text-[2.1rem] font-extralight uppercase leading-[1.12] tracking-[0.12em] [text-wrap:balance]">
-        <Palabras texto={titulo} alCargar retraso={100} />
+      <h1 id="hero-titulo" className="uppercase">
+        <span className="block text-[4.4rem] font-light leading-[0.95] tracking-[0.06em]">
+          <Palabras texto={titulo} alCargar retraso={100} />
+        </span>
+        <span className="mt-3 flex animate-entrada items-center gap-3 text-[1.05rem] font-normal tracking-[0.32em] text-marron [animation-delay:350ms]">
+          <span aria-hidden="true" className="h-px w-10 shrink-0 bg-marron" />
+          {cierre}
+        </span>
       </h1>
-      {bajada && <p className="mt-3 animate-entrada text-[15px] text-tinta/75 [animation-delay:400ms]">{bajada}</p>}
+      {bajada && <p className="mt-4 animate-entrada text-[15px] text-tinta/75 [animation-delay:500ms]">{bajada}</p>}
 
       <a
         href={link}

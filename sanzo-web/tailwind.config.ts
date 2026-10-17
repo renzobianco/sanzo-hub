@@ -24,6 +24,10 @@ const config: Config = {
         amplio: "0.32em",
       },
       keyframes: {
+        brillo: {
+          from: { transform: "translateX(-100%)" },
+          to: { transform: "translateX(500%)" },
+        },
         entrada: {
           from: { opacity: "0", transform: "translateY(14px)" },
           to: { opacity: "1", transform: "translateY(0)" },
@@ -75,6 +79,7 @@ const config: Config = {
       },
       animation: {
         entrada: "entrada 0.9s cubic-bezier(0.22, 1, 0.36, 1) both",
+        brillo: "brillo 5s cubic-bezier(0.65, 0, 0.35, 1) infinite",
         balanceo: "balanceo 6s ease-in-out infinite",
         respirar: "respirar 9s ease-in-out infinite alternate",
         salto: "salto 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
