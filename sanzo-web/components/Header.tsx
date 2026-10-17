@@ -72,7 +72,7 @@ export function Header({ hayLogo }: { hayLogo: boolean }) {
           {menu ? <IconoCerrar /> : <IconoMenu />}
         </button>
 
-        <Link href="/" aria-label="sanzo, inicio" className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">
+        <Link href="/#por-que" aria-label="sanzo: por qué sanzo" className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">
           <Logo hayLogo={hayLogo} />
         </Link>
 
