@@ -5,13 +5,26 @@ import { ConZoom } from "./ConZoom";
 import { ImagenProducto } from "./ImagenProducto";
 
 /** Galería del kit: se desliza con el dedo, con puntitos que muestran en qué foto estás. */
-export function KitGaleria({ imagenes, nombre }: { imagenes: string[]; nombre: string }) {
+export function KitGaleria({
+  imagenes,
+  nombre,
+}: {
+  imagenes: string[];
+  nombre: string;
+}) {
   const [activa, setActiva] = useState(0);
   const pista = useRef<HTMLUListElement>(null);
 
   if (imagenes.length <= 1) {
     return (
-      <ImagenProducto src={imagenes[0]} nombre={nombre} sizes="(min-width: 768px) 55vw, 100vw" aspecto="aspect-square" tamTexto="text-lg md:text-2xl" priority />
+      <ImagenProducto
+        src={imagenes[0]}
+        nombre={nombre}
+        sizes="(min-width: 768px) 55vw, 100vw"
+        aspecto="aspect-square"
+        tamTexto="text-lg md:text-2xl"
+        priority
+      />
     );
   }
 
@@ -22,29 +35,33 @@ export function KitGaleria({ imagenes, nombre }: { imagenes: string[]; nombre: s
 
   return (
     <div className="relative">
-      <ul
-        ref={pista}
-        className="sin-scrollbar flex snap-x snap-mandatory overflow-x-auto rounded-2xl"
-        onScroll={(e) => {
-          const el = e.currentTarget;
-          setActiva(Math.round(el.scrollLeft / el.clientWidth));
-        }}
-        aria-label={`Fotos de ${nombre}`}
-      >
-        {imagenes.map((src, i) => (
-          <li key={src} className="w-full shrink-0 snap-center">
-            <ConZoom fotos={imagenes} nombre={nombre} inicial={i}>
-              <ImagenProducto
-                src={src}
-                nombre={`${nombre}, foto ${i + 1}`}
-                sizes="(min-width: 768px) 55vw, 100vw"
-                aspecto="aspect-square"
-                priority={i === 0}
-              />
-            </ConZoom>
-          </li>
-        ))}
-      </ul>
+      {/* Destellos marrones suaves saliendo del marco. */}
+      <div className="relative">
+        <div aria-hidden="true" className="destellos" />
+        <ul
+          ref={pista}
+          className="sin-scrollbar relative flex snap-x snap-mandatory overflow-x-auto rounded-2xl"
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            setActiva(Math.round(el.scrollLeft / el.clientWidth));
+          }}
+          aria-label={`Fotos de ${nombre}`}
+        >
+          {imagenes.map((src, i) => (
+            <li key={src} className="w-full shrink-0 snap-center">
+              <ConZoom fotos={imagenes} nombre={nombre} inicial={i}>
+                <ImagenProducto
+                  src={src}
+                  nombre={`${nombre}, foto ${i + 1}`}
+                  sizes="(min-width: 768px) 55vw, 100vw"
+                  aspecto="aspect-square"
+                  priority={i === 0}
+                />
+              </ConZoom>
+            </li>
+          ))}
+        </ul>
+      </div>
       <p className="pointer-events-none absolute right-3 top-3 rounded-full bg-crema/85 px-2.5 py-1 text-[10px] tracking-[0.2em] backdrop-blur-sm">
         {activa + 1} / {imagenes.length}
       </p>

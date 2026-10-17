@@ -13,6 +13,45 @@
   --suave: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/*
+ * Destellos marrones que salen del marco de una foto (la del kit): un degradé cónico que gira
+ * detrás de la foto, desenfocado, así la luz asoma suave por los bordes y va dando la vuelta.
+ */
+.destellos {
+  position: absolute;
+  inset: -7px;
+  border-radius: 1.4rem;
+  overflow: hidden;
+  filter: blur(10px);
+  opacity: 0.85;
+  pointer-events: none;
+}
+.destellos::before {
+  content: "";
+  position: absolute;
+  inset: -60%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgb(var(--marron) / 0.95) 35deg,
+    transparent 80deg,
+    transparent 180deg,
+    rgb(var(--marron) / 0.75) 215deg,
+    transparent 260deg
+  );
+  animation: destellos-girar 10s linear infinite;
+}
+@keyframes destellos-girar {
+  to {
+    transform: rotate(1turn);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .destellos::before {
+    animation: none;
+  }
+}
+
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
