@@ -57,17 +57,11 @@ export function Hero() {
         })}
         <span className="btn-claro absolute bottom-3 right-3 px-5 py-2.5 text-[11px]">{boton}</span>
       </a>
-      {/* La frase va subrayada con la línea marrón con brillo. */}
-      {bajada && (
-        <p className="mt-5 text-center text-[15px] text-tinta/80">
-          <span className="relative inline-block pb-2.5">
-            {bajada}
-            <span className="absolute inset-x-0 bottom-0">
-              <LineaNeon />
-            </span>
-          </span>
-        </p>
-      )}
+      {/* La frase va subrayada con la línea marrón, de borde a borde. */}
+      {bajada && <p className="mt-5 text-center text-[15px] text-tinta/80">{bajada}</p>}
+      <div className="-mx-4 mt-3">
+        <LineaNeon suave />
+      </div>
     </section>
   );
 }
