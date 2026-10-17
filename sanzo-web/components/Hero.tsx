@@ -34,7 +34,7 @@ export function Hero() {
 
       <a
         href={link}
-        className="relative mt-6 block aspect-[16/10] overflow-hidden rounded-2xl bg-lino shadow-[0_14px_30px_-20px_rgb(var(--tinta)/0.6)]"
+        className="relative mt-6 block aspect-[10/9] overflow-hidden rounded-2xl bg-lino shadow-[0_14px_30px_-20px_rgb(var(--tinta)/0.6)]"
       >
         {fotos.map((src, i) => {
           // Se montan la actual, la siguiente y las ya cargadas: nunca queda un cuadro vacío.
