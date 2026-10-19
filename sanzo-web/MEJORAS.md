@@ -149,3 +149,11 @@ Lo que definió Santi (2026-10-16):
 - [ ] Precios: `precioImagen` y `tamanos[].precioExtra`.
 - [ ] Cuando entre un pedido con "Imagen propia", pedirle la imagen por WhatsApp. Más adelante: subirla directo en el checkout (necesita guardar archivos, ej. Supabase Storage).
 - [ ] Fotos buenas de cada pieza para la vista previa (Santi las pasa).
+
+## 2026-10-18 · Portada con la frase sobre la foto y Combo Sol
+
+- **Portada**: "Sacalo — como se merece" pasó arriba de la foto, en crema, abajo a la izquierda, con una sombra suave para que se lea; "Ver el kit" debajo de la frase. La página arranca directo con la foto. En PC la foto es apaisada (16/7) para que la frase entre en la primera pantalla. Santi eligió este formato después de ver 4 opciones sobre la web real (centrada, en una fila, sobre la foto, grande).
+- **Combo Sol** (`combo-sol`): gorra + piluso a $21.999 (regla de combos: base del Hub 11.000 + 11.000, terminado en 999). Se elige la combinación de colores (Beige/Océano + Granate/Jade).
+
+### Falta
+- [ ] Fotos propias del Combo Sol (hoy usa las de la gorra y el piluso sueltos).

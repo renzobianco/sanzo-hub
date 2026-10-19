@@ -283,6 +283,24 @@ export const combos: Producto[] = [
     disponible: true,
     opcion: { nombre: "Talle", valores: TALLES_ARNES },
   },
+  {
+    id: "combo-sol",
+    nombre: "Combo Sol",
+    tipo: "combo",
+    descripcion: "Gorra y piluso, para cada día de sol.",
+    incluye: ["gorra", "piluso"],
+    precio: 21999,
+    imagenes: ["/productos/solo/gorra/1.jpg", "/productos/solo/piluso/1.jpg", "/productos/solo/gorra/2.jpg", "/productos/solo/piluso/2.jpg"],
+    envioGratis: false,
+    linkPago: "",
+    disponible: true,
+    // Colores de la gorra + el piluso.
+    opcion: {
+      nombre: "Colores",
+      valores: ["Beige + Granate", "Beige + Jade", "Océano + Granate", "Océano + Jade"],
+      fotos: { "Beige + Granate": 0, "Beige + Jade": 0, "Océano + Granate": 2, "Océano + Jade": 2 },
+    },
+  },
 ];
 
 // -----------------------------------------------------------------------------
