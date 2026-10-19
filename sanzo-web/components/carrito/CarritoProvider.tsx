@@ -26,6 +26,8 @@ interface CarritoContexto {
     opts?: { abrir?: boolean; personalizacion?: Personalizacion },
   ) => void;
   cambiarCantidad: (key: string, cantidad: number) => void;
+  /** Pone, cambia o saca (undefined) la personalización de una línea. */
+  personalizar: (key: string, personalizacion?: Personalizacion) => void;
   quitar: (key: string) => void;
   vaciar: () => void;
   setUbicacion: (u: Ubicacion) => void;
@@ -87,6 +89,23 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
+  // Cambia la clave de la línea; si ya había otra igual (mismo producto, opción y personalización), se juntan.
+  const personalizar = useCallback((key: string, personalizacion?: Personalizacion) => {
+    setLineas((prev) => {
+      const linea = prev.find((l) => l.key === key);
+      if (!linea) return prev;
+      const nueva = claveLinea(linea.productoId, linea.opcion, personalizacion);
+      if (nueva === key) return prev.map((l) => (l.key === key ? { ...l, personalizacion } : l));
+      const igual = prev.find((l) => l.key === nueva);
+      if (igual) {
+        return prev
+          .filter((l) => l.key !== key)
+          .map((l) => (l.key === nueva ? { ...l, cantidad: Math.min(MAX_CANTIDAD, l.cantidad + linea.cantidad) } : l));
+      }
+      return prev.map((l) => (l.key === key ? { ...l, key: nueva, personalizacion } : l));
+    });
+  }, []);
+
   const quitar = useCallback((key: string) => setLineas((prev) => prev.filter((l) => l.key !== key)), []);
   const vaciar = useCallback(() => setLineas([]), []);
   const abrir = useCallback(() => setAbierto(true), []);
@@ -103,13 +122,14 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
       listo,
       agregar,
       cambiarCantidad,
+      personalizar,
       quitar,
       vaciar,
       setUbicacion,
       abrir,
       cerrar,
     }),
-    [lineas, ubicacion, totales, abierto, listo, agregar, cambiarCantidad, quitar, vaciar, abrir, cerrar],
+    [lineas, ubicacion, totales, abierto, listo, agregar, cambiarCantidad, personalizar, quitar, vaciar, abrir, cerrar],
   );
 
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;

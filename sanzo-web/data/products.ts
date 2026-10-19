@@ -33,6 +33,11 @@ export interface Producto {
    * colores: muestra de color de cada valor (hex). fotos: índice de `imagenes` que se muestra al elegir ese valor.
    */
   opcion?: { nombre: string; valores: string[]; colores?: Record<string, string>; fotos?: Record<string, number> };
+  /**
+   * Pros del ítem: 2-3 líneas simples y REALES (se ven en la ficha que sube al tocar la tarjeta).
+   * Vacío → no aparece la lista.
+   */
+  pros?: string[];
   /** Cartelito arriba de la foto, ej. "Más vendido". Vacío → no aparece. */
   etiqueta?: string;
   /**
@@ -426,26 +431,22 @@ export const individuales: Producto[] = [
 ];
 
 // -----------------------------------------------------------------------------
-// Promos del carrito: "llevá más, pagá menos".
-// El carrito sugiere la pieza que falta para completar una promo y, cuando está
-// completa, aplica el ahorro solo. Usan ids de productos individuales.
-//   tipo "ahorro": llevando todo `lleva`, se descuenta `monto` (null → promo apagada).
-//   tipo "regalo": llevando todo `lleva`, `regalo` (que tiene que estar en `lleva`) sale gratis.
-// Si llevan varias promos con las mismas piezas, gana la primera de la lista.
+// Combos armados en el carrito: si llevás sueltas las piezas de un combo (o del kit),
+// el carrito te sugiere las que faltan y, cuando están todas, arma el combo y descuenta
+// lo que ahorrás. Sale solo de `combos`, `kit` y los precios sueltos (lib/promos.ts).
+// Acá solo los textos.
 // -----------------------------------------------------------------------------
-export interface Promo {
-  id: string;
-  lleva: string[];
-  tipo: "ahorro" | "regalo";
-  monto?: number | null;
-  regalo?: string;
-}
-
-export const promos: Promo[] = [
-  { id: "correa-mono", lleva: ["correa", "mono"], tipo: "ahorro", monto: 4499 },
-  { id: "collar-bandana", lleva: ["collar", "bandana"], tipo: "ahorro", monto: 3999 },
-  { id: "arnes-collar-poo", lleva: ["arnes", "collar", "poo-bag"], tipo: "ahorro", monto: 7998 },
-];
+export const carritoCombos = {
+  /** Sugerencia: "Armá el Combo Paseo". */
+  arma: "Armá el",
+  /** "Te falta collar" / "Te faltan collar y poo bag". */
+  falta: "Te falta",
+  faltan: "Te faltan",
+  ahorras: "Ahorrás",
+  sumar: "Sumar",
+  /** Combo completo: "Armaste el Combo Paseo". */
+  armaste: "Armaste el",
+};
 
 // -----------------------------------------------------------------------------
 // "¿Por qué sanzo?" — grilla tipo bento: una foto grande + tarjetas cortas.

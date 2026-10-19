@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useCarrito } from "./CarritoProvider";
 import { SelectorZona } from "./SelectorZona";
-import { SugerenciasPromo } from "./SugerenciasPromo";
+import { CombosArmados, SugerenciasPromo } from "./SugerenciasPromo";
+import { Personalizar } from "../personalizar/Personalizar";
+import { esPersonalizable } from "@/lib/personalizacion";
 import { ImagenProducto } from "../ImagenProducto";
 import { IconoCerrar, IconoMas, IconoMenos } from "../Iconos";
 import { formatearPrecio, textoEnvio } from "@/lib/formato";
@@ -13,9 +15,11 @@ import { textoOpcion } from "@/lib/combos";
 import { textoPersonalizacion } from "@/lib/personalizacion";
 
 export function CarritoDrawer() {
-  const { abierto, cerrar, totales, cambiarCantidad, quitar } = useCarrito();
+  const { abierto, cerrar, totales, cambiarCantidad, quitar, personalizar } = useCarrito();
   const botonCerrar = useRef<HTMLButtonElement>(null);
   const { lineas, subtotal, descuentos, envio, total, contieneKit, faltaParaGratis } = totales;
+  // Nombre del combo que arma esa pieza (para la etiquetita en la línea).
+  const enCombo = (id: string) => descuentos.find((d) => d.piezas.includes(id))?.texto.replace(/ × \d+$/, "");
 
   useEffect(() => {
     if (!abierto) return;
@@ -23,7 +27,8 @@ export function CarritoDrawer() {
     botonCerrar.current?.focus();
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && cerrar();
+    // Con el editor de personalización abierto, Escape cierra solo el editor.
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && !document.querySelector("dialog[open]") && cerrar();
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = overflow;
@@ -81,8 +86,22 @@ export function CarritoDrawer() {
                       <div>
                         <p className="text-[15px] font-normal">{l.producto.nombre}</p>
                         {l.opcion && <p className="text-sm text-tinta/70">{textoOpcion(l.producto, l.opcion)}</p>}
-                        {l.personalizacion && (
-                          <p className="text-sm text-marron">{textoPersonalizacion(l.personalizacion)}</p>
+                        {enCombo(l.productoId) && (
+                          <p className="mt-1 inline-block rounded-full bg-tinta px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-crema">
+                            {enCombo(l.productoId)}
+                          </p>
+                        )}
+                        {esPersonalizable(l.producto) ? (
+                          <div className="mt-1.5">
+                            <Personalizar
+                              producto={l.producto}
+                              valor={l.personalizacion}
+                              onCambio={(p) => personalizar(l.key, p)}
+                              enCarrito
+                            />
+                          </div>
+                        ) : (
+                          l.personalizacion && <p className="text-sm text-marron">{textoPersonalizacion(l.personalizacion)}</p>
                         )}
                       </div>
                       <p className="whitespace-nowrap text-[15px]">{formatearPrecio(l.subtotal)}</p>
@@ -122,6 +141,7 @@ export function CarritoDrawer() {
                 </li>
               ))}
             </ul>
+            <CombosArmados />
             <SugerenciasPromo />
             </div>
 

@@ -37,10 +37,10 @@ export interface Totales {
   lineas: LineaResuelta[];
   unidades: number;
   subtotal: number;
-  /** Promos completadas (se restan del subtotal). */
+  /** Combos armados con piezas sueltas (se restan del subtotal). */
   descuentos: DescuentoAplicado[];
   ahorro: number;
-  /** Piezas que le faltan al carrito para completar una promo. */
+  /** Combos a medio armar: qué piezas faltan. */
   sugerencias: Sugerencia[];
   envio: EstadoEnvio;
   /** Total con promos y envío; si el envío no tiene precio, no lo suma. */
@@ -77,7 +77,8 @@ export function resolverLineas(lineas: LineaCarrito[]): LineaResuelta[] {
 
 /**
  * Reglas:
- * - Promos (data/products.ts → promos): se descuentan solas cuando el carrito las completa.
+ * - Combos armados (lib/promos.ts): si el carrito tiene todas las piezas de un combo o del kit,
+ *   se descuenta lo que se ahorra frente a comprarlas sueltas.
  * - Envío: si el carrito tiene un producto con envío gratis (el kit), o lo que se paga por los
  *   productos llega a `envioInfo.gratisDesde`, el envío es $0 para todo el pedido.
  */
@@ -85,12 +86,14 @@ export function calcularTotales(lineas: LineaCarrito[], ubicacion: Ubicacion): T
   const resueltas = resolverLineas(lineas);
   const subtotal = resueltas.reduce((s, l) => s + l.subtotal, 0);
   const unidades = resueltas.reduce((s, l) => s + l.cantidad, 0);
-  const contieneKit = resueltas.some((l) => l.producto.envioGratis);
+  let contieneKit = resueltas.some((l) => l.producto.envioGratis);
 
   const porProducto: Record<string, number> = {};
   for (const l of resueltas) porProducto[l.productoId] = (porProducto[l.productoId] ?? 0) + l.cantidad;
   const { descuentos, sugerencias } = calcularPromos(porProducto);
   const ahorro = descuentos.reduce((s, d) => s + d.monto, 0);
+  // Kit armado con piezas sueltas: viaja gratis igual que el kit.
+  if (descuentos.some((d) => d.envioGratis)) contieneKit = true;
   const productos = subtotal - ahorro;
 
   let envio: EstadoEnvio;

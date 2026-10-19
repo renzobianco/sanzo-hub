@@ -1,75 +1,86 @@
-import { getProducto, promos, type Producto, type Promo } from "@/data/products";
-import { formatearPrecio } from "./formato";
+import { combos, getProducto, kit, type Producto } from "@/data/products";
+
+/**
+ * Combos armados en el carrito: si comprás sueltas las piezas de un combo (o del kit),
+ * pagás lo mismo que el combo. El ahorro sale solo de los precios reales:
+ * suma de las piezas sueltas − precio del combo. Nada se carga a mano.
+ */
 
 export interface DescuentoAplicado {
   promoId: string;
-  /** Ej. "Correa + Moño" o "Poo bag de regalo". */
+  /** Ej. "Combo Paseo". */
   texto: string;
   monto: number;
+  /** Ids de las piezas que lo forman (para marcarlas en el carrito). */
+  piezas: string[];
+  /** Armaste el kit completo: viaja gratis como el kit. */
+  envioGratis: boolean;
 }
 
 export interface Sugerencia {
   promoId: string;
-  /** La pieza que falta para completar la promo. */
-  producto: Producto;
-  /** Ej. "Sumalo y ahorrás $ 2.000". */
-  texto: string;
+  combo: Producto;
+  /** Piezas del combo que ya están en el carrito. */
+  tiene: Producto[];
+  /** Piezas que faltan para armarlo. */
+  faltan: Producto[];
+  ahorro: number;
 }
 
-const nombre = (id: string) => getProducto(id)?.nombre ?? id;
-
-/** Cuánto vale una vez la promo, o null si todavía no tiene precio (promo apagada). */
-function valorPromo(p: Promo): number | null {
-  if (p.tipo === "ahorro") return p.monto ?? null;
-  if (!p.regalo || !p.lleva.includes(p.regalo)) return null;
-  return getProducto(p.regalo)?.precio ?? null;
+interface Armable {
+  combo: Producto;
+  piezas: Producto[];
+  ahorro: number;
 }
 
-/** Se puede comprar todo lo que pide la promo. */
-function comprable(p: Promo) {
-  return p.lleva.every((id) => {
-    const prod = getProducto(id);
-    return prod && prod.precio !== null && prod.disponible;
-  });
+const comprable = (p?: Producto): p is Producto => !!p && p.precio !== null && p.disponible;
+
+/** Kit y combos que se pueden armar con piezas sueltas y que de verdad ahorran. */
+function armables(): Armable[] {
+  const out: Armable[] = [];
+  for (const combo of [kit, ...combos]) {
+    if (!comprable(combo)) continue;
+    const piezas = combo.incluye.map(getProducto);
+    if (!piezas.every(comprable)) continue;
+    const ahorro = piezas.reduce((s, p) => s + p.precio!, 0) - combo.precio!;
+    if (ahorro > 0) out.push({ combo, piezas, ahorro });
+  }
+  // El kit primero (es el más completo y viaja gratis); después los combos, del que más ahorra al que menos.
+  return out.sort((a, b) => (a.combo.tipo === "kit" ? -1 : b.combo.tipo === "kit" ? 1 : b.ahorro - a.ahorro));
 }
 
 /**
- * Aplica las promos en orden sobre las unidades del carrito (cada unidad cuenta para una sola promo)
- * y arma las sugerencias: promos a las que les falta exactamente una pieza.
+ * Arma los combos que el carrito ya completa (cada unidad cuenta para un solo combo) y sugiere
+ * los que están a medio armar: los que menos piezas les faltan, hasta 2.
  */
 export function calcularPromos(unidadesPorProducto: Record<string, number>) {
   const restantes = { ...unidadesPorProducto };
   const descuentos: DescuentoAplicado[] = [];
-  const activas = promos.filter((p) => valorPromo(p) !== null && comprable(p));
+  const lista = armables();
 
-  for (const p of activas) {
-    const veces = Math.min(...p.lleva.map((id) => restantes[id] ?? 0));
+  for (const a of lista) {
+    const veces = Math.min(...a.piezas.map((p) => restantes[p.id] ?? 0));
     if (veces <= 0) continue;
-    for (const id of p.lleva) restantes[id] -= veces;
+    for (const p of a.piezas) restantes[p.id] -= veces;
     descuentos.push({
-      promoId: p.id,
-      texto: p.tipo === "regalo" ? `${nombre(p.regalo!)} de regalo` : p.lleva.map(nombre).join(" + "),
-      monto: valorPromo(p)! * veces,
+      promoId: a.combo.id,
+      texto: veces > 1 ? `${a.combo.nombre} × ${veces}` : a.combo.nombre,
+      monto: a.ahorro * veces,
+      piezas: a.piezas.map((p) => p.id),
+      envioGratis: a.combo.envioGratis,
     });
   }
 
-  // Cada pieza del carrito sostiene una sola sugerencia: no ofrecemos dos promos que no se pueden cumplir juntas.
   const sugerencias: Sugerencia[] = [];
-  for (const p of activas) {
-    const faltan = p.lleva.filter((id) => (restantes[id] ?? 0) <= 0);
-    if (faltan.length !== 1 || p.lleva.length < 2) continue;
-    const id = faltan[0];
-    if (sugerencias.some((s) => s.producto.id === id)) continue;
-    for (const otro of p.lleva) if (otro !== id) restantes[otro] -= 1;
-    const texto =
-      p.tipo === "ahorro"
-        ? `Sumalo y ahorrás ${formatearPrecio(valorPromo(p)!)}`
-        : id === p.regalo
-          ? "Sumalo: te lo regalamos"
-          : `Sumalo y te llevás ${nombre(p.regalo!).toLowerCase()} de regalo`;
-    sugerencias.push({ promoId: p.id, producto: getProducto(id)!, texto });
+  for (const a of lista) {
+    const tiene = a.piezas.filter((p) => (restantes[p.id] ?? 0) > 0);
+    const faltan = a.piezas.filter((p) => (restantes[p.id] ?? 0) <= 0);
+    if (tiene.length === 0 || faltan.length === 0) continue;
+    // El kit solo cuando está cerca (si no, es mucho pedir).
+    if (a.combo.tipo === "kit" && faltan.length > 2) continue;
+    sugerencias.push({ promoId: a.combo.id, combo: a.combo, tiene, faltan, ahorro: a.ahorro });
   }
+  sugerencias.sort((x, y) => x.faltan.length - y.faltan.length || y.ahorro - x.ahorro);
 
   return { descuentos, sugerencias: sugerencias.slice(0, 2) };
 }
-

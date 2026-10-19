@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Palabras } from "./Palabras";
 import { combos } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
@@ -14,7 +14,8 @@ import { Reveal } from "./Reveal";
  * Combos de a uno, a todo el ancho. De combo a combo se pasa con las flechas; adentro de cada
  * uno, la foto se desliza pieza por pieza (`GaleriaPiezas`).
  * Todos quedan montados y apilados en la misma celda: así no se pierde el talle elegido
- * y el cambio es un fundido sin saltos de alto.
+ * y el cambio es un fundido. El alto acompaña al combo visible (sin huecos en los que
+ * no tienen colores para elegir).
  */
 export function SeccionCombos() {
   const [activo, setActivo] = useState(0);
@@ -23,6 +24,19 @@ export function SeccionCombos() {
   // Colores elegidos por combo (para la foto de cada pieza) y a qué pieza deslizar.
   const [colores, setColores] = useState<Record<string, Record<string, string>>>({});
   const [foco, setFoco] = useState<Record<string, { pieza: string; n: number }>>({});
+  const tarjetas = useRef<(HTMLElement | null)[]>([]);
+  const [alto, setAlto] = useState<number>();
+
+  // Mide la tarjeta visible (y la vuelve a medir si cambia, ej. al elegir colores).
+  useEffect(() => {
+    const el = tarjetas.current[activo];
+    if (!el) return;
+    const medir = () => setAlto(el.offsetHeight);
+    medir();
+    const ro = new ResizeObserver(medir);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [activo]);
 
   return (
     <section id="combos" aria-labelledby="combos-titulo" className="bg-lino py-20 md:py-28">
@@ -35,16 +49,23 @@ export function SeccionCombos() {
         </Reveal>
 
         <Reveal className="relative">
-          <div className="grid" aria-live="polite">
+          <div
+            className="grid overflow-hidden transition-[height] duration-500 ease-suave motion-reduce:transition-none"
+            style={alto ? { height: alto } : undefined}
+            aria-live="polite"
+          >
             {combos.map((c, i) => {
               const visible = i === activo;
               return (
                 <article
                   key={c.id}
+                  ref={(el) => {
+                    tarjetas.current[i] = el;
+                  }}
                   aria-hidden={!visible}
                   inert={!visible}
                   aria-label={`${c.nombre}, ${i + 1} de ${total}`}
-                  className={`flex flex-col overflow-hidden rounded-[1rem] bg-crema transition-opacity duration-500 ease-suave [grid-area:1/1] ${
+                  className={`flex flex-col overflow-hidden self-start rounded-[1rem] bg-crema transition-opacity duration-500 ease-suave [grid-area:1/1] ${
                     visible ? "opacity-100" : "pointer-events-none opacity-0"
                   }`}
                 >
@@ -56,7 +77,7 @@ export function SeccionCombos() {
                       <MiniPiezas incluye={c.incluye} />
                     </div>
                     {c.precio !== null && <p className="mt-6 text-[1.9rem] font-light leading-none tracking-wide">{formatearPrecio(c.precio)}</p>}
-                    <div className="mt-auto pt-6">
+                    <div className="pt-6">
                       <AgregarAlCarrito
                         producto={c}
                         onColores={(col, pieza) => {

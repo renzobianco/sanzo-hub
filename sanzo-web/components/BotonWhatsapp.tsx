@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { sitio } from "@/data/products";
+import { useFooterVisible } from "@/lib/flotantes";
 import { IconoCerrar, IconoWhatsapp } from "./Iconos";
 
 const link = (texto: string) => `https://wa.me/${sitio.whatsapp.numero}?text=${encodeURIComponent(texto)}`;
@@ -12,8 +13,11 @@ const link = (texto: string) => `https://wa.me/${sitio.whatsapp.numero}?text=${e
  */
 export function BotonWhatsapp() {
   const { numero, titulo, texto, mensaje, rapidas } = sitio.whatsapp;
-  const [visible, setVisible] = useState(false);
+  const [pasoPortada, setVisible] = useState(false);
   const [abierto, setAbierto] = useState(false);
+  // Sobre el footer se esconde (tapaba los legales).
+  const sobreFooter = useFooterVisible();
+  const visible = pasoPortada && !sobreFooter;
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > window.innerHeight * 0.5);

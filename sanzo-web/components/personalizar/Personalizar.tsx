@@ -27,13 +27,15 @@ interface Props {
   grande?: boolean;
   /** El botón se muestra como link de texto ("¿Con su nombre? Personalizalo"). */
   comoLink?: boolean;
+  /** Versión chica para cada ítem del carrito. */
+  enCarrito?: boolean;
 }
 
 /**
  * Botón "Personalizar" + editor: parche → material → tamaño → nombre (y teléfono) o imagen propia, con la vista previa
  * arriba. En kits y combos se puede ver cada pieza (y el arnés en 360°) con las pestañas de la vista.
  */
-export function Personalizar({ producto, valor, onCambio, grande, comoLink }: Props) {
+export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCarrito }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
   const [estilo, setEstilo] = useState<string | undefined>(valor?.estilo);
@@ -117,7 +119,34 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink }: Pr
   // Un solo div raíz: así el space-y del padre no le pone margen al <dialog>.
   return (
     <div>
-      {valor ? (
+      {enCarrito ? (
+        valor ? (
+          <div className="animate-entrada">
+            <p className="text-sm text-marron">
+              {textoPersonalizacion(valor)}
+              {extra && <span className="ml-1 text-tinta/60">{extra}</span>}
+            </p>
+            <div className="mt-1 flex gap-4 text-[11px] uppercase tracking-[0.12em]">
+              <button type="button" onClick={abrir} className="py-1 underline underline-offset-4">
+                Editar
+              </button>
+              <button type="button" onClick={() => onCambio(undefined)} className="py-1 text-tinta/60 underline underline-offset-4">
+                Quitar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={abrir}
+            className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-dashed border-tinta/40 px-3 py-1.5 text-[11px] uppercase tracking-[0.12em] text-tinta/80 transition-transform duration-200 active:scale-95"
+          >
+            <span aria-hidden="true" className="text-marron">+</span>
+            {config.boton}
+            {extra && <span className="normal-case tracking-normal text-tinta/60">{extra}</span>}
+          </button>
+        )
+      ) : valor ? (
         <div className={`border border-tinta/20 bg-lino/50 ${grande ? "p-4" : "p-3"}`}>
           <p className="eyebrow">Personalizado {extra && <span className="ml-1 text-tinta">{extra}</span>}</p>
           <p className={`mt-1 text-marron ${grande ? "text-[15px]" : "text-xs"}`}>{textoPersonalizacion(valor)}</p>

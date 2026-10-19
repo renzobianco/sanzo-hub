@@ -29,7 +29,7 @@ Hoja de ruta de la web de clientes. La lee `/web` antes de tocar nada. Anotar ac
 
 ## Falta confirmar
 
-- [ ] Que +150 clientes y la garantía de un año sean reales.
+- [x] Que +150 clientes y la garantía de un año sean reales (Santi, 2026-10-19: son reales).
 - [x] Número de WhatsApp de Sanzo: +54 9 11 5969-4816 (cargado).
 - [x] Redes: @sanzo_pets en Instagram, TikTok y X (cargadas).
 - [ ] Precios: subir los individuales y cargar los combos y los montos de cada promo.
@@ -167,3 +167,23 @@ Lo que definió Santi (2026-10-16):
 
 ### Falta
 - [ ] Fotos correctas de cada pieza en cada combo → `fotosPiezas`.
+
+## 2026-10-19 · Repaso en el celu
+
+- [x] Santi confirmó que son reales: "+150 clientes", "Garantía por un año" y "Más vendido".
+- [x] **Combos sin hueco**: el recuadro toma el alto del combo que se ve (antes todos medían como el Combo Sol, con sus renglones de color) y cambia de alto con una transición suave.
+- Barra fija del kit abajo (foto, precio, talle y "Comprar"): se hizo y **se sacó** (Santi: "no me gusta"). No volver a proponer una barra fija de compra.
+- [x] **Ficha en hoja que sube** (`FichaProducto`): tocando la foto o el nombre de un individual sube una hoja con fotos grandes que se deslizan (tocás una → zoom), descripción, pros y para agregar. Se cierra con la X, tocando afuera o arrastrándola para abajo. Al agregar, se va y se abre el carrito. El ícono de la tarjeta pasó de lupa a "+".
+- [x] **WhatsApp**: se esconde sobre el footer, ya no tapa los legales (`lib/flotantes.ts`).
+- [ ] **Pros de cada ítem** → `pros: ["...", "..."]` en cada individual de `data/products.ts`. Ya se ven en la ficha apenas se cargan. Solo cosas reales.
+- [ ] Individuales: fondos de foto mezclados (arnés estudio blanco, correa foto real). Falta foto "artículo" de cada uno.
+
+## 2026-10-19 · Carrito: combos que se arman solos y personalizar cada ítem
+
+- **Las promos sueltas viejas se sacaron** (correa + moño, collar + bandana, arnés + collar + poo bag). Ahora el carrito trabaja con los **combos reales y el kit** (`lib/promos.ts`, textos en `carritoCombos` de `data/products.ts`).
+- **Recomienda**: si agregás un individual, aparece "Armá el Combo X · Ahorrás $Y" con las piezas (las que tenés marcadas, las que faltan apagadas), "1 / 3", una barrita que se llena y "Sumar" en cada pieza que falta (elige talle o color ahí mismo). Hasta 2 combos, primero los que menos piezas les faltan. El kit solo se sugiere si le faltan 1 o 2.
+- **Arma el combo**: con todas las piezas, aparece "✓ Armaste el Combo X · Ahorrás $Y", cada pieza lleva la etiqueta del combo y en los totales se descuenta. Ahorro = suma de las piezas sueltas − precio del combo (sale solo de los precios: Paseo $6.498, Estilo $5.998, Aventura $6.499, Sol $1.999, kit $12.495). Pagás lo mismo que comprando el combo.
+- **Kit armado con piezas sueltas = envío gratis**, igual que el kit.
+- El mail del pedido dice "Armó el Combo X: − $Y".
+- **Personalizar en cada ítem del carrito**: "+ Personalizar" en cada línea personalizable (abre el mismo editor). Ya personalizado muestra el detalle con Editar / Quitar. Si queda igual a otra línea, se juntan.
+- [ ] Ojo: con sugerencias, la parte de los ítems del carrito queda chica en el celu (el selector de envío y los totales ocupan mucho abajo). Se podría compactar.
