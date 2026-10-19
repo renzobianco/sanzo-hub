@@ -10,6 +10,7 @@ import { sinImagen, textoPersonalizacion } from "@/lib/personalizacion";
 import { datosVacios, validarCheckout, type DatosCheckout } from "@/lib/validacion";
 import { useCarrito } from "../carrito/CarritoProvider";
 import { ImagenProducto } from "../ImagenProducto";
+import { textoOpcion } from "@/lib/combos";
 
 type Campo = keyof DatosCheckout;
 
@@ -379,7 +380,7 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
               <div className="flex-1 text-[15px]">
                 <p>{l.producto.nombre}</p>
                 <p className="text-sm text-tinta/70">
-                  {l.opcion && l.producto.opcion ? `${l.producto.opcion.nombre} ${l.opcion} · ` : ""}
+                  {l.opcion ? `${textoOpcion(l.producto, l.opcion)} · ` : ""}
                   {l.cantidad} u.
                 </p>
                 {l.personalizacion && (

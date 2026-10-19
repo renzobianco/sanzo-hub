@@ -157,3 +157,13 @@ Lo que definió Santi (2026-10-16):
 
 ### Falta
 - [ ] Fotos propias del Combo Sol (hoy usa las de la gorra y el piluso sueltos).
+- 2026-10-18 · Gorra y piluso sueltos subieron a $11.999 (Santi).
+- 2026-10-18 · **Combos: fotos pieza por pieza y un color por pieza** (Santi: no le gustaban las 4 opciones "Beige + Granate…" escalonadas).
+  - La foto de cada combo ahora se desliza con el dedo, una pieza por foto, con el nombre abajo ("Gorra · Océano") y "1 / 3" arriba (`GaleriaPiezas`). Al entrar en pantalla hace un amague corto para que se note que se desliza.
+  - Si una pieza del combo tiene colores (gorra, piluso), aparece un renglón por pieza para elegirlo. Al elegir, la foto se desliza sola a esa pieza y cambia al color con un fundido.
+  - Al carrito, checkout, mail y Mercado Pago llega "Gorra Océano · Piluso Jade" (`lib/combos.ts`).
+  - **Fotos de cada combo**: hoy usa las fotos de las piezas sueltas. Para poner las correctas: `fotosPiezas` en el combo, con clave "pieza" o "pieza:Color" (ej. `"gorra:Beige": "/productos/combo-sol/gorra-beige.jpg"`).
+  - Las fotos propias de los combos (`imagenes`, las de perros) ya no se ven en la tarjeta; siguen en el carrito.
+
+### Falta
+- [ ] Fotos correctas de cada pieza en cada combo → `fotosPiezas`.

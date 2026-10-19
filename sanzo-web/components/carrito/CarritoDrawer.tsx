@@ -9,6 +9,7 @@ import { ImagenProducto } from "../ImagenProducto";
 import { IconoCerrar, IconoMas, IconoMenos } from "../Iconos";
 import { formatearPrecio, textoEnvio } from "@/lib/formato";
 import { MAX_CANTIDAD } from "@/lib/carrito";
+import { textoOpcion } from "@/lib/combos";
 import { textoPersonalizacion } from "@/lib/personalizacion";
 
 export function CarritoDrawer() {
@@ -79,11 +80,7 @@ export function CarritoDrawer() {
                     <div className="flex justify-between gap-3">
                       <div>
                         <p className="text-[15px] font-normal">{l.producto.nombre}</p>
-                        {l.opcion && l.producto.opcion && (
-                          <p className="text-sm text-tinta/70">
-                            {l.producto.opcion.nombre} {l.opcion}
-                          </p>
-                        )}
+                        {l.opcion && <p className="text-sm text-tinta/70">{textoOpcion(l.producto, l.opcion)}</p>}
                         {l.personalizacion && (
                           <p className="text-sm text-marron">{textoPersonalizacion(l.personalizacion)}</p>
                         )}

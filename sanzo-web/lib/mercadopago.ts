@@ -1,5 +1,6 @@
 import type { Totales } from "./carrito";
 import { textoPersonalizacion } from "./personalizacion";
+import { textoOpcion } from "./combos";
 import type { DatosCheckout } from "./validacion";
 
 /** true si hay credenciales de Mercado Pago cargadas (variable MP_ACCESS_TOKEN en Vercel). */
@@ -22,7 +23,7 @@ export async function crearPreferencia(numero: string, c: DatosCheckout, t: Tota
     id: l.productoId,
     title: [
       l.producto.nombre,
-      l.opcion && l.producto.opcion ? `${l.producto.opcion.nombre} ${l.opcion}` : "",
+      textoOpcion(l.producto, l.opcion),
       l.personalizacion ? `Personalizado: ${textoPersonalizacion(l.personalizacion)}` : "",
     ]
       .filter(Boolean)

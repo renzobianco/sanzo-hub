@@ -35,6 +35,11 @@ export interface Producto {
   opcion?: { nombre: string; valores: string[]; colores?: Record<string, string>; fotos?: Record<string, number> };
   /** Cartelito arriba de la foto, ej. "Más vendido". Vacío → no aparece. */
   etiqueta?: string;
+  /**
+   * Solo combos: foto de cada pieza en la galería que se desliza. Clave "pieza" o "pieza:Color"
+   * (ej. "gorra:Beige"). Sin cargar → usa la foto de la pieza suelta.
+   */
+  fotosPiezas?: Record<string, string>;
 }
 
 /**
@@ -294,12 +299,7 @@ export const combos: Producto[] = [
     envioGratis: false,
     linkPago: "",
     disponible: true,
-    // Colores de la gorra + el piluso.
-    opcion: {
-      nombre: "Colores",
-      valores: ["Beige + Granate", "Beige + Jade", "Océano + Granate", "Océano + Jade"],
-      fotos: { "Beige + Granate": 0, "Beige + Jade": 0, "Océano + Granate": 2, "Océano + Jade": 2 },
-    },
+    // Sin `opcion`: el color de la gorra y el del piluso se eligen aparte (salen de cada pieza).
   },
 ];
 
@@ -393,7 +393,7 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Para vos. Que combine con el paseo.",
     incluye: [],
-    precio: 10999,
+    precio: 11999,
     imagenes: ["/productos/solo/gorra/1.jpg", "/productos/solo/gorra/2.jpg"],
     envioGratis: false,
     linkPago: "",
@@ -411,7 +411,7 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Para el sol de la plaza.",
     incluye: [],
-    precio: 10999,
+    precio: 11999,
     imagenes: ["/productos/solo/piluso/1.jpg", "/productos/solo/piluso/2.jpg"],
     envioGratis: false,
     linkPago: "",

@@ -5,14 +5,14 @@ import { Palabras } from "./Palabras";
 import { combos } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
-import { ConZoom } from "./ConZoom";
+import { GaleriaPiezas } from "./GaleriaPiezas";
 import { IconoFlecha } from "./Iconos";
-import { ImagenProducto } from "./ImagenProducto";
 import { MiniPiezas } from "./MiniPiezas";
 import { Reveal } from "./Reveal";
 
 /**
- * Combos de a uno, a todo el ancho. Se pasa con las flechas de los costados (sin deslizar).
+ * Combos de a uno, a todo el ancho. De combo a combo se pasa con las flechas; adentro de cada
+ * uno, la foto se desliza pieza por pieza (`GaleriaPiezas`).
  * Todos quedan montados y apilados en la misma celda: así no se pierde el talle elegido
  * y el cambio es un fundido sin saltos de alto.
  */
@@ -20,6 +20,9 @@ export function SeccionCombos() {
   const [activo, setActivo] = useState(0);
   const total = combos.length;
   const ir = (paso: number) => setActivo((a) => (a + paso + total) % total);
+  // Colores elegidos por combo (para la foto de cada pieza) y a qué pieza deslizar.
+  const [colores, setColores] = useState<Record<string, Record<string, string>>>({});
+  const [foco, setFoco] = useState<Record<string, { pieza: string; n: number }>>({});
 
   return (
     <section id="combos" aria-labelledby="combos-titulo" className="bg-lino py-20 md:py-28">
@@ -45,9 +48,7 @@ export function SeccionCombos() {
                     visible ? "opacity-100" : "pointer-events-none opacity-0"
                   }`}
                 >
-                  <ConZoom fotos={c.imagenes} nombre={c.nombre}>
-                    <ImagenProducto srcs={c.imagenes} desfase={i * 1300} intervalo={4200} nombre={c.nombre} sizes="(min-width: 768px) 576px, 100vw" aspecto="aspect-[4/5]" fondo="bg-topo/35" />
-                  </ConZoom>
+                  <GaleriaPiezas combo={c} colores={colores[c.id] ?? {}} foco={foco[c.id]} visible={visible} />
                   <div className="flex flex-1 flex-col p-5">
                     <h3 className="text-2xl font-light uppercase tracking-marca">{c.nombre}</h3>
                     <p className="mt-2 text-[15px] text-tinta/80">{c.descripcion}</p>
@@ -56,7 +57,13 @@ export function SeccionCombos() {
                     </div>
                     {c.precio !== null && <p className="mt-6 text-[1.9rem] font-light leading-none tracking-wide">{formatearPrecio(c.precio)}</p>}
                     <div className="mt-auto pt-6">
-                      <AgregarAlCarrito producto={c} />
+                      <AgregarAlCarrito
+                        producto={c}
+                        onColores={(col, pieza) => {
+                          setColores((t) => ({ ...t, [c.id]: col }));
+                          setFoco((f) => ({ ...f, [c.id]: { pieza, n: (f[c.id]?.n ?? 0) + 1 } }));
+                        }}
+                      />
                     </div>
                   </div>
                 </article>

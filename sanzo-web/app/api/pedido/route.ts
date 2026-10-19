@@ -4,6 +4,7 @@ import { formatearPrecio, textoEnvio } from "@/lib/formato";
 import { crearPreferencia, pagoOnlineActivo, sePuedeCobrar } from "@/lib/mercadopago";
 import type { PedidoEntrada, PedidoRespuesta } from "@/lib/pedido";
 import { textoPersonalizacion, type Personalizacion } from "@/lib/personalizacion";
+import { textoOpcion } from "@/lib/combos";
 import { validarCheckout, type DatosCheckout } from "@/lib/validacion";
 
 export const runtime = "nodejs";
@@ -83,7 +84,7 @@ function armarMail(numero: string, c: DatosCheckout, t: Totales, pago: string) {
   const items = t.lineas.map((l) => ({
     nombre:
       l.producto.nombre +
-      (l.opcion && l.producto.opcion ? ` (${l.producto.opcion.nombre} ${l.opcion})` : "") +
+      (l.opcion ? ` (${textoOpcion(l.producto, l.opcion)})` : "") +
       (l.personalizacion ? ` — PERSONALIZADO: ${textoPersonalizacion(l.personalizacion)}` : ""),
     cantidad: l.cantidad,
     unitario: formatearPrecio(l.unitario),
@@ -149,7 +150,7 @@ export async function POST(req: Request) {
   const lineas: LineaCarrito[] = (Array.isArray(body.lineas) ? body.lineas : []).slice(0, 30).map((l) => ({
     key: "",
     productoId: str(l?.productoId, 60),
-    opcion: str(l?.opcion, 30) || undefined,
+    opcion: str(l?.opcion, 80) || undefined,
     personalizacion: limpiarPersonalizacion(l?.personalizacion),
     cantidad: Number(l?.cantidad) || 1,
   }));

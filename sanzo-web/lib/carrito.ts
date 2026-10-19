@@ -2,6 +2,7 @@ import { getProducto, type Producto } from "@/data/products";
 import { envioInfo, zonaPorProvincia, type ZonaEnvio } from "@/data/envios";
 import { clavePersonalizacion, normalizarPersonalizacion, precioPersonalizacion, type Personalizacion } from "./personalizacion";
 import { calcularPromos, type DescuentoAplicado, type Sugerencia } from "./promos";
+import { opcionesValidas } from "./combos";
 
 export interface LineaCarrito {
   key: string;
@@ -62,7 +63,8 @@ export function resolverLineas(lineas: LineaCarrito[]): LineaResuelta[] {
   for (const l of lineas) {
     const producto = getProducto(l.productoId);
     if (!producto || producto.precio === null || !producto.disponible) continue;
-    if (producto.opcion && (!l.opcion || !producto.opcion.valores.includes(l.opcion))) continue;
+    const validas = opcionesValidas(producto);
+    if (validas && (!l.opcion || !validas.includes(l.opcion))) continue;
     // Personalización que ya no es válida (ej. se sacó un estilo): mejor no vender algo distinto a lo pedido.
     const personalizacion = l.personalizacion ? normalizarPersonalizacion(producto, l.personalizacion) : undefined;
     if (personalizacion === null) continue;
