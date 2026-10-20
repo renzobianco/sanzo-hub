@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { legal, sitio } from "@/data/products";
 import { IconoFacebook, IconoInstagram, IconoMail, IconoTiktok, IconoWhatsapp, IconoX } from "./Iconos";
 import { Logo } from "./Logo";
@@ -63,15 +62,9 @@ export function Footer({ hayLogo }: { hayLogo: boolean }) {
           )}
         </div>
       </div>
-      {/* Legales obligatorios: botón de arrepentimiento y Defensa del Consumidor. */}
+      {/* Legal obligatorio: Defensa del Consumidor. */}
       <div className="border-t border-tinta/10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 px-4 py-6 text-center text-[13px] md:flex-row md:justify-between md:px-8">
-          <Link
-            href="/arrepentimiento"
-            className="rounded-full border border-tinta/70 px-4 py-2 text-[11px] uppercase tracking-marca transition-colors hover:bg-tinta hover:text-crema"
-          >
-            {legal.arrepentimiento.boton}
-          </Link>
+        <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 px-4 py-6 text-center text-[13px] md:px-8">
           <a
             href={legal.defensaConsumidor.url}
             target="_blank"

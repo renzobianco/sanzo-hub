@@ -80,11 +80,16 @@ const config: Config = {
           "0%, 100%": { transform: "rotate(-1.2deg) translateY(0)" },
           "50%": { transform: "rotate(1.2deg) translateY(-3px)" },
         },
+        resplandor: {
+          "0%, 100%": { boxShadow: "0 16px 34px -14px rgb(var(--marron) / 0.6)" },
+          "50%": { boxShadow: "0 20px 48px -10px rgb(var(--marron) / 0.95)" },
+        },
       },
       animation: {
         entrada: "entrada 0.9s cubic-bezier(0.22, 1, 0.36, 1) both",
         fundido: "fundido 0.7s ease both",
         brillo: "brillo 5s cubic-bezier(0.65, 0, 0.35, 1) infinite",
+        resplandor: "resplandor 2.4s ease-in-out infinite",
         balanceo: "balanceo 6s ease-in-out infinite",
         respirar: "respirar 9s ease-in-out infinite alternate",
         salto: "salto 0.7s cubic-bezier(0.16, 1, 0.3, 1)",

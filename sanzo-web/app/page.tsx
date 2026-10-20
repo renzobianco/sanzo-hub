@@ -4,7 +4,6 @@ import { SeccionKit } from "@/components/SeccionKit";
 import { SeccionCombos } from "@/components/SeccionCombos";
 import { SeccionProductos } from "@/components/SeccionProductos";
 import { SeccionClientes } from "@/components/SeccionClientes";
-import { SeccionPorQue } from "@/components/SeccionPorQue";
 import { SeccionResenas } from "@/components/SeccionResenas";
 import { SeccionPreguntas } from "@/components/SeccionPreguntas";
 
@@ -20,7 +19,6 @@ export default function Inicio() {
         <SeccionProductos />
       </div>
       <SeccionClientes />
-      <SeccionPorQue />
       <SeccionResenas />
       <SeccionPreguntas />
     </>

@@ -112,7 +112,7 @@ export const sitio = {
     fotos: ["/productos/hero/3.jpg", "/productos/hero/1.jpg", "/productos/hero/4.jpg", "/productos/hero/2.jpg"],
   },
   kit: {
-    bajada: "Todo lo que necesita para salir. Combinado.",
+    bajada: "",
     boton: "Comprar el kit",
     /** Precio de las piezas sueltas (se calcula solo, tachado) y cuánto se ahorra con el kit. */
     porSeparado: "Por separado",
@@ -236,7 +236,7 @@ export const guiaTalles = {
 // -----------------------------------------------------------------------------
 export const kit: Producto = {
   id: "kit-completo",
-  nombre: "Kit completo Sanzo",
+  nombre: "Kit Paseo Sanzo",
   tipo: "kit",
   descripcion: "Arnés, correa, collar, moño, bandana y porta bolsitas. Todo lo que necesita para salir. Combinado.",
   incluye: ["arnes", "correa", "collar", "mono", "bandana", "poo-bag"],
@@ -454,28 +454,6 @@ export const carritoCombos = {
 };
 
 // -----------------------------------------------------------------------------
-// "¿Por qué sanzo?" — grilla tipo bento: una foto grande + tarjetas cortas.
-// La primera razón va destacada (tarjeta oscura). Envío gratis y cuotas se suman solas
-// si están cargados (`envioInfo.gratisDesde`, `confianza.cuotasSinInteres`).
-// video: ruta en /public (vertical). Si hay, reemplaza a la foto.
-// -----------------------------------------------------------------------------
-export const porQue = {
-  eyebrow: "Pensado para salir juntos",
-  titulo: "¿Por qué sanzo?",
-  foto: "/productos/arnes/3.jpg",
-  video: "",
-  /** Frase sobre la foto grande. */
-  frase: "Accesorios que combinan entre sí, para que cada salida se vea linda.",
-  razones: [
-    { icono: "combina", titulo: "Todo combina", texto: "Arnés, correa, collar, moño y bandana de la misma línea." },
-    { icono: "reloj", titulo: "Se pone en segundos", texto: "Sin vueltas, para salir apenas te mira." },
-    { icono: "garantia", titulo: "Garantía por un año", texto: "Comprás tranquilo." },
-    { icono: "cambio", titulo: "Cambio de talle", texto: "¿No le quedó? Lo cambiamos sin vueltas." },
-    { icono: "envio", titulo: "Envíos a todo el país", texto: "Te llega a tu casa." },
-  ] as { icono: "garantia" | "cambio" | "combina" | "envio" | "paseo" | "reloj" | "cuotas"; titulo: string; texto: string }[],
-};
-
-// -----------------------------------------------------------------------------
 // Reseñas y videos de clientes. SOLO reales (nada inventado).
 // Lista vacía → la sección no aparece. video/foto: rutas en /public, opcionales.
 // -----------------------------------------------------------------------------
@@ -568,12 +546,9 @@ export const legal = {
 // -----------------------------------------------------------------------------
 export const preguntas: { pregunta: string; respuesta: string }[] = [
   {
-    pregunta: "¿Me puedo arrepentir de la compra?",
-    respuesta: "Sí. Tenés 10 días corridos desde que lo recibís. Usá el botón de arrepentimiento al pie de la página y lo coordinamos.",
-  },
-  {
-    pregunta: "¿Tienen garantía?",
-    respuesta: "Sí, un año. Si algo falla, escribinos y lo resolvemos.",
+    pregunta: "¿Por qué sanzo?",
+    respuesta:
+      "Porque todo combina entre sí (arnés, correa, collar, moño y bandana de la misma línea), se pone en segundos y hacemos envíos a todo el país, con envío gratis en el kit completo.",
   },
   {
     pregunta: "¿Cómo elijo el talle?",

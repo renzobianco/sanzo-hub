@@ -30,7 +30,7 @@ export function SeccionCombos() {
 
         <Reveal>
           {/* Solapas: los 4 combos a la vista, no hace falta adivinar que hay más. */}
-          <div role="tablist" aria-label="Combos" className="sin-scrollbar mb-3 flex gap-1.5 overflow-x-auto pb-1">
+          <div role="tablist" aria-label="Combos" className="sin-scrollbar mb-3 flex justify-center gap-1.5 overflow-x-auto pb-1">
             {combos.map((c, i) => (
               <button
                 key={c.id}

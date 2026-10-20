@@ -149,12 +149,18 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
           disabled={deshabilitado}
           className={
             acento === "fuerte"
-              ? "btn w-full bg-marron py-[1.1rem] text-sm text-crema shadow-[0_16px_34px_-14px_rgb(var(--marron)/0.75)] hover:bg-tinta disabled:bg-tinta/30 disabled:text-crema/90 disabled:shadow-none"
+              ? "btn group relative w-full overflow-hidden bg-tinta py-[1.1rem] text-sm text-crema animate-resplandor hover:bg-marron motion-reduce:animate-none motion-reduce:shadow-[0_16px_34px_-14px_rgb(var(--marron)/0.75)] disabled:animate-none disabled:bg-tinta/30 disabled:text-crema/90 disabled:shadow-none"
               : "btn-primario w-full py-[1.1rem] text-sm"
           }
           aria-describedby={aviso ? `${id}-aviso` : undefined}
         >
-          {texto}
+          {acento === "fuerte" && (
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -skew-x-12 animate-brillo bg-gradient-to-r from-transparent via-crema/35 to-transparent motion-reduce:hidden"
+            />
+          )}
+          <span className="relative">{texto}</span>
         </button>
         {aviso_}
         {esPersonalizable(producto) && <Personalizar producto={producto} valor={personalizacion} onCambio={setPersonalizacion} grande comoLink />}
@@ -223,7 +229,7 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
           grande
             ? "btn-primario w-full py-5 text-sm"
             : acento === "medio"
-              ? "btn w-full border border-marron px-3 py-2.5 text-[11px] text-marron hover:bg-marron hover:text-crema disabled:border-tinta/25 disabled:text-tinta/45 disabled:hover:bg-transparent"
+              ? "btn w-full bg-tinta px-3 py-2.5 text-[11px] text-crema hover:bg-marron disabled:bg-tinta/30 disabled:text-crema/90"
               : "btn-borde w-full px-3 py-2.5 text-[11px]"
         }
         aria-describedby={aviso ? `${id}-aviso` : undefined}
