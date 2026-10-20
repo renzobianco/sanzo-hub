@@ -576,9 +576,51 @@ export const preguntas: { pregunta: string; respuesta: string }[] = [
 ];
 
 // -----------------------------------------------------------------------------
+// Chapita personalizada: se ofrece en un cartel al tocar "Comprar el kit" o "Agregar".
+// Suelta sale `precio`; sumada a otra compra sale `oferta.precio` (lo calcula el carrito).
+// El grabado viaja como la opción de la línea, ej. "Huesito · KALA".
+// -----------------------------------------------------------------------------
+export const chapita: Producto = {
+  id: "chapita",
+  nombre: "Chapita personalizada",
+  tipo: "individual",
+  descripcion: "Grabada con láser, con su nombre o su carita.",
+  incluye: [],
+  precio: 8000,
+  imagenes: ["/productos/chapitas/oferta.jpg"],
+  envioGratis: false,
+  linkPago: "",
+  disponible: true,
+};
+
+export const ofertaChapita = {
+  /** false → el cartel no aparece. */
+  activa: true,
+  /** Precio de la chapita cuando se suma a otra compra. */
+  precio: 6000,
+  imagen: "/productos/chapitas/oferta.jpg",
+  titulo: "¿Le sumamos su chapita?",
+  bajada: "Grabada con láser, para que siempre sepan cómo se llama y cómo encontrarte.",
+  soloAhora: "Solo sumándola a tu compra",
+  boton: "Sumar chapita",
+  no: "No, gracias",
+  maxNombre: 12,
+  /**
+   * Tipos de chapita. pide: "nombre" (solo nombre), "cara" (su cara: nos manda la foto
+   * por WhatsApp después del pedido; nombre opcional) o "telefono" (nombre + teléfono).
+   */
+  tipos: [
+    { id: "Huesito", texto: "Huesito", detalle: "Con su nombre", pide: "nombre" },
+    { id: "Circular", texto: "Circular", detalle: "Con su cara", pide: "cara" },
+    { id: "Rectangular", texto: "Rectangular", detalle: "Nombre y teléfono", pide: "telefono" },
+  ] as { id: string; texto: string; detalle: string; pide: "nombre" | "cara" | "telefono" }[],
+  avisoCara: "Después del pedido nos mandás una foto de su cara por WhatsApp y la grabamos.",
+};
+
+// -----------------------------------------------------------------------------
 // Helpers (no hace falta tocar)
 // -----------------------------------------------------------------------------
-export const todosLosProductos: Producto[] = [kit, ...combos, ...individuales];
+export const todosLosProductos: Producto[] = [kit, ...combos, ...individuales, chapita];
 
 export function getProducto(id: string): Producto | undefined {
   return todosLosProductos.find((p) => p.id === id);

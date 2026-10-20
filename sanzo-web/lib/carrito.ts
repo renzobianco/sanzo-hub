@@ -1,4 +1,5 @@
-import { getProducto, type Producto } from "@/data/products";
+import { getProducto, ofertaChapita, type Producto } from "@/data/products";
+import { esChapita, normalizarOpcionChapita } from "./chapita";
 import { envioInfo, zonaPorProvincia, type ZonaEnvio } from "@/data/envios";
 import { clavePersonalizacion, normalizarPersonalizacion, precioPersonalizacion, type Personalizacion } from "./personalizacion";
 import { armables, calcularPromos, type DescuentoAplicado, type Sugerencia } from "./promos";
@@ -63,14 +64,30 @@ export function resolverLineas(lineas: LineaCarrito[]): LineaResuelta[] {
   for (const l of lineas) {
     const producto = getProducto(l.productoId);
     if (!producto || producto.precio === null || !producto.disponible) continue;
-    const validas = opcionesValidas(producto);
-    if (validas && (!l.opcion || !validas.includes(l.opcion))) continue;
+    // La chapita lleva el grabado en la opción ("Huesito · KALA"): se revisa aparte.
+    let opcion = l.opcion;
+    if (esChapita(producto.id)) {
+      const limpia = normalizarOpcionChapita(l.opcion);
+      if (!limpia) continue;
+      opcion = limpia;
+    } else {
+      const validas = opcionesValidas(producto);
+      if (validas && (!l.opcion || !validas.includes(l.opcion))) continue;
+    }
     // Personalización que ya no es válida (ej. se sacó un estilo): mejor no vender algo distinto a lo pedido.
     const personalizacion = l.personalizacion ? normalizarPersonalizacion(producto, l.personalizacion) : undefined;
     if (personalizacion === null) continue;
     const cantidad = Math.min(MAX_CANTIDAD, Math.max(1, Math.floor(l.cantidad) || 1));
     const unitario = producto.precio + (personalizacion ? precioPersonalizacion(producto, personalizacion) : 0);
-    out.push({ ...l, personalizacion, cantidad, producto, unitario, subtotal: unitario * cantidad });
+    out.push({ ...l, opcion, personalizacion, cantidad, producto, unitario, subtotal: unitario * cantidad });
+  }
+  // Chapita sumada a otra compra: sale el precio de la oferta.
+  if (out.some((l) => !esChapita(l.productoId))) {
+    for (const l of out) {
+      if (!esChapita(l.productoId)) continue;
+      l.unitario = ofertaChapita.precio;
+      l.subtotal = l.unitario * l.cantidad;
+    }
   }
   return out;
 }

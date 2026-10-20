@@ -194,3 +194,14 @@ Lo que definió Santi (2026-10-16):
 - **Combo → combo más grande**: si tenés un combo y sumás lo que le falta para uno más grande, pasa a ese (ej. Combo Aventura + collar, moño, bandana y poo bag → Kit completo; Aventura + Estilo + poo bag → Kit). El carrito lo sugiere: "Pasá tu Combo Aventura al Kit completo" / "Pasá tus combos al Kit completo", con las piezas que faltan.
 - Talle y colores salen de lo que se junta. Si los talles no coinciden (ej. arnés M y collar S) o las personalizaciones son distintas, no fuerza ese combo: arma el que se pueda, y si no queda ninguno, quedan sueltas con el descuento igual.
 - Las fotitos de las piezas en la sugerencia se achican para que entren las 6 del kit.
+
+## 2026-10-20 · Oferta de chapita personalizada (Renzo)
+
+- Al tocar "Comprar el kit" o "Agregar" aparece un cartel (`OfertaChapita`, datos en `ofertaChapita` y `chapita` de `data/products.ts`): "¿Le sumamos su chapita?" con la imagen de las 3 chapitas, **$6.000** y "$8.000" tachado, "Solo sumándola a tu compra".
+- Tipos: **Huesito** (nombre), **Circular** (su cara: nos manda la foto por WhatsApp después del pedido; nombre opcional) y **Rectangular** (nombre + teléfono).
+- El grabado viaja como la opción de la línea ("Huesito · KALA") y llega así al carrito, checkout, mail y Mercado Pago. El carrito la cobra $6.000 si va con otro producto; sola, $8.000 (`lib/carrito.ts`, `lib/chapita.ts`).
+- Si ya tiene una chapita o dijo "No, gracias", no se vuelve a ofrecer en esa visita.
+- La imagen (`public/productos/chapitas/oferta.jpg`) es un render armado por Claude (las chapitas todavía no tienen foto). La cara está hecha con una foto nuestra pasada a tramado tipo grabado láser.
+
+### Falta
+- [ ] Foto real de las chapitas cuando estén → reemplazar `oferta.jpg` (misma proporción 1200×620).

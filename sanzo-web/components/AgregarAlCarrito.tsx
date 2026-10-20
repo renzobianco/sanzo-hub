@@ -71,7 +71,7 @@ function Botones({
 }
 
 export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout, grande, extraOpcion, onSeleccion, onColores, compacto, acento }: Props) {
-  const { agregar } = useCarrito();
+  const { agregar, abrir: abrirCarrito, ofrecerChapita } = useCarrito();
   const router = useRouter();
   const [seleccion, setSeleccion] = useState<string>("");
   // Combos con piezas de color (ej. gorra + piluso): un color por pieza.
@@ -98,8 +98,9 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
     }
     setAviso("");
     const valor = conColor.length ? armarOpcion(producto, seleccion, colores) : seleccion;
-    agregar(producto.id, valor || undefined, { abrir: !irAlCheckout, personalizacion });
-    if (irAlCheckout) router.push("/checkout");
+    agregar(producto.id, valor || undefined, { abrir: false, personalizacion });
+    // Antes de seguir (carrito o checkout) le ofrecemos la chapita personalizada.
+    ofrecerChapita(() => (irAlCheckout ? router.push("/checkout") : abrirCarrito()));
   }
 
   let texto = etiqueta;

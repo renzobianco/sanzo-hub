@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { chapita, ofertaChapita } from "@/data/products";
+import { esChapita } from "@/lib/chapita";
 import {
   armarCombos,
   calcularTotales,
@@ -11,6 +13,7 @@ import {
   type Ubicacion,
 } from "@/lib/carrito";
 import type { Personalizacion } from "@/lib/personalizacion";
+import { OfertaChapita } from "./OfertaChapita";
 
 const CLAVE_STORAGE = "sanzo-carrito-v1";
 
@@ -36,6 +39,11 @@ interface CarritoContexto {
   setUbicacion: (u: Ubicacion) => void;
   abrir: () => void;
   cerrar: () => void;
+  /**
+   * Muestra el cartel de la chapita (si corresponde) y después llama a `seguir`
+   * (abrir el carrito o ir al checkout). Si ya tiene chapita o dijo que no, sigue directo.
+   */
+  ofrecerChapita: (seguir: () => void) => void;
 }
 
 const Ctx = createContext<CarritoContexto | null>(null);
@@ -48,6 +56,10 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
   const [abierto, setAbierto] = useState(false);
   const [listo, setListo] = useState(false);
   const [armado, setArmado] = useState<string | null>(null);
+  const [seguirTrasOferta, setSeguirTrasOferta] = useState<(() => void) | null>(null);
+  const dijoQueNo = useRef(false);
+  const lineasRef = useRef(lineas);
+  lineasRef.current = lineas;
 
   useEffect(() => {
     try {
@@ -129,6 +141,20 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
   const abrir = useCallback(() => setAbierto(true), []);
   const cerrar = useCallback(() => setAbierto(false), []);
 
+  const ofrecerChapita = useCallback((seguir: () => void) => {
+    const yaTiene = lineasRef.current.some((l) => esChapita(l.productoId));
+    if (!ofertaChapita.activa || !chapita.disponible || dijoQueNo.current || yaTiene) seguir();
+    else setSeguirTrasOferta(() => seguir);
+  }, []);
+
+  function cerrarOferta(sumar?: string) {
+    const seguir = seguirTrasOferta;
+    if (sumar) agregar(chapita.id, sumar, { abrir: false });
+    else dijoQueNo.current = true; // no se la volvemos a ofrecer en esta visita
+    setSeguirTrasOferta(null);
+    seguir?.();
+  }
+
   const totales = useMemo(() => calcularTotales(lineas, ubicacion), [lineas, ubicacion]);
 
   const valor = useMemo(
@@ -147,11 +173,17 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
       setUbicacion,
       abrir,
       cerrar,
+      ofrecerChapita,
     }),
-    [lineas, ubicacion, totales, abierto, listo, armado, agregar, cambiarCantidad, personalizar, quitar, vaciar, abrir, cerrar],
+    [lineas, ubicacion, totales, abierto, listo, armado, agregar, cambiarCantidad, personalizar, quitar, vaciar, abrir, cerrar, ofrecerChapita],
   );
 
-  return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={valor}>
+      {children}
+      <OfertaChapita abierta={seguirTrasOferta !== null} onSumar={(texto) => cerrarOferta(texto)} onNo={() => cerrarOferta()} />
+    </Ctx.Provider>
+  );
 }
 
 export function useCarrito() {
