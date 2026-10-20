@@ -1,135 +1,74 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Palabras } from "./Palabras";
 import { combos } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
-import { GaleriaPiezas } from "./GaleriaPiezas";
-import { IconoFlecha } from "./Iconos";
+import { KitGaleria } from "./KitGaleria";
 import { MiniPiezas } from "./MiniPiezas";
 import { Reveal } from "./Reveal";
 
 /**
- * Combos de a uno, a todo el ancho. De combo a combo se pasa con las flechas; adentro de cada
- * uno, la foto se desliza pieza por pieza (`GaleriaPiezas`).
- * Todos quedan montados y apilados en la misma celda: así no se pierde el talle elegido
- * y el cambio es un fundido. El alto acompaña al combo visible (sin huecos en los que
- * no tienen colores para elegir).
+ * Combos con solapas arriba (se ven los 4 nombres de entrada) y, abajo, una sola tarjeta
+ * grande con la foto, el detalle y "Agregar" del combo elegido. Al tocar una solapa cambia
+ * el contenido entero (sin medir alto a mano): cada combo es una tarjeta nueva y corta.
  */
 export function SeccionCombos() {
   const [activo, setActivo] = useState(0);
-  const total = combos.length;
-  const ir = (paso: number) => setActivo((a) => (a + paso + total) % total);
-  // Colores elegidos por combo (para la foto de cada pieza) y a qué pieza deslizar.
-  const [colores, setColores] = useState<Record<string, Record<string, string>>>({});
-  const [foco, setFoco] = useState<Record<string, { pieza: string; n: number }>>({});
-  const tarjetas = useRef<(HTMLElement | null)[]>([]);
-  const [alto, setAlto] = useState<number>();
-
-  // Mide la tarjeta visible (y la vuelve a medir si cambia, ej. al elegir colores).
-  useEffect(() => {
-    const el = tarjetas.current[activo];
-    if (!el) return;
-    const medir = () => setAlto(el.offsetHeight);
-    medir();
-    const ro = new ResizeObserver(medir);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [activo]);
+  const combo = combos[activo];
 
   return (
-    <section id="combos" aria-labelledby="combos-titulo" className="bg-lino py-20 md:py-28">
-      <div className="mx-auto max-w-xl px-4">
-        <Reveal className="mb-10 text-center md:mb-14">
+    <section id="combos" aria-labelledby="combos-titulo" className="bg-lino py-12 md:py-16">
+      <div className="mx-auto max-w-md px-4">
+        <Reveal className="mb-6 text-center">
           <p className="eyebrow">Armados para combinar</p>
-          <h2 id="combos-titulo" className="titulo-seccion mt-3">
+          <h2 id="combos-titulo" className="mt-2 text-lg font-light uppercase tracking-marca">
             <Palabras texto="Combos" />
           </h2>
         </Reveal>
 
-        <Reveal className="relative">
-          <div
-            className="grid overflow-hidden transition-[height] duration-500 ease-suave motion-reduce:transition-none"
-            style={alto ? { height: alto } : undefined}
-            aria-live="polite"
-          >
-            {combos.map((c, i) => {
-              const visible = i === activo;
-              return (
-                <article
-                  key={c.id}
-                  ref={(el) => {
-                    tarjetas.current[i] = el;
-                  }}
-                  aria-hidden={!visible}
-                  inert={!visible}
-                  aria-label={`${c.nombre}, ${i + 1} de ${total}`}
-                  className={`flex flex-col overflow-hidden self-start rounded-[1rem] bg-crema transition-opacity duration-500 ease-suave [grid-area:1/1] ${
-                    visible ? "opacity-100" : "pointer-events-none opacity-0"
-                  }`}
-                >
-                  <GaleriaPiezas combo={c} colores={colores[c.id] ?? {}} foco={foco[c.id]} visible={visible} />
-                  <div className="flex flex-1 flex-col p-5">
-                    <h3 className="text-2xl font-light uppercase tracking-marca">{c.nombre}</h3>
-                    <p className="mt-2 text-[15px] text-tinta/80">{c.descripcion}</p>
-                    <div className="mt-6">
-                      <MiniPiezas incluye={c.incluye} />
-                    </div>
-                    {c.precio !== null && <p className="mt-6 text-[1.9rem] font-light leading-none tracking-wide">{formatearPrecio(c.precio)}</p>}
-                    <div className="pt-6">
-                      <AgregarAlCarrito
-                        producto={c}
-                        onColores={(col, pieza) => {
-                          setColores((t) => ({ ...t, [c.id]: col }));
-                          setFoco((f) => ({ ...f, [c.id]: { pieza, n: (f[c.id]?.n ?? 0) + 1 } }));
-                        }}
-                      />
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+        <Reveal>
+          {/* Solapas: los 4 combos a la vista, no hace falta adivinar que hay más. */}
+          <div role="tablist" aria-label="Combos" className="sin-scrollbar mb-3 flex gap-1.5 overflow-x-auto pb-1">
+            {combos.map((c, i) => (
+              <button
+                key={c.id}
+                type="button"
+                role="tab"
+                aria-selected={i === activo}
+                onClick={() => setActivo(i)}
+                className={`shrink-0 rounded-full px-3.5 py-2 text-[10.5px] font-normal uppercase tracking-[0.12em] transition-colors duration-300 ease-suave ${
+                  i === activo ? "bg-tinta text-crema" : "bg-crema text-tinta/65 hover:text-tinta"
+                }`}
+              >
+                {c.nombre.replace(/^Combo /, "")}
+              </button>
+            ))}
           </div>
 
-          {/* Flechas a los costados, a la altura del medio de la foto. */}
-          {total > 1 && (
-            <div className="pointer-events-none absolute inset-x-0 top-0 flex aspect-[4/5] items-center justify-between px-2.5">
-              <button
-                type="button"
-                onClick={() => ir(-1)}
-                aria-label="Combo anterior"
-                className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-crema/90 text-tinta shadow-[0_6px_18px_-8px_rgb(var(--tinta)/0.6)] backdrop-blur-sm transition-transform active:scale-90"
-              >
-                <IconoFlecha className="rotate-180" />
-              </button>
-              <button
-                type="button"
-                onClick={() => ir(1)}
-                aria-label="Combo siguiente"
-                className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-crema/90 text-tinta shadow-[0_6px_18px_-8px_rgb(var(--tinta)/0.6)] backdrop-blur-sm transition-transform active:scale-90"
-              >
-                <IconoFlecha />
-              </button>
+          <article key={combo.id} className="animate-entrada overflow-hidden rounded-[0.85rem] bg-crema">
+            <div className="relative">
+              <KitGaleria key={combo.id} imagenes={combo.imagenes} nombre={combo.nombre} aspecto="aspect-[4/3]" />
+              {combo.etiqueta && (
+                <p className="pointer-events-none absolute left-2.5 top-2.5 flex items-center gap-1.5 rounded-full bg-tinta px-2.5 py-1 text-[9px] uppercase tracking-[0.18em] text-crema">
+                  <span aria-hidden="true" className="text-marron">★</span>
+                  {combo.etiqueta}
+                </p>
+              )}
             </div>
-          )}
-
-          {total > 1 && (
-            <div className="mt-5 flex items-center justify-center gap-3">
-              {combos.map((c, i) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setActivo(i)}
-                  aria-label={`Ver ${c.nombre}`}
-                  aria-current={i === activo}
-                  className="flex h-6 items-center"
-                >
-                  <span className={`block h-[3px] rounded-full transition-all duration-500 ${i === activo ? "w-7 bg-tinta" : "w-3 bg-tinta/25"}`} />
-                </button>
-              ))}
+            <div className="p-4">
+              <h3 className="text-base font-normal uppercase tracking-[0.12em]">{combo.nombre}</h3>
+              <p className="mt-1.5 text-[13px] text-tinta/75">{combo.descripcion}</p>
+              <div className="mt-3.5">
+                <MiniPiezas incluye={combo.incluye} />
+              </div>
+              {combo.precio !== null && <p className="mt-3.5 text-[1.3rem] font-light leading-none tracking-wide">{formatearPrecio(combo.precio)}</p>}
+              <div className="pt-4">
+                <AgregarAlCarrito producto={combo} acento="medio" />
+              </div>
             </div>
-          )}
+          </article>
         </Reveal>
       </div>
     </section>

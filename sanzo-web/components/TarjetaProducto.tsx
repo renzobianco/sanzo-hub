@@ -32,6 +32,12 @@ export function TarjetaProducto({ producto, desfase = 0 }: { producto: Producto;
             nombre={valor ? `${producto.nombre} ${valor}` : producto.nombre}
             sizes="(min-width: 768px) 25vw, 50vw"
           />
+          {producto.etiqueta && (
+            <span className="pointer-events-none absolute left-2.5 top-2.5 flex items-center gap-1 rounded-full bg-tinta px-2.5 py-1 text-[9px] uppercase tracking-[0.16em] text-crema">
+              <span aria-hidden="true" className="text-marron">★</span>
+              {producto.etiqueta}
+            </span>
+          )}
           <span
             aria-hidden="true"
             className="absolute bottom-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-crema/85 text-tinta shadow-sm backdrop-blur-sm transition-transform duration-300 group-active/ficha:rotate-90"

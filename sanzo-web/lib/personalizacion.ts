@@ -59,8 +59,10 @@ export function piezasPersonalizables(producto: Producto): string[] {
   return ids.filter(piezaPersonalizable);
 }
 
+/** El botón de personalizar solo aparece si el producto trae arnés (suelto, en combo o en el kit). */
 export function esPersonalizable(producto: Producto) {
-  return piezasPersonalizables(producto).length > 0;
+  const ids = producto.tipo === "individual" ? [producto.id] : producto.incluye;
+  return ids.includes("arnes");
 }
 
 /** Lo que suma la personalización a una unidad: (base + material + tamaño + imagen propia) × piezas personalizadas. */

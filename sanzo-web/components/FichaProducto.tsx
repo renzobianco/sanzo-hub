@@ -8,6 +8,7 @@ import { AgregarAlCarrito } from "./AgregarAlCarrito";
 import { useCarrito } from "./carrito/CarritoProvider";
 import { ConZoom } from "./ConZoom";
 import { IconoCerrar } from "./Iconos";
+import { MiniPiezas } from "./MiniPiezas";
 
 const DURACION = 450;
 
@@ -156,6 +157,12 @@ export function FichaProducto({
               <h2 className="text-2xl font-light uppercase tracking-marca">{producto.nombre}</h2>
               {producto.precio !== null && <p className="mt-1.5 text-xl font-light tracking-wide">{formatearPrecio(producto.precio)}</p>}
               {producto.descripcion && <p className="mt-3 text-[15px] text-tinta/75">{producto.descripcion}</p>}
+
+              {producto.incluye.length > 0 && (
+                <div className="mt-5">
+                  <MiniPiezas incluye={producto.incluye} columnas="grid-cols-3" />
+                </div>
+              )}
 
               {producto.pros && producto.pros.length > 0 && (
                 <ul className="mt-5 space-y-2.5">

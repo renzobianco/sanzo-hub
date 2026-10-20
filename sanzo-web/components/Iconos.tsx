@@ -41,12 +41,6 @@ export const IconoMenos = (p: P) => (
   </svg>
 );
 
-export const IconoFlecha = (p: P) => (
-  <svg viewBox="0 0 24 24" width={18} height={18} {...base} {...p}>
-    <path d="M5 12h14M13 6l6 6-6 6" />
-  </svg>
-);
-
 /** Paseo: huellas. */
 export const IconoPaseo = (p: P) => (
   <svg viewBox="0 0 48 48" width={44} height={44} {...base} {...p}>

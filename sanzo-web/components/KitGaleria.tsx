@@ -8,9 +8,12 @@ import { ImagenProducto } from "./ImagenProducto";
 export function KitGaleria({
   imagenes,
   nombre,
+  aspecto = "aspect-square",
 }: {
   imagenes: string[];
   nombre: string;
+  /** Proporción de la foto. Por defecto cuadrada (la del kit). */
+  aspecto?: string;
 }) {
   const [activa, setActiva] = useState(0);
   const pista = useRef<HTMLUListElement>(null);
@@ -21,7 +24,7 @@ export function KitGaleria({
         src={imagenes[0]}
         nombre={nombre}
         sizes="(min-width: 768px) 55vw, 100vw"
-        aspecto="aspect-square"
+        aspecto={aspecto}
         tamTexto="text-lg md:text-2xl"
         priority
       />
@@ -54,7 +57,7 @@ export function KitGaleria({
                   src={src}
                   nombre={`${nombre}, foto ${i + 1}`}
                   sizes="(min-width: 768px) 55vw, 100vw"
-                  aspecto="aspect-square"
+                  aspecto={aspecto}
                   priority={i === 0}
                 />
               </ConZoom>

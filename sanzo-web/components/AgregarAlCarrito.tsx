@@ -22,6 +22,11 @@ interface Props {
   onColores?: (colores: Record<string, string>, pieza: string) => void;
   /** Ficha del kit: talle en una sola línea, botón de comprar y "Personalizalo" como link debajo. */
   compacto?: boolean;
+  /**
+   * Qué tan llamativo es el botón de comprar/agregar: "fuerte" (relleno marrón, el kit),
+   * "medio" (borde marrón, los combos) o el estándar (borde tinta, el resto). Solo cambia el color.
+   */
+  acento?: "fuerte" | "medio";
 }
 
 /** Botones de una opción (talle o color), con muestra de color si la tiene. */
@@ -65,7 +70,7 @@ function Botones({
   );
 }
 
-export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout, grande, extraOpcion, onSeleccion, onColores, compacto }: Props) {
+export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout, grande, extraOpcion, onSeleccion, onColores, compacto, acento }: Props) {
   const { agregar } = useCarrito();
   const router = useRouter();
   const [seleccion, setSeleccion] = useState<string>("");
@@ -142,7 +147,11 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
           type="button"
           onClick={onAgregar}
           disabled={deshabilitado}
-          className="btn-primario w-full py-[1.1rem] text-sm"
+          className={
+            acento === "fuerte"
+              ? "btn w-full bg-marron py-[1.1rem] text-sm text-crema shadow-[0_16px_34px_-14px_rgb(var(--marron)/0.75)] hover:bg-tinta disabled:bg-tinta/30 disabled:text-crema/90 disabled:shadow-none"
+              : "btn-primario w-full py-[1.1rem] text-sm"
+          }
           aria-describedby={aviso ? `${id}-aviso` : undefined}
         >
           {texto}
@@ -210,7 +219,13 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
         type="button"
         onClick={onAgregar}
         disabled={deshabilitado}
-        className={grande ? "btn-primario w-full py-5 text-sm" : "btn-borde w-full px-3 py-2.5 text-[11px]"}
+        className={
+          grande
+            ? "btn-primario w-full py-5 text-sm"
+            : acento === "medio"
+              ? "btn w-full border border-marron px-3 py-2.5 text-[11px] text-marron hover:bg-marron hover:text-crema disabled:border-tinta/25 disabled:text-tinta/45 disabled:hover:bg-transparent"
+              : "btn-borde w-full px-3 py-2.5 text-[11px]"
+        }
         aria-describedby={aviso ? `${id}-aviso` : undefined}
       >
         {texto}
