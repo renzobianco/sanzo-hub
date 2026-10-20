@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { carritoCombos as textos, type Producto } from "@/data/products";
-import type { DescuentoAplicado, Sugerencia } from "@/lib/promos";
+import { armables, type DescuentoAplicado, type Sugerencia } from "@/lib/promos";
 import { formatearPrecio } from "@/lib/formato";
 import { useCarrito } from "./CarritoProvider";
 import { ImagenProducto } from "../ImagenProducto";
@@ -18,7 +18,7 @@ function lista(piezas: Producto[]) {
 function Mini({ producto, apagada }: { producto: Producto; apagada?: boolean }) {
   return (
     <span
-      className={`relative block h-11 w-11 shrink-0 overflow-hidden rounded-full bg-crema transition-[opacity,box-shadow] duration-500 ${
+      className={`relative block aspect-square min-w-0 max-w-[44px] flex-1 overflow-hidden rounded-full bg-crema transition-[opacity,box-shadow] duration-500 ${
         apagada ? "opacity-40 outline-dashed outline-1 outline-tinta/40" : "ring-1 ring-marron/40"
       }`}
     >
@@ -40,6 +40,21 @@ export function CombosArmados() {
       {totales.descuentos.map((d) => (
         <ComboArmado key={d.promoId} descuento={d} />
       ))}
+    </ul>
+  );
+}
+
+/** Aviso de unos segundos cuando las piezas sueltas se convirtieron en un combo. */
+export function AvisoArmado() {
+  const { armado } = useCarrito();
+  const a = armado ? armables().find((x) => x.combo.id === armado) : undefined;
+  if (!a) return null;
+  return (
+    <ul className="mt-4">
+      <ComboArmado
+        key={armado}
+        descuento={{ promoId: a.combo.id, texto: a.combo.nombre, monto: a.ahorro, piezas: [], envioGratis: a.combo.envioGratis }}
+      />
     </ul>
   );
 }
@@ -76,7 +91,7 @@ export function SugerenciasPromo() {
 }
 
 function ItemSugerencia({ sugerencia }: { sugerencia: Sugerencia }) {
-  const { combo, tiene, faltan, ahorro } = sugerencia;
+  const { combo, tiene, faltan, ahorro, desde } = sugerencia;
   const total = tiene.length + faltan.length;
   const piezas = combo.incluye.map((id) => tiene.find((p) => p.id === id) ?? faltan.find((p) => p.id === id)!);
 
@@ -84,7 +99,9 @@ function ItemSugerencia({ sugerencia }: { sugerencia: Sugerencia }) {
     <li className="animate-entrada rounded-[0.8rem] bg-lino p-4">
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-[13px] uppercase tracking-[0.14em]">
-          {textos.arma} {combo.nombre}
+          {desde
+            ? `${desde.length > 1 ? textos.pasan : `${textos.pasa} ${desde[0].nombre}`} ${textos.al} ${combo.nombre}`
+            : `${textos.arma} ${combo.nombre}`}
         </p>
         <p className="shrink-0 text-[13px] text-marron">
           {textos.ahorras} {formatearPrecio(ahorro)}
@@ -92,11 +109,11 @@ function ItemSugerencia({ sugerencia }: { sugerencia: Sugerencia }) {
       </div>
 
       {/* Las piezas del combo: las que ya están, marcadas; las que faltan, apagadas. */}
-      <div className="mt-3 flex items-center gap-2">
+      <div className="mt-3 flex items-center gap-1.5">
         {piezas.map((p) => (
           <Mini key={p.id} producto={p} apagada={!tiene.includes(p)} />
         ))}
-        <span className="ml-auto text-[12px] tabular-nums text-tinta/60">
+        <span className="ml-auto shrink-0 whitespace-nowrap pl-1 text-[12px] tabular-nums text-tinta/60">
           {tiene.length} / {total}
         </span>
       </div>

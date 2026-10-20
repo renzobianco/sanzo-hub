@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useCarrito } from "./CarritoProvider";
 import { SelectorZona } from "./SelectorZona";
-import { CombosArmados, SugerenciasPromo } from "./SugerenciasPromo";
+import { AvisoArmado, CombosArmados, SugerenciasPromo } from "./SugerenciasPromo";
 import { Personalizar } from "../personalizar/Personalizar";
 import { esPersonalizable } from "@/lib/personalizacion";
 import { ImagenProducto } from "../ImagenProducto";
@@ -71,6 +71,7 @@ export function CarritoDrawer() {
         ) : (
           <>
             <div className="flex-1 overflow-y-auto px-5">
+            <AvisoArmado />
             <ul className="divide-y divide-tinta/10">
               {lineas.map((l) => (
                 <li key={l.key} className="flex gap-4 py-5">

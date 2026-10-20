@@ -439,6 +439,10 @@ export const individuales: Producto[] = [
 export const carritoCombos = {
   /** Sugerencia: "Armá el Combo Paseo". */
   arma: "Armá el",
+  /** Pasar de un combo a uno más grande: "Pasá tu Combo Aventura al Kit completo". */
+  pasa: "Pasá tu",
+  pasan: "Pasá tus combos",
+  al: "al",
   /** "Te falta collar" / "Te faltan collar y poo bag". */
   falta: "Te falta",
   faltan: "Te faltan",

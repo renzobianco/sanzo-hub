@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
+  armarCombos,
   calcularTotales,
   claveLinea,
   MAX_CANTIDAD,
@@ -20,6 +21,8 @@ interface CarritoContexto {
   abierto: boolean;
   /** true cuando ya se leyó localStorage (evita parpadeos en /checkout). */
   listo: boolean;
+  /** Id del combo que se acaba de armar con piezas sueltas (unos segundos), para avisarlo. */
+  armado: string | null;
   agregar: (
     productoId: string,
     opcion?: string,
@@ -44,6 +47,7 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
   const [ubicacion, setUbicacion] = useState<Ubicacion>(ubicacionVacia);
   const [abierto, setAbierto] = useState(false);
   const [listo, setListo] = useState(false);
+  const [armado, setArmado] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -58,6 +62,20 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
     }
     setListo(true);
   }, []);
+
+  // Si las piezas sueltas completan un combo, quedan reemplazadas por el combo (y se avisa unos segundos).
+  useEffect(() => {
+    const { lineas: nuevas, armados } = armarCombos(lineas);
+    if (armados.length === 0) return;
+    setLineas(nuevas);
+    setArmado(armados[armados.length - 1]);
+  }, [lineas]);
+
+  useEffect(() => {
+    if (!armado) return;
+    const t = window.setTimeout(() => setArmado(null), 5000);
+    return () => window.clearTimeout(t);
+  }, [armado]);
 
   useEffect(() => {
     if (!listo) return;
@@ -120,6 +138,7 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
       totales,
       abierto,
       listo,
+      armado,
       agregar,
       cambiarCantidad,
       personalizar,
@@ -129,7 +148,7 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
       abrir,
       cerrar,
     }),
-    [lineas, ubicacion, totales, abierto, listo, agregar, cambiarCantidad, personalizar, quitar, vaciar, abrir, cerrar],
+    [lineas, ubicacion, totales, abierto, listo, armado, agregar, cambiarCantidad, personalizar, quitar, vaciar, abrir, cerrar],
   );
 
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;

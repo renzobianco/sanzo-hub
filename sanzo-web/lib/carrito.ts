@@ -1,8 +1,8 @@
 import { getProducto, type Producto } from "@/data/products";
 import { envioInfo, zonaPorProvincia, type ZonaEnvio } from "@/data/envios";
 import { clavePersonalizacion, normalizarPersonalizacion, precioPersonalizacion, type Personalizacion } from "./personalizacion";
-import { calcularPromos, type DescuentoAplicado, type Sugerencia } from "./promos";
-import { opcionesValidas } from "./combos";
+import { armables, calcularPromos, type DescuentoAplicado, type Sugerencia } from "./promos";
+import { armarOpcion, opcionesValidas, piezasConColor } from "./combos";
 
 export interface LineaCarrito {
   key: string;
@@ -90,7 +90,8 @@ export function calcularTotales(lineas: LineaCarrito[], ubicacion: Ubicacion): T
 
   const porProducto: Record<string, number> = {};
   for (const l of resueltas) porProducto[l.productoId] = (porProducto[l.productoId] ?? 0) + l.cantidad;
-  const { descuentos, sugerencias } = calcularPromos(porProducto);
+  const combosEnCarrito = resueltas.filter((l) => l.producto.tipo === "combo" || l.producto.tipo === "kit").map((l) => l.productoId);
+  const { descuentos, sugerencias } = calcularPromos(porProducto, combosEnCarrito);
   const ahorro = descuentos.reduce((s, d) => s + d.monto, 0);
   // Kit armado con piezas sueltas: viaja gratis igual que el kit.
   if (descuentos.some((d) => d.envioGratis)) contieneKit = true;
@@ -112,4 +113,87 @@ export function calcularTotales(lineas: LineaCarrito[], ubicacion: Ubicacion): T
 
   const total = productos + (envio.tipo === "precio" ? envio.monto : 0);
   return { lineas: resueltas, unidades, subtotal, descuentos, ahorro, sugerencias, envio, total, contieneKit, faltaParaGratis };
+}
+
+/** Combos del carrito que entran enteros en `destino` (más chicos que él), sin pisarse entre sí. */
+function combosQueEntran(lineas: LineaCarrito[], destino: Producto) {
+  const usadas: { linea: LineaCarrito; combo: Producto }[] = [];
+  const cubiertas = new Set<string>();
+  const candidatos = lineas
+    .filter((l) => l.cantidad > 0 && l.productoId !== destino.id)
+    .map((linea) => ({ linea, combo: getProducto(linea.productoId) }))
+    .filter(
+      (c): c is { linea: LineaCarrito; combo: Producto } =>
+        !!c.combo &&
+        (c.combo.tipo === "combo" || c.combo.tipo === "kit") &&
+        c.combo.incluye.length < destino.incluye.length &&
+        c.combo.incluye.every((id) => destino.incluye.includes(id)) &&
+        // Los de colores (gorra/piluso) no se desarman: no entran en otro.
+        piezasConColor(c.combo).length === 0,
+    )
+    .sort((a, b) => b.combo.incluye.length - a.combo.incluye.length);
+  for (const c of candidatos) {
+    if (c.combo.incluye.some((id) => cubiertas.has(id))) continue;
+    c.combo.incluye.forEach((id) => cubiertas.add(id));
+    usadas.push(c);
+  }
+  return { usadas, cubiertas };
+}
+
+/**
+ * Junta lo del carrito en combos:
+ * - piezas sueltas que completan un combo (o el kit) → una sola línea del combo
+ *   ("Combo Aventura", no "Arnés + Correa");
+ * - un combo + las piezas que le faltan para uno más grande → el más grande
+ *   (Combo Aventura + collar, moño, bandana y poo bag → Kit completo).
+ * Talle y colores salen de lo que se junta. No lo arma si no se puede juntar en uno
+ * (talles o personalizaciones distintas): ahí quedan sueltas con el descuento igual.
+ * Devuelve las líneas nuevas y los ids de los combos que armó.
+ */
+export function armarCombos(lineas: LineaCarrito[]): { lineas: LineaCarrito[]; armados: string[] } {
+  let out = lineas.map((l) => ({ ...l }));
+  const armados: string[] = [];
+  const lista = armables();
+
+  for (let vuelta = 0; vuelta < 20; vuelta++) {
+    let armo = false;
+    for (const { combo, piezas } of lista) {
+      const { usadas: deCombos, cubiertas } = combosQueEntran(out, combo);
+      // Lo que no cubre un combo del carrito sale de piezas sueltas (la primera línea de cada una).
+      const faltan = piezas.filter((p) => !cubiertas.has(p.id));
+      const sueltas = faltan.map((p) => ({ p, l: out.find((l) => l.productoId === p.id && l.cantidad > 0) }));
+      if (sueltas.some((s) => !s.l)) continue;
+      const deSueltas = sueltas as { p: Producto; l: LineaCarrito }[];
+
+      const talles = new Set([
+        ...deSueltas.filter(({ p, l }) => p.opcion?.nombre === "Talle" && l.opcion).map(({ l }) => l.opcion!),
+        ...deCombos.filter(({ combo: c, linea }) => c.opcion?.nombre === "Talle" && linea.opcion).map(({ linea }) => linea.opcion!.split(" · ")[0]),
+      ]);
+      if (talles.size > 1) continue;
+      const colores: Record<string, string> = {};
+      for (const { p, l } of deSueltas) if (p.opcion?.colores && l.opcion) colores[p.id] = l.opcion;
+      const talle = [...talles][0] ?? "";
+      const opcion = (piezasConColor(combo).length ? armarOpcion(combo, talle, colores) : talle) || undefined;
+      const validas = opcionesValidas(combo);
+      if (validas && (!opcion || !validas.includes(opcion))) continue;
+
+      const ls = [...deSueltas.map((s) => s.l), ...deCombos.map((c) => c.linea)];
+      const claves = new Set(ls.map((l) => clavePersonalizacion(l.personalizacion)));
+      if (claves.size > 1) continue;
+      const pers = ls[0].personalizacion ? normalizarPersonalizacion(combo, ls[0].personalizacion) : undefined;
+      if (pers === null) continue;
+
+      for (const l of ls) l.cantidad -= 1;
+      out = out.filter((l) => l.cantidad > 0);
+      const key = claveLinea(combo.id, opcion, pers);
+      const existe = out.find((l) => l.key === key);
+      if (existe) existe.cantidad = Math.min(MAX_CANTIDAD, existe.cantidad + 1);
+      else out.push({ key, productoId: combo.id, opcion, personalizacion: pers, cantidad: 1 });
+      armados.push(combo.id);
+      armo = true;
+      break; // vuelve a empezar: el kit tiene prioridad sobre los combos
+    }
+    if (!armo) break;
+  }
+  return { lineas: armados.length ? out : lineas, armados };
 }

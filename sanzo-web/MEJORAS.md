@@ -187,3 +187,10 @@ Lo que definió Santi (2026-10-16):
 - El mail del pedido dice "Armó el Combo X: − $Y".
 - **Personalizar en cada ítem del carrito**: "+ Personalizar" en cada línea personalizable (abre el mismo editor). Ya personalizado muestra el detalle con Editar / Quitar. Si queda igual a otra línea, se juntan.
 - [ ] Ojo: con sugerencias, la parte de los ítems del carrito queda chica en el celu (el selector de envío y los totales ocupan mucho abajo). Se podría compactar.
+
+## 2026-10-19 (tarde) · El combo reemplaza a las piezas (corrección de Santi)
+
+- Santi: "si ponés las piezas y armás el combo, que en el carrito solo esté el combo". Antes quedaban las piezas sueltas con un descuento; **ahora se reemplazan por una sola línea del combo** (`armarCombos` en `lib/carrito.ts`, corre en `CarritoProvider` cada vez que cambia el carrito). Arriba aparece unos segundos "✓ Armaste el Combo X · Ahorrás $Y".
+- **Combo → combo más grande**: si tenés un combo y sumás lo que le falta para uno más grande, pasa a ese (ej. Combo Aventura + collar, moño, bandana y poo bag → Kit completo; Aventura + Estilo + poo bag → Kit). El carrito lo sugiere: "Pasá tu Combo Aventura al Kit completo" / "Pasá tus combos al Kit completo", con las piezas que faltan.
+- Talle y colores salen de lo que se junta. Si los talles no coinciden (ej. arnés M y collar S) o las personalizaciones son distintas, no fuerza ese combo: arma el que se pueda, y si no queda ninguno, quedan sueltas con el descuento igual.
+- Las fotitos de las piezas en la sugerencia se achican para que entren las 6 del kit.
