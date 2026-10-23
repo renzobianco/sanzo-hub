@@ -263,3 +263,4 @@ Lo que definió Santi (2026-10-16):
 - Ojo: carritos viejos con gorra o piluso sin talle pierden esa línea (ya no es una opción válida).
 - 2026-10-23 · **Talle agotado definitivo (opción 1 de Santi, de 6 diseños)**: el mismo cuadrito que S y M, más clarito (borde y letra apagados), sin poder tocarlo. Nada de tachado, palabra adentro ni texto al lado. También en el "Sumar" del carrito.
 - 2026-10-23 · **"Más vendido" del kit: opción 4 de Santi** (de 6): píldora marrón llena con letra crema, sobre la foto abajo a la izquierda (`etiqueta` en `KitGaleria`). Sale de la línea de arriba del nombre.
+- 2026-10-23 · **"Más vendido" holográfico** (opción B de Santi, arcoíris suave): degradé pastel que se mueve y un brillo que cruza cada pocos segundos (clase `.holografico` en globals.css). Quieto con "reducir movimiento". Es la única excepción a la paleta (anotado en CLAUDE.md).

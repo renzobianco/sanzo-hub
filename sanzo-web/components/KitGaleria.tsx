@@ -45,8 +45,8 @@ export function KitGaleria({
       <div className="relative">
         <div aria-hidden="true" className="destellos" />
         {etiqueta && (
-          <p className="pointer-events-none absolute bottom-3 left-3 z-10 animate-entrada rounded-full bg-marron px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-crema shadow-[0_6px_16px_-8px_rgb(var(--tinta)/0.6)] [animation-delay:900ms]">
-            {etiqueta}
+          <p className="holografico pointer-events-none absolute bottom-3 left-3 z-10 rounded-full px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-tinta shadow-[0_6px_16px_-8px_rgb(var(--tinta)/0.5)]">
+            <span className="relative z-10">{etiqueta}</span>
           </p>
         )}
         <ul
