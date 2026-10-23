@@ -221,3 +221,8 @@ Lo que definió Santi (2026-10-16):
 - **Collar S agotado** (Santi: "ya no quedan más"): el collar se compra solo en M; S y L apagados. Carritos viejos con collar S lo pierden solo.
 - [ ] **Decidir**: kit, Combo Paseo y Combo Estilo en talle S llevan collar. ¿Qué collar va? (el M regula 33 a 51 cm, entra en el cuello del arnés S: 35 a 44 cm). Hoy se siguen vendiendo en S.
 - [ ] Para volver a habilitar un talle: pasarlo de `agotados` a `valores`.
+
+## 2026-10-23 · Combos en carrusel y poo bag con rollito
+
+- **Combos en carrusel circular** (idea de Santi, con dibujo; después de Sol viene Paseo, nunca termina — 3 vueltas seguidas y salto invisible a la del medio): la tarjeta del medio enfocada y las de los costados asomando, más chicas, apagadas y desenfocadas, para que se note que hay más. Se desliza con el dedo, tocando una de los costados o con las solapas de Renzo (quedaron arriba, sincronizadas). Al entrar en pantalla hace un amague corto. Puntitos abajo. Las fotos de cada combo cambian solas (no se deslizan, para no pelear con el carrusel). Si no convence, se vuelve atrás.
+- **Poo bag trae un rollito de bolsitas**: en la descripción del individual y, chiquito, "con rollito" debajo del poo bag en combos, ficha y en la lista de piezas del kit (`incluyeExtra` en data/products.ts).

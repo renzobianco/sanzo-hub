@@ -30,6 +30,7 @@ export function MiniPiezas({ incluye, columnas = "grid-cols-3" }: { incluye: str
               />
             )}
             <span className="mt-2 block text-[11px] uppercase tracking-[0.16em] text-tinta/80">{nombre}</span>
+            {p?.incluyeExtra && <span className="mt-0.5 block text-[11px] text-marron/85">{p.incluyeExtra}</span>}
           </li>
         );
       })}

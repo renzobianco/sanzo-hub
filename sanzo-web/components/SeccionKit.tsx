@@ -15,7 +15,8 @@ export function SeccionKit() {
   const ahorro = porSeparado !== null && kit.precio !== null ? porSeparado - kit.precio : 0;
   const piezas = kit.incluye.map((id) => getProducto(id)).filter((p) => !!p);
   // "Arnés, correa, collar, moño, bandana y poo bag"
-  const nombres = piezas.map((p, i) => (i === 0 ? p.nombre : p.nombre.toLowerCase()));
+  // "poo bag con rollito": lo que trae adentro, sutil, en la misma línea.
+  const nombres = piezas.map((p, i) => `${i === 0 ? p.nombre : p.nombre.toLowerCase()}${p.incluyeExtra ? ` ${p.incluyeExtra}` : ""}`);
   const listaPiezas = nombres.length > 1 ? `${nombres.slice(0, -1).join(", ")} y ${nombres[nombres.length - 1]}` : nombres.join("");
   const porcentaje = restantes === null ? 0 : Math.max(0, Math.min(100, (restantes / total) * 100));
 

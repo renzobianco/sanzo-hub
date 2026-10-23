@@ -52,6 +52,8 @@ export interface Producto {
   medidas?: { talle?: string; texto: string }[];
   /** Cómo elegir el talle (texto corto, se ve en la ficha debajo de las medidas). */
   guiaTalle?: string;
+  /** Lo que trae adentro, dicho corto (ej. "con rollito"). Se ve chiquito debajo de la pieza en combos y kit. */
+  incluyeExtra?: string;
   /** Cartelito arriba de la foto, ej. "Más vendido". Vacío → no aparece. */
   etiqueta?: string;
   /**
@@ -413,7 +415,8 @@ export const individuales: Producto[] = [
     miniatura: "/productos/piezas/poo-bag.jpg",
     nombre: "Poo bag",
     tipo: "individual",
-    descripcion: "Porta bolsitas. Siempre a mano, en la correa.",
+    descripcion: "Porta bolsitas con un rollito adentro. Siempre a mano, en la correa.",
+    incluyeExtra: "con rollito",
     incluye: [],
     precio: 10499,
     imagenes: ["/productos/solo/poo-bag/1.jpg", "/productos/solo/poo-bag/2.jpg"],
