@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import type { Producto } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
@@ -173,6 +173,47 @@ export function FichaProducto({
                     </li>
                   ))}
                 </ul>
+              )}
+
+              {producto.medidas && producto.medidas.length > 0 && (
+                <div className="mt-6">
+                  <p className="eyebrow">Medidas</p>
+                  <ul className="mt-2 divide-y divide-tinta/10 border-y border-tinta/10">
+                    {producto.medidas.map((m, i) => (
+                      <li
+                        key={m.talle ?? m.texto}
+                        className={`flex items-baseline gap-3 py-2.5 text-[14px] text-tinta/85 transition-[opacity,transform] duration-700 ease-suave ${
+                          arriba ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
+                        }`}
+                        style={{ transitionDelay: `${300 + i * 90}ms` }}
+                      >
+                        {m.talle && (
+                          <span className="flex h-6 min-w-[1.5rem] shrink-0 items-center justify-center border border-tinta/30 px-1.5 text-[11px] uppercase">
+                            {m.talle}
+                          </span>
+                        )}
+                        {/* Cada medida entera en su renglón ("Tira de 2 cm" no se corta). */}
+                        <span>
+                          {m.texto.split(" · ").map((parte, j) => (
+                            <Fragment key={parte}>
+                              {j > 0 && <span className="text-tinta/35"> · </span>}
+                              <span className="whitespace-nowrap">{parte}</span>
+                            </Fragment>
+                          ))}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {producto.guiaTalle && (
+                    <div className="mt-3 flex gap-3 rounded-[0.8rem] bg-lino p-3.5 text-[13px] leading-relaxed text-tinta/80">
+                      <svg aria-hidden="true" viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" className="mt-0.5 shrink-0 text-marron">
+                        <rect x="2.5" y="8" width="19" height="8" rx="1.5" />
+                        <path d="M6.5 8v3M10 8v2M13.5 8v3M17 8v2" />
+                      </svg>
+                      <p>{producto.guiaTalle}</p>
+                    </div>
+                  )}
+                </div>
               )}
 
               <div className="mt-6">

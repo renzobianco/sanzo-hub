@@ -32,12 +32,26 @@ export interface Producto {
    * Opción que el cliente elige al agregar (talle o color). Opcional.
    * colores: muestra de color de cada valor (hex). fotos: índice de `imagenes` que se muestra al elegir ese valor.
    */
-  opcion?: { nombre: string; valores: string[]; colores?: Record<string, string>; fotos?: Record<string, number> };
+  opcion?: {
+    nombre: string;
+    valores: string[];
+    /** Se muestran apagados y sin poder tocar (ej. talle L agotado). No entran al carrito. */
+    agotados?: string[];
+    colores?: Record<string, string>;
+    fotos?: Record<string, number>;
+  };
   /**
    * Pros del ítem: 2-3 líneas simples y REALES (se ven en la ficha que sube al tocar la tarjeta).
    * Vacío → no aparece la lista.
    */
   pros?: string[];
+  /**
+   * Medidas oficiales del proveedor (se ven en la ficha). Una fila por talle, o una sola sin talle.
+   * Sin cargar → no aparece. Nada de material ni de durabilidad acá: solo medidas.
+   */
+  medidas?: { talle?: string; texto: string }[];
+  /** Cómo elegir el talle (texto corto, se ve en la ficha debajo de las medidas). */
+  guiaTalle?: string;
   /** Cartelito arriba de la foto, ej. "Más vendido". Vacío → no aparece. */
   etiqueta?: string;
   /**
@@ -92,6 +106,8 @@ export interface TamanoParche {
 /** Todo lo que lleva talle (arnés, collar, kit y combos) viene solo en S y M. */
 const TALLES = ["S", "M"];
 const TALLES_ARNES = TALLES;
+/** Talles que se muestran apagados ("agotado"): se ven pero no se pueden tocar. */
+const TALLES_AGOTADOS = ["L"];
 
 // -----------------------------------------------------------------------------
 // Textos generales
@@ -224,10 +240,11 @@ export const personalizacion: {
 // Guía de talles (modal). Completá las medidas; vacío se muestra como "—".
 // -----------------------------------------------------------------------------
 export const guiaTalles = {
-  nota: "Medí a tu perro con una cinta métrica, sin ajustar de más.",
+  nota: "Medí a tu perro con una cinta métrica blanda: el cuello en la base, donde iría el collar, y el pecho en la parte más ancha, justo detrás de las patas delanteras. Si queda en la zona donde entran los dos talles, elegí el M así tiene margen para ajustar.",
+  // Medidas del arnés (el talle del kit y de los combos con arnés es el del arnés).
   filas: [
-    { talle: "S", pecho: "", cuello: "" },
-    { talle: "M", pecho: "", cuello: "" },
+    { talle: "S", pecho: "41 a 54 cm", cuello: "35 a 44 cm" },
+    { talle: "M", pecho: "46 a 61 cm", cuello: "39 a 51 cm" },
   ],
 };
 
@@ -245,7 +262,7 @@ export const kit: Producto = {
   envioGratis: true,
   linkPago: "",
   disponible: true,
-  opcion: { nombre: "Talle", valores: TALLES_ARNES },
+  opcion: { nombre: "Talle", valores: TALLES_ARNES, agotados: TALLES_AGOTADOS },
   etiqueta: "Más vendido",
 };
 
@@ -265,7 +282,7 @@ export const combos: Producto[] = [
     envioGratis: false,
     linkPago: "",
     disponible: true,
-    opcion: { nombre: "Talle", valores: TALLES },
+    opcion: { nombre: "Talle", valores: TALLES, agotados: TALLES_AGOTADOS },
   },
   {
     id: "combo-estilo",
@@ -279,7 +296,7 @@ export const combos: Producto[] = [
     envioGratis: false,
     linkPago: "",
     disponible: true,
-    opcion: { nombre: "Talle", valores: TALLES },
+    opcion: { nombre: "Talle", valores: TALLES, agotados: TALLES_AGOTADOS },
   },
   {
     id: "combo-aventura",
@@ -292,7 +309,7 @@ export const combos: Producto[] = [
     envioGratis: false,
     linkPago: "",
     disponible: true,
-    opcion: { nombre: "Talle", valores: TALLES_ARNES },
+    opcion: { nombre: "Talle", valores: TALLES_ARNES, agotados: TALLES_AGOTADOS },
   },
   {
     id: "combo-sol",
@@ -322,10 +339,16 @@ export const individuales: Producto[] = [
     incluye: [],
     precio: 18999,
     imagenes: ["/productos/solo/arnes/1.jpg", "/productos/solo/arnes/2.jpg"],
+    medidas: [
+      { talle: "S", texto: "Cuello 35 a 44 cm · Pecho 41 a 54 cm · Tira de 2 cm · Regulable" },
+      { talle: "M", texto: "Cuello 39 a 51 cm · Pecho 46 a 61 cm · Tira de 2 cm · Regulable" },
+    ],
+    guiaTalle:
+      "Medí a tu perro con una cinta métrica blanda: el cuello en la base, donde iría el collar, y el pecho en la parte más ancha, justo detrás de las patas delanteras. Si queda en la zona donde entran los dos talles, elegí el M así tiene margen para ajustar.",
     envioGratis: false,
     linkPago: "",
     disponible: true,
-    opcion: { nombre: "Talle", valores: TALLES_ARNES },
+    opcion: { nombre: "Talle", valores: TALLES_ARNES, agotados: TALLES_AGOTADOS },
   },
   {
     id: "correa",
@@ -336,6 +359,7 @@ export const individuales: Producto[] = [
     incluye: [],
     precio: 12499,
     imagenes: ["/productos/solo/correa/1.jpg", "/productos/solo/correa/2.jpg"],
+    medidas: [{ texto: "Largo 152 cm · Ancho 2 cm" }],
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -349,10 +373,12 @@ export const individuales: Producto[] = [
     incluye: [],
     precio: 10499,
     imagenes: ["/productos/solo/collar/1.jpg", "/productos/solo/collar/2.jpg"],
+    medidas: [{ talle: "M", texto: "Regula de 33 a 51 cm · Ancho 2 cm" }],
     envioGratis: false,
     linkPago: "",
     disponible: true,
-    opcion: { nombre: "Talle", valores: TALLES },
+    // Collar S: no quedan más (Santi, 2026-10-23).
+    opcion: { nombre: "Talle", valores: ["M"], agotados: ["S", ...TALLES_AGOTADOS] },
   },
   {
     id: "mono",
@@ -363,6 +389,7 @@ export const individuales: Producto[] = [
     incluye: [],
     precio: 9499,
     imagenes: ["/productos/solo/mono/1.jpg", "/productos/solo/mono/2.jpg"],
+    medidas: [{ texto: "6 x 9 cm" }],
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -376,6 +403,7 @@ export const individuales: Producto[] = [
     incluye: [],
     precio: 10499,
     imagenes: ["/productos/solo/bandana/1.jpg", "/productos/solo/bandana/2.jpg"],
+    medidas: [{ texto: "49,5 cm de base · 34 cm por lado" }],
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -389,6 +417,7 @@ export const individuales: Producto[] = [
     incluye: [],
     precio: 10499,
     imagenes: ["/productos/solo/poo-bag/1.jpg", "/productos/solo/poo-bag/2.jpg"],
+    medidas: [{ texto: "8 x 5 x 5 cm" }],
     envioGratis: false,
     linkPago: "",
     disponible: true,

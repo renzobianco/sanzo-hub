@@ -29,6 +29,28 @@ interface Props {
   acento?: "fuerte" | "medio";
 }
 
+const ORDEN_TALLES = ["XS", "S", "M", "L", "XL"];
+
+/** Lo que se muestra: los valores elegibles y los agotados, en orden de talle. */
+function valoresConAgotados(valores: string[], agotados: string[] = []) {
+  const todos = [...valores, ...agotados.filter((a) => !valores.includes(a))];
+  const pos = (v: string) => (ORDEN_TALLES.includes(v) ? ORDEN_TALLES.indexOf(v) : 99);
+  return todos.sort((a, b) => pos(a) - pos(b));
+}
+
+/** Talle agotado: se ve apagado y tachado, pero no se puede tocar. */
+function Agotado({ valor, clase }: { valor: string; clase: string }) {
+  return (
+    <span
+      aria-label={`${valor}, agotado`}
+      title="Agotado"
+      className={`flex cursor-default select-none items-center justify-center border border-tinta/10 uppercase tracking-[0.12em] text-tinta/30 line-through decoration-tinta/30 ${clase}`}
+    >
+      {valor}
+    </span>
+  );
+}
+
 /** Botones de una opción (talle o color), con muestra de color si la tiene. */
 function Botones({
   nombre,
@@ -37,9 +59,11 @@ function Botones({
   elegido,
   onElegir,
   grande,
+  agotados,
 }: {
   nombre: string;
   valores: string[];
+  agotados?: string[];
   colores?: Record<string, string>;
   elegido: string;
   onElegir: (v: string) => void;
@@ -47,7 +71,10 @@ function Botones({
 }) {
   return (
     <div className="clear-both flex flex-wrap gap-2">
-      {valores.map((v) => (
+      {valoresConAgotados(valores, agotados).map((v) =>
+        !valores.includes(v) ? (
+          <Agotado key={v} valor={v} clase={grande ? "h-12 min-w-[3.25rem] px-4 text-sm" : "h-9 min-w-[2.5rem] px-2.5 text-[11px]"} />
+        ) : (
         <label key={v} className="cursor-pointer">
           <input type="radio" name={nombre} value={v} checked={elegido === v} onChange={() => onElegir(v)} className="peer sr-only" />
           <span
@@ -65,7 +92,8 @@ function Botones({
             {v}
           </span>
         </label>
-      ))}
+        ),
+      )}
     </div>
   );
 }
@@ -120,7 +148,10 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
             <div className="flex items-center gap-4">
               <legend className="eyebrow float-left">{opcion.nombre}</legend>
               <div className="flex gap-2">
-                {opcion.valores.map((v) => (
+                {valoresConAgotados(opcion.valores, opcion.agotados).map((v) =>
+                  !opcion.valores.includes(v) ? (
+                    <Agotado key={v} valor={v} clase="h-11 min-w-[2.9rem] px-3 text-sm" />
+                  ) : (
                   <label key={v} className="cursor-pointer">
                     <input
                       type="radio"
@@ -138,7 +169,8 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
                       {v}
                     </span>
                   </label>
-                ))}
+                  ),
+                )}
               </div>
             </div>
             {extraOpcion}
@@ -183,6 +215,7 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
           <Botones
             nombre={`opcion-${id}`}
             valores={opcion.valores}
+            agotados={opcion.agotados}
             colores={opcion.colores}
             elegido={seleccion}
             grande={grande}

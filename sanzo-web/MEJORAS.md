@@ -205,3 +205,19 @@ Lo que definió Santi (2026-10-16):
 
 ### Falta
 - [ ] Foto real de las chapitas cuando estén → reemplazar `oferta.jpg` (misma proporción 1200×620).
+
+## 2026-10-23 · Medidas y guía de talles (oficiales del proveedor)
+
+- Campos nuevos en cada producto: `medidas` (una fila por talle o una sola) y `guiaTalle` (data/products.ts). Se ven en la ficha que sube al tocar un individual, bajo "Medidas"; cada medida no se corta entre renglones.
+- Cargadas: arnés S y M (cuello, pecho, tira de 2 cm, regulable) + guía para elegir talle; collar M; correa; bandana; moño; poo bag (portabolsas).
+- Guía de talles del kit (`guiaTalles`): tabla con pecho y cuello del arnés S/M y la misma explicación. Columna "Contorno de pecho" → "Pecho".
+- [ ] **Pendientes de medidas** (no inventar): gorra y piluso. (Collar S ya no se vende.)
+- [ ] Revisar la descripción del arnés: dice "liviano" (no está en las medidas del proveedor).
+- [ ] Combos y kit: la ficha no muestra las medidas de sus piezas (solo la guía de talles del kit).
+
+## 2026-10-23 · Talles agotados
+
+- **Talle L agotado** en todo lo que lleva talle (arnés, collar, kit y combos con talle): se ve apagado y tachado, no se puede tocar (`TALLES_AGOTADOS` y `opcion.agotados` en data/products.ts).
+- **Collar S agotado** (Santi: "ya no quedan más"): el collar se compra solo en M; S y L apagados. Carritos viejos con collar S lo pierden solo.
+- [ ] **Decidir**: kit, Combo Paseo y Combo Estilo en talle S llevan collar. ¿Qué collar va? (el M regula 33 a 51 cm, entra en el cuello del arnés S: 35 a 44 cm). Hoy se siguen vendiendo en S.
+- [ ] Para volver a habilitar un talle: pasarlo de `agotados` a `valores`.

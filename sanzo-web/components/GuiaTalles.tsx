@@ -38,7 +38,7 @@ export function GuiaTalles() {
                   Talle
                 </th>
                 <th scope="col" className="eyebrow py-3 font-normal">
-                  Contorno de pecho
+                  Pecho
                 </th>
                 <th scope="col" className="eyebrow py-3 font-normal">
                   Cuello
@@ -51,8 +51,8 @@ export function GuiaTalles() {
                   <th scope="row" className="py-3 font-normal">
                     {f.talle}
                   </th>
-                  <td className="py-3">{f.pecho || "—"}</td>
-                  <td className="py-3">{f.cuello || "—"}</td>
+                  <td className="whitespace-nowrap py-3 pr-3">{f.pecho || "—"}</td>
+                  <td className="whitespace-nowrap py-3">{f.cuello || "—"}</td>
                 </tr>
               ))}
             </tbody>
