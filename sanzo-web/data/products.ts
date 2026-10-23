@@ -41,6 +41,11 @@ export interface Producto {
     fotos?: Record<string, number>;
   };
   /**
+   * Talle además del color (gorra, piluso): se elige aparte y va al carrito como "Beige · M".
+   * agotados: se avisan con un texto chico ("L agotado"), no se pueden elegir.
+   */
+  opcionTalle?: { valores: string[]; agotados?: string[] };
+  /**
    * Pros del ítem: 2-3 líneas simples y REALES (se ven en la ficha que sube al tocar la tarjeta).
    * Vacío → no aparece la lista.
    */
@@ -330,7 +335,8 @@ export const combos: Producto[] = [
     envioGratis: false,
     linkPago: "",
     disponible: true,
-    // Sin `opcion`: el color de la gorra y el del piluso se eligen aparte (salen de cada pieza).
+    // Un talle para las dos piezas; el color de la gorra y el del piluso se eligen aparte (salen de cada pieza).
+    opcion: { nombre: "Talle", valores: TALLES, agotados: TALLES_AGOTADOS },
   },
 ];
 
@@ -458,6 +464,11 @@ export const individuales: Producto[] = [
     incluye: [],
     precio: 11999,
     imagenes: ["/productos/solo/gorra/1.jpg", "/productos/solo/gorra/2.jpg"],
+    medidas: [
+      { talle: "S", texto: "Ancho 16 cm" },
+      { talle: "M", texto: "Ancho 18 cm" },
+    ],
+    opcionTalle: { valores: TALLES, agotados: TALLES_AGOTADOS },
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -476,6 +487,11 @@ export const individuales: Producto[] = [
     incluye: [],
     precio: 11999,
     imagenes: ["/productos/solo/piluso/1.jpg", "/productos/solo/piluso/2.jpg"],
+    medidas: [
+      { talle: "S", texto: "Ancho 21 cm" },
+      { talle: "M", texto: "Ancho 23 cm" },
+    ],
+    opcionTalle: { valores: TALLES, agotados: TALLES_AGOTADOS },
     envioGratis: false,
     linkPago: "",
     disponible: true,

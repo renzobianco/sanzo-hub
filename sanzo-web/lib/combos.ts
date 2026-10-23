@@ -21,6 +21,11 @@ export function armarOpcion(combo: Producto, talle: string, colores: Record<stri
 /** Cómo se lee la opción en carrito, checkout, mail y Mercado Pago: "Talle S", "Gorra Beige · Piluso Jade". */
 export function textoOpcion(producto: Producto, opcion?: string) {
   if (!opcion) return "";
+  // Color + talle (gorra, piluso): "Color Beige · Talle M".
+  if (producto.opcion && producto.opcionTalle && opcion.includes(" · ")) {
+    const [c, t] = opcion.split(" · ");
+    return `${producto.opcion.nombre} ${c} · Talle ${t}`;
+  }
   return producto.opcion ? `${producto.opcion.nombre} ${opcion}` : opcion;
 }
 
@@ -28,6 +33,10 @@ export function textoOpcion(producto: Producto, opcion?: string) {
 export function opcionesValidas(producto: Producto): string[] | null {
   const conColor = piezasConColor(producto);
   if (!producto.opcion && conColor.length === 0) return null;
+  // Color + talle: "Beige · M".
+  if (producto.opcion && producto.opcionTalle) {
+    return producto.opcion.valores.flatMap((c) => producto.opcionTalle!.valores.map((t) => `${c} · ${t}`));
+  }
   let todas: string[][] = [producto.opcion ? producto.opcion.valores.map((v) => [v]) : [[]]].flat();
   for (const p of conColor) todas = todas.flatMap((t) => p.opcion!.valores.map((c) => [...t, `${p.nombre} ${c}`]));
   return todas.map((t) => t.join(" · "));

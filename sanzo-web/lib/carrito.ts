@@ -184,11 +184,13 @@ export function armarCombos(lineas: LineaCarrito[]): { lineas: LineaCarrito[]; a
 
       const talles = new Set([
         ...deSueltas.filter(({ p, l }) => p.opcion?.nombre === "Talle" && l.opcion).map(({ l }) => l.opcion!),
+        // Color + talle ("Beige · M"): el talle es la segunda parte.
+        ...deSueltas.filter(({ p, l }) => p.opcionTalle && l.opcion?.includes(" · ")).map(({ l }) => l.opcion!.split(" · ")[1]),
         ...deCombos.filter(({ combo: c, linea }) => c.opcion?.nombre === "Talle" && linea.opcion).map(({ linea }) => linea.opcion!.split(" · ")[0]),
       ]);
       if (talles.size > 1) continue;
       const colores: Record<string, string> = {};
-      for (const { p, l } of deSueltas) if (p.opcion?.colores && l.opcion) colores[p.id] = l.opcion;
+      for (const { p, l } of deSueltas) if (p.opcion?.colores && l.opcion) colores[p.id] = l.opcion.split(" · ")[0];
       const talle = [...talles][0] ?? "";
       const opcion = (piezasConColor(combo).length ? armarOpcion(combo, talle, colores) : talle) || undefined;
       const validas = opcionesValidas(combo);

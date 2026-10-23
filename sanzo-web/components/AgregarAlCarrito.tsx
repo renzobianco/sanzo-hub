@@ -29,26 +29,14 @@ interface Props {
   acento?: "fuerte" | "medio";
 }
 
-const ORDEN_TALLES = ["XS", "S", "M", "L", "XL"];
 
-/** Lo que se muestra: los valores elegibles y los agotados, en orden de talle. */
-function valoresConAgotados(valores: string[], agotados: string[] = []) {
-  const todos = [...valores, ...agotados.filter((a) => !valores.includes(a))];
-  const pos = (v: string) => (ORDEN_TALLES.includes(v) ? ORDEN_TALLES.indexOf(v) : 99);
-  return todos.sort((a, b) => pos(a) - pos(b));
-}
-
-/** Talle agotado: apagado, con borde punteado y la palabra "agotado" adentro. No se puede tocar. */
-function Agotado({ valor, clase }: { valor: string; clase: string }) {
+/** Talles agotados: un texto chico al lado de los botones ("L agotado", "S y L agotados"). */
+function Agotados({ valores }: { valores?: string[] }) {
+  if (!valores || valores.length === 0) return null;
+  const lista = valores.length > 1 ? `${valores.slice(0, -1).join(", ")} y ${valores[valores.length - 1]}` : valores[0];
   return (
-    <span
-      aria-label={`${valor}, agotado`}
-      title="Agotado"
-      className={`flex cursor-default select-none flex-col items-center justify-center border border-dashed border-tinta/25 bg-tinta/[0.03] uppercase leading-none tracking-[0.12em] text-tinta/45 ${clase}`}
-    >
-      {valor}
-      {/* La palabra, chiquita, adentro del cuadrito: se entiende sin adivinar. */}
-      <span className="mt-[3px] text-[8px] lowercase tracking-[0.04em]">agotado</span>
+    <span className="self-center whitespace-nowrap text-[12px] text-tinta/50">
+      {lista} {valores.length > 1 ? "agotados" : "agotado"}
     </span>
   );
 }
@@ -73,10 +61,7 @@ function Botones({
 }) {
   return (
     <div className="clear-both flex flex-wrap gap-2">
-      {valoresConAgotados(valores, agotados).map((v) =>
-        !valores.includes(v) ? (
-          <Agotado key={v} valor={v} clase={grande ? "h-12 min-w-[3.25rem] px-4 text-sm" : "h-9 min-w-[2.5rem] px-2.5 text-[11px]"} />
-        ) : (
+      {valores.map((v) => (
         <label key={v} className="cursor-pointer">
           <input type="radio" name={nombre} value={v} checked={elegido === v} onChange={() => onElegir(v)} className="peer sr-only" />
           <span
@@ -94,8 +79,8 @@ function Botones({
             {v}
           </span>
         </label>
-        ),
-      )}
+      ))}
+      <Agotados valores={agotados} />
     </div>
   );
 }
@@ -106,6 +91,8 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
   const [seleccion, setSeleccion] = useState<string>("");
   // Combos con piezas de color (ej. gorra + piluso): un color por pieza.
   const [colores, setColores] = useState<Record<string, string>>({});
+  // Gorra / piluso: talle además del color.
+  const [talle, setTalle] = useState("");
   const [aviso, setAviso] = useState("");
   const [personalizacion, setPersonalizacion] = useState<Personalizacion>();
   const id = useId();
@@ -121,13 +108,17 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
       setAviso(`Elegí un ${opcion.nombre.toLowerCase()}.`);
       return;
     }
+    if (producto.opcionTalle && !talle) {
+      setAviso("Elegí un talle.");
+      return;
+    }
     const falta = conColor.find((p) => !colores[p.id]);
     if (falta) {
       setAviso(`Falta elegir el color: ${falta.nombre.toLowerCase()}.`);
       return;
     }
     setAviso("");
-    const valor = conColor.length ? armarOpcion(producto, seleccion, colores) : seleccion;
+    const valor = conColor.length ? armarOpcion(producto, seleccion, colores) : producto.opcionTalle ? `${seleccion} · ${talle}` : seleccion;
     agregar(producto.id, valor || undefined, { abrir: false, personalizacion });
     // Antes de seguir (carrito o checkout) le ofrecemos la chapita personalizada.
     ofrecerChapita(() => (irAlCheckout ? router.push("/checkout") : abrirCarrito()));
@@ -150,10 +141,7 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
             <div className="flex items-center gap-4">
               <legend className="eyebrow float-left">{opcion.nombre}</legend>
               <div className="flex gap-2">
-                {valoresConAgotados(opcion.valores, opcion.agotados).map((v) =>
-                  !opcion.valores.includes(v) ? (
-                    <Agotado key={v} valor={v} clase="h-11 min-w-[2.9rem] px-3 text-sm" />
-                  ) : (
+                {opcion.valores.map((v) => (
                   <label key={v} className="cursor-pointer">
                     <input
                       type="radio"
@@ -171,8 +159,8 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
                       {v}
                     </span>
                   </label>
-                  ),
-                )}
+                ))}
+                <Agotados valores={opcion.agotados} />
               </div>
             </div>
             {extraOpcion}
@@ -224,6 +212,26 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
             onElegir={(v) => {
               setSeleccion(v);
               onSeleccion?.(v);
+              setAviso("");
+            }}
+          />
+        </fieldset>
+      )}
+
+      {producto.opcionTalle && (
+        <fieldset disabled={deshabilitado}>
+          <legend className="eyebrow mb-2">
+            Talle
+            {talle && <span className="ml-2 text-tinta">{talle}</span>}
+          </legend>
+          <Botones
+            nombre={`talle-${id}`}
+            valores={producto.opcionTalle.valores}
+            agotados={producto.opcionTalle.agotados}
+            elegido={talle}
+            grande={grande}
+            onElegir={(v) => {
+              setTalle(v);
               setAviso("");
             }}
           />

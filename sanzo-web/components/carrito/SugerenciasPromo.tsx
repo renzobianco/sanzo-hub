@@ -127,7 +127,11 @@ export function ItemSugerencia({ sugerencia }: { sugerencia: Sugerencia }) {
 function PiezaQueFalta({ producto }: { producto: Producto }) {
   const { agregar } = useCarrito();
   const [eligiendo, setEligiendo] = useState(false);
+  // Gorra / piluso: primero el color, después el talle ("Beige · M").
+  const [color, setColor] = useState("");
   const opcion = producto.opcion;
+  const talles = producto.opcionTalle;
+  const boton = "flex h-9 min-w-[2.5rem] items-center justify-center gap-1.5 border border-tinta/25 px-2.5 text-[11px] uppercase tracking-[0.12em] transition-colors active:bg-tinta active:text-crema";
 
   return (
     <li className="py-2.5">
@@ -146,15 +150,15 @@ function PiezaQueFalta({ producto }: { producto: Producto }) {
           </button>
         )}
       </div>
-      {eligiendo && opcion && (
+      {eligiendo && opcion && (!talles || !color) && (
         <div className="mt-2 flex animate-entrada flex-wrap items-center gap-2">
           <span className="eyebrow mr-1">{opcion.nombre}</span>
           {opcion.valores.map((v) => (
             <button
               key={v}
               type="button"
-              onClick={() => agregar(producto.id, v)}
-              className="flex h-9 min-w-[2.5rem] items-center justify-center gap-1.5 border border-tinta/25 px-2.5 text-[11px] uppercase tracking-[0.12em] transition-colors active:bg-tinta active:text-crema"
+              onClick={() => (talles ? setColor(v) : agregar(producto.id, v))}
+              className={boton}
             >
               {opcion.colores?.[v] && (
                 <span aria-hidden="true" className="h-3 w-3 rounded-full ring-1 ring-tinta/20" style={{ backgroundColor: opcion.colores[v] }} />
@@ -162,6 +166,21 @@ function PiezaQueFalta({ producto }: { producto: Producto }) {
               {v}
             </button>
           ))}
+        </div>
+      )}
+      {eligiendo && talles && color && (
+        <div className="mt-2 flex animate-entrada flex-wrap items-center gap-2">
+          <span className="eyebrow mr-1">
+            Talle <span className="text-tinta">· {color}</span>
+          </span>
+          {talles.valores.map((t) => (
+            <button key={t} type="button" onClick={() => agregar(producto.id, `${color} · ${t}`)} className={boton}>
+              {t}
+            </button>
+          ))}
+          {talles.agotados && talles.agotados.length > 0 && (
+            <span className="text-[12px] text-tinta/50">{talles.agotados.join(", ")} agotado</span>
+          )}
         </div>
       )}
     </li>

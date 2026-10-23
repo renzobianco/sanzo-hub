@@ -254,6 +254,10 @@ Lo que definió Santi (2026-10-16):
   - Cartel "Más vendido": A píldora clara / B texto sobre la foto / C arriba del nombre. (Hoy: píldora negra con estrella; no le gusta.)
   - Talle agotado: A raya en diagonal / B la palabra "agotado" adentro / C "L agotado" al lado. (Hoy: tachado; "no se entiende".)
   - Solapas de combos: A nombres con rayita que se desliza / B nombres abajo en lugar de los puntitos / C contador "1 / 4" al lado del título. (Hoy: píldoras; "no termina de quedar integrado".)
-- [ ] Combo Sol sin talle: gorra y piluso hoy solo tienen color. Falta saber si tienen talles reales.
+- [x] Combo Sol con talle (2026-10-23): gorra S ancho 16 cm / M 18 cm; piluso S 21 cm / M 23 cm; L agotado.
 - 2026-10-23 · **Poo bag: "+ rollito" como etiqueta** (Santi: el texto "con rollito" debajo quedaba mal). Ahora es una etiquetita oscura sobre el círculo del poo bag, en combos, ficha y en la fila de piezas del kit; se sacó de la línea de texto del kit. La descripción del poo bag suelto sigue diciendo "con un rollito adentro".
 - 2026-10-23 · **Hecho con las opciones recomendadas** (Santi: "no cambiaste nada"): "Más vendido" del kit pasó a la línea de arriba del nombre ("Más vendido · 6 piezas · envío gratis"), sin cartel sobre la foto; en tarjetas/combos, si llevan etiqueta, es una píldora clara sin estrella. Talle agotado: letra apagada, borde punteado y "agotado" chiquito adentro (sin tachado). Solapas de combos: texto con una rayita fina que crece debajo del elegido.
+- 2026-10-23 · **Talle agotado como texto** (Santi: el cuadrito con "agotado" quedaba horrible): ahora solo están los talles que se pueden elegir y al lado un texto chico "L agotado" (o "S y L agotados" en el collar).
+- 2026-10-23 · **Gorra y piluso con talle además del color** (`opcionTalle`): se elige color y talle, al carrito va "Beige · M" (se lee "Color Beige · Talle M"). Medidas: gorra S ancho 16 cm / M 18 cm; piluso S 21 cm / M 23 cm (Santi). L agotado.
+- **Combo Sol con talle** (uno para las dos piezas) + color de cada una. Gorra + piluso del mismo talle sueltos en el carrito se juntan en el Combo Sol. El "Sumar" de la sugerencia pide color y después talle.
+- Ojo: carritos viejos con gorra o piluso sin talle pierden esa línea (ya no es una opción válida).
