@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Palabras } from "./Palabras";
-import { combos } from "@/data/products";
+import { combos, getProducto, sitio, type Producto } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
 import { ConZoom } from "./ConZoom";
@@ -15,6 +15,14 @@ const N = combos.length;
 // Tres vueltas de combos seguidas: siempre se arranca y se vuelve a la del medio, así es circular
 // (después de Sol asoma Paseo, y antes de Paseo, Sol).
 const VUELTAS = [0, 1, 2];
+/** Lo que salen las piezas sueltas y cuánto se ahorra con el combo (con precios reales; null si falta alguno). */
+function ahorroDe(combo: Producto) {
+  const sueltos = combo.incluye.map((id) => getProducto(id)?.precio ?? null);
+  if (combo.precio === null || sueltos.some((p) => p === null)) return null;
+  const porSeparado = sueltos.reduce<number>((a, p) => a + (p ?? 0), 0);
+  return porSeparado > combo.precio ? { porSeparado, ahorro: porSeparado - combo.precio } : null;
+}
+
 const tarjetas = VUELTAS.flatMap((v) => combos.map((combo, i) => ({ combo, i, pos: v * N + i })));
 
 /**
@@ -165,7 +173,21 @@ export function SeccionCombos() {
                         <MiniPiezas incluye={combo.incluye} />
                       </div>
                       {combo.precio !== null && (
-                        <p className="mt-3.5 text-[1.3rem] font-light leading-none tracking-wide">{formatearPrecio(combo.precio)}</p>
+                        <div className="mt-3.5">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-[1.3rem] font-light leading-none tracking-wide">{formatearPrecio(combo.precio)}</p>
+                            {ahorroDe(combo) && (
+                              <span className="whitespace-nowrap rounded-full border border-marron px-2.5 py-1 text-[11px] tracking-wide text-marron">
+                                {sitio.kit.ahorro} {formatearPrecio(ahorroDe(combo)!.ahorro)}
+                              </span>
+                            )}
+                          </div>
+                          {ahorroDe(combo) && (
+                            <p className="mt-1.5 text-[12px] text-tinta/55">
+                              {sitio.kit.porSeparado} <s>{formatearPrecio(ahorroDe(combo)!.porSeparado)}</s>
+                            </p>
+                          )}
+                        </div>
                       )}
                       <div className="pt-4">
                         <AgregarAlCarrito producto={combo} acento="medio" />

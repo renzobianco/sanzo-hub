@@ -15,8 +15,7 @@ export function SeccionKit() {
   const ahorro = porSeparado !== null && kit.precio !== null ? porSeparado - kit.precio : 0;
   const piezas = kit.incluye.map((id) => getProducto(id)).filter((p) => !!p);
   // "Arnés, correa, collar, moño, bandana y poo bag"
-  // "poo bag con rollito": lo que trae adentro, sutil, en la misma línea.
-  const nombres = piezas.map((p, i) => `${i === 0 ? p.nombre : p.nombre.toLowerCase()}${p.incluyeExtra ? ` ${p.incluyeExtra}` : ""}`);
+  const nombres = piezas.map((p, i) => (i === 0 ? p.nombre : p.nombre.toLowerCase()));
   const listaPiezas = nombres.length > 1 ? `${nombres.slice(0, -1).join(", ")} y ${nombres[nombres.length - 1]}` : nombres.join("");
   const porcentaje = restantes === null ? 0 : Math.max(0, Math.min(100, (restantes / total) * 100));
 
@@ -64,8 +63,11 @@ export function SeccionKit() {
           {/* Las piezas en una sola fila chiquita + la lista en una línea. */}
           <ul className="mt-6 flex gap-2" aria-label={`Incluye ${kit.incluye.length} piezas`}>
             {piezas.map((p) => (
-              <li key={p.id} className="relative aspect-square flex-1 overflow-hidden rounded-full bg-crema">
-                {p.miniatura && <Image src={p.miniatura} alt={p.nombre} fill sizes="64px" className="object-contain p-1 mix-blend-multiply" />}
+              <li key={p.id} className="relative aspect-square flex-1">
+                <span className="absolute inset-0 overflow-hidden rounded-full bg-crema">
+                  {p.miniatura && <Image src={p.miniatura} alt={p.nombre} fill sizes="64px" className="object-contain p-1 mix-blend-multiply" />}
+                </span>
+                {p.incluyeExtra && <span className="pointer-events-none absolute -right-1 -top-1 z-10 animate-pop whitespace-nowrap rounded-full bg-tinta px-1.5 py-0.5 text-[9px] lowercase tracking-[0.06em] text-crema shadow-[0_3px_8px_-3px_rgb(var(--tinta)/0.6)] [animation-delay:600ms]">{p.incluyeExtra}</span>}
               </li>
             ))}
           </ul>

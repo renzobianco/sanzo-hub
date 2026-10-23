@@ -246,3 +246,13 @@ Lo que definió Santi (2026-10-16):
 
 - Santi: con gorra + poo bag las sugerencias quedaban todas al final. Ahora cada producto del carrito lleva debajo su combo a medio armar (gorra → "Armá el Combo Sol, te falta piluso"; poo bag → "Armá el Combo Paseo, te faltan correa y collar"). Una sugerencia por producto, sin repetir; ya no se cortan en 2.
 - Las fotitos de las piezas en la sugerencia quedan (todavía faltan las fotos definitivas de los individuales).
+
+## 2026-10-23 · Ahorro en cada combo y opciones pendientes
+
+- **Cada combo muestra cuánto ahorrás** (Santi): "Ahorrás $Y" en recuadro fino marrón junto al precio y "Por separado ~~$X~~" debajo, igual que el kit, con los precios reales de las piezas (Paseo $6.498, Estilo $5.998, Aventura $6.499, Sol $1.999). Regla de CLAUDE.md actualizada.
+- [ ] **Elegir** (Santi vio 3 opciones de cada una en el chat):
+  - Cartel "Más vendido": A píldora clara / B texto sobre la foto / C arriba del nombre. (Hoy: píldora negra con estrella; no le gusta.)
+  - Talle agotado: A raya en diagonal / B la palabra "agotado" adentro / C "L agotado" al lado. (Hoy: tachado; "no se entiende".)
+  - Solapas de combos: A nombres con rayita que se desliza / B nombres abajo en lugar de los puntitos / C contador "1 / 4" al lado del título. (Hoy: píldoras; "no termina de quedar integrado".)
+- [ ] Combo Sol sin talle: gorra y piluso hoy solo tienen color. Falta saber si tienen talles reales.
+- 2026-10-23 · **Poo bag: "+ rollito" como etiqueta** (Santi: el texto "con rollito" debajo quedaba mal). Ahora es una etiquetita oscura sobre el círculo del poo bag, en combos, ficha y en la fila de piezas del kit; se sacó de la línea de texto del kit. La descripción del poo bag suelto sigue diciendo "con un rollito adentro".

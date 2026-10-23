@@ -59,7 +59,7 @@ export interface Producto {
    * SOLO cosas que se ven y son reales: nada de material ni durabilidad hasta que estén confirmados.
    */
   detalles?: { x: number; y: number; tx: number; ty: number; alinear: "izq" | "der"; texto: string }[];
-  /** Lo que trae adentro, dicho corto (ej. "con rollito"). Se ve chiquito debajo de la pieza en combos y kit. */
+  /** Lo que trae adentro, dicho corto (ej. "+ rollito"). Se ve como etiqueta chiquita sobre el círculo de la pieza en combos, ficha y kit. */
   incluyeExtra?: string;
   /** Cartelito arriba de la foto, ej. "Más vendido". Vacío → no aparece. */
   etiqueta?: string;
@@ -436,7 +436,7 @@ export const individuales: Producto[] = [
     nombre: "Poo bag",
     tipo: "individual",
     descripcion: "Porta bolsitas con un rollito adentro. Siempre a mano, en la correa.",
-    incluyeExtra: "con rollito",
+    incluyeExtra: "+ rollito",
     incluye: [],
     precio: 10499,
     imagenes: ["/productos/solo/poo-bag/1.jpg", "/productos/solo/poo-bag/2.jpg"],
