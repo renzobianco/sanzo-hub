@@ -232,3 +232,17 @@ Lo que definió Santi (2026-10-16):
 - Santi: "el zoom está re trabado". Causa: con cada movimiento del dedo se re-dibujaba todo el visor y la foto perseguía al dedo con una animación de 0,5 s. Ahora (`FotoZoom` en ConZoom.tsx) el movimiento va directo al estilo: arrastre 1 a 1, **pellizco para acercar/alejar** (hasta 4x, centrado entre los dedos), tocar acerca donde tocaste (2,5x) y otro toque aleja, con animación suave solo en esos toques. El tope es la foto (no se ven las franjas vacías). Si el pellizco la deja casi en su tamaño, vuelve sola.
 - Ojo: algunas fotos son chicas (ej. `arnes/1.jpg` mide 421 px de ancho): acercadas se ven blandas. Para un zoom nítido hacen falta fotos de 1500 px o más.
 - Combo Estilo ya no dice "Más vendido" (Santi). Queda solo en el kit.
+
+## 2026-10-23 · Detalles señalados en la foto (idea de Santi, referencia tipo ficha técnica)
+
+- Al abrir la ficha de un individual, la primera foto muestra puntitos con líneas negras que se dibujan solas y una etiqueta corta (`Detalles.tsx`, datos en `detalles` de cada producto). No tapan el zoom.
+- Cargado: **arnés** (tiras regulables, personalizable, hebillas de traba rápida), **collar** (hebilla, regula de 33 a 51 cm, argolla para la correa), **correa** (manija, 152 cm de largo · 2 cm de ancho), **poo bag** (rollito de bolsitas, mosquetón, cierre para recargar).
+- Santi propuso frases como "anilla de alta durabilidad" y "material de neoprene": **no se pusieron** porque chocan con las reglas (material sin confirmar, nada de durabilidad). Si se confirma el material, se cambia el texto en `detalles`.
+- [ ] Moño, bandana, gorra y piluso: falta ver bien en fotos cómo se enganchan antes de señalar algo.
+- [ ] **360° "bien chupetón"** del arnés: sigue pendiente hasta tener las fotos reales dando la vuelta (24-36 fotos o un video lento).
+- Decidido (Santi): **el kit talle S lleva collar S** (quedan para kits aunque el collar S suelto esté agotado). Falta confirmar si Combo Paseo y Combo Estilo en S también.
+
+## 2026-10-23 · Carrito: cada combo debajo de su producto
+
+- Santi: con gorra + poo bag las sugerencias quedaban todas al final. Ahora cada producto del carrito lleva debajo su combo a medio armar (gorra → "Armá el Combo Sol, te falta piluso"; poo bag → "Armá el Combo Paseo, te faltan correa y collar"). Una sugerencia por producto, sin repetir; ya no se cortan en 2.
+- Las fotitos de las piezas en la sugerencia quedan (todavía faltan las fotos definitivas de los individuales).

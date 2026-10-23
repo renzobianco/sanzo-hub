@@ -52,6 +52,13 @@ export interface Producto {
   medidas?: { talle?: string; texto: string }[];
   /** Cómo elegir el talle (texto corto, se ve en la ficha debajo de las medidas). */
   guiaTalle?: string;
+  /**
+   * Detalles señalados sobre la primera foto de la ficha (puntito + línea + etiqueta corta).
+   * x, y: dónde está la pieza; tx, ty: dónde termina la línea y va la etiqueta; alinear: para qué lado
+   * sale el texto desde ahí. Todo en % de la foto como se ve en la ficha (cuadrada, recortada al medio).
+   * SOLO cosas que se ven y son reales: nada de material ni durabilidad hasta que estén confirmados.
+   */
+  detalles?: { x: number; y: number; tx: number; ty: number; alinear: "izq" | "der"; texto: string }[];
   /** Lo que trae adentro, dicho corto (ej. "con rollito"). Se ve chiquito debajo de la pieza en combos y kit. */
   incluyeExtra?: string;
   /** Cartelito arriba de la foto, ej. "Más vendido". Vacío → no aparece. */
@@ -340,6 +347,11 @@ export const individuales: Producto[] = [
     incluye: [],
     precio: 18999,
     imagenes: ["/productos/solo/arnes/1.jpg", "/productos/solo/arnes/2.jpg"],
+    detalles: [
+      { x: 33, y: 30, tx: 6, ty: 13, alinear: "der", texto: "Tiras regulables" },
+      { x: 49, y: 34, tx: 95, ty: 16, alinear: "izq", texto: "Personalizable" },
+      { x: 29, y: 67, tx: 6, ty: 87, alinear: "der", texto: "Hebillas de traba rápida" },
+    ],
     medidas: [
       { talle: "S", texto: "Cuello 35 a 44 cm · Pecho 41 a 54 cm · Tira de 2 cm · Regulable" },
       { talle: "M", texto: "Cuello 39 a 51 cm · Pecho 46 a 61 cm · Tira de 2 cm · Regulable" },
@@ -360,6 +372,10 @@ export const individuales: Producto[] = [
     incluye: [],
     precio: 12499,
     imagenes: ["/productos/solo/correa/1.jpg", "/productos/solo/correa/2.jpg"],
+    detalles: [
+      { x: 21, y: 30, tx: 6, ty: 12, alinear: "der", texto: "Manija de mano" },
+      { x: 81, y: 55, tx: 95, ty: 82, alinear: "izq", texto: "152 cm de largo · 2 cm de ancho" },
+    ],
     medidas: [{ texto: "Largo 152 cm · Ancho 2 cm" }],
     envioGratis: false,
     linkPago: "",
@@ -374,6 +390,11 @@ export const individuales: Producto[] = [
     incluye: [],
     precio: 10499,
     imagenes: ["/productos/solo/collar/1.jpg", "/productos/solo/collar/2.jpg"],
+    detalles: [
+      { x: 52, y: 32, tx: 95, ty: 12, alinear: "izq", texto: "Hebilla de traba rápida" },
+      { x: 17, y: 42, tx: 5, ty: 22, alinear: "der", texto: "Regula de 33 a 51 cm" },
+      { x: 46, y: 75, tx: 6, ty: 90, alinear: "der", texto: "Argolla para la correa" },
+    ],
     medidas: [{ talle: "M", texto: "Regula de 33 a 51 cm · Ancho 2 cm" }],
     envioGratis: false,
     linkPago: "",
@@ -419,6 +440,11 @@ export const individuales: Producto[] = [
     incluye: [],
     precio: 10499,
     imagenes: ["/productos/solo/poo-bag/1.jpg", "/productos/solo/poo-bag/2.jpg"],
+    detalles: [
+      { x: 21, y: 45, tx: 5, ty: 64, alinear: "der", texto: "Trae un rollito de bolsitas" },
+      { x: 78, y: 12, tx: 95, ty: 32, alinear: "izq", texto: "Mosquetón para la correa" },
+      { x: 70, y: 58, tx: 95, ty: 80, alinear: "izq", texto: "Cierre para recargar" },
+    ],
     medidas: [{ texto: "8 x 5 x 5 cm" }],
     envioGratis: false,
     linkPago: "",

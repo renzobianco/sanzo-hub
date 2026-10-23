@@ -7,6 +7,7 @@ import { formatearPrecio } from "@/lib/formato";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
 import { useCarrito } from "./carrito/CarritoProvider";
 import { ConZoom } from "./ConZoom";
+import { Detalles } from "./Detalles";
 import { IconoCerrar } from "./Iconos";
 import { MiniPiezas } from "./MiniPiezas";
 
@@ -134,6 +135,10 @@ export function FichaProducto({
                             sizes="(min-width: 768px) 32rem, 100vw"
                             className={`object-cover transition-transform duration-[1.2s] ease-suave ${arriba ? "scale-100" : "scale-[1.06]"}`}
                           />
+                          {/* Detalles señalados en la primera foto (se dibujan al abrir y al volver a ella). */}
+                          {i === 0 && producto.detalles && producto.detalles.length > 0 && (
+                            <Detalles puntos={producto.detalles} visible={arriba && foto === 0} />
+                          )}
                         </div>
                       </ConZoom>
                     </li>

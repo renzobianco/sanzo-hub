@@ -54,7 +54,7 @@ export function armables(): Armable[] {
 
 /**
  * Arma los combos que el carrito ya completa (cada unidad cuenta para un solo combo) y sugiere
- * los que están a medio armar: los que menos piezas les faltan, hasta 2.
+ * los que están a medio armar, del que menos piezas le faltan al que más (el carrito muestra una debajo de cada producto).
  */
 export function calcularPromos(unidadesPorProducto: Record<string, number>, combosEnCarrito: string[] = []) {
   const restantes = { ...unidadesPorProducto };
@@ -101,5 +101,5 @@ export function calcularPromos(unidadesPorProducto: Record<string, number>, comb
   // Primero pasar de combo a uno más grande; después los que menos piezas les faltan.
   sugerencias.sort((x, y) => Number(!!y.desde) - Number(!!x.desde) || x.faltan.length - y.faltan.length || y.ahorro - x.ahorro);
 
-  return { descuentos, sugerencias: sugerencias.slice(0, 2) };
+  return { descuentos, sugerencias };
 }

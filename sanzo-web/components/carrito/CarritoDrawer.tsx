@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useCarrito } from "./CarritoProvider";
 import { SelectorZona } from "./SelectorZona";
-import { AvisoArmado, CombosArmados, SugerenciasPromo } from "./SugerenciasPromo";
+import { AvisoArmado, CombosArmados, ItemSugerencia } from "./SugerenciasPromo";
+import type { Sugerencia } from "@/lib/promos";
 import { Personalizar } from "../personalizar/Personalizar";
 import { esPersonalizable } from "@/lib/personalizacion";
 import { ImagenProducto } from "../ImagenProducto";
@@ -19,6 +20,18 @@ export function CarritoDrawer() {
   const botonCerrar = useRef<HTMLButtonElement>(null);
   const { lineas, subtotal, descuentos, envio, total, contieneKit, faltaParaGratis } = totales;
   // Nombre del combo que arma esa pieza (para la etiquetita en la línea).
+  // Cada combo a medio armar va debajo del primer producto del carrito que lo empieza (uno por producto).
+  const sugerenciaDe = new Map<string, Sugerencia>();
+  const mostradas = new Set<string>();
+  for (const l of lineas) {
+    const s = totales.sugerencias.find(
+      (x) => !mostradas.has(x.promoId) && (x.tiene.some((p) => p.id === l.productoId) || !!x.desde?.some((c) => c.id === l.productoId)),
+    );
+    if (s) {
+      mostradas.add(s.promoId);
+      sugerenciaDe.set(l.key, s);
+    }
+  }
   const enCombo = (id: string) => descuentos.find((d) => d.piezas.includes(id))?.texto.replace(/ × \d+$/, "");
 
   useEffect(() => {
@@ -74,7 +87,8 @@ export function CarritoDrawer() {
             <AvisoArmado />
             <ul className="divide-y divide-tinta/10">
               {lineas.map((l) => (
-                <li key={l.key} className="flex gap-4 py-5">
+                <li key={l.key} className="py-5">
+                  <div className="flex gap-4">
                   <ImagenProducto
                     src={l.producto.imagenes[0]}
                     nombre={l.producto.nombre}
@@ -139,11 +153,12 @@ export function CarritoDrawer() {
                       </button>
                     </div>
                   </div>
+                  </div>
+                  {sugerenciaDe.has(l.key) && <ItemSugerencia sugerencia={sugerenciaDe.get(l.key)!} />}
                 </li>
               ))}
             </ul>
             <CombosArmados />
-            <SugerenciasPromo />
             </div>
 
             <div className="space-y-4 border-t border-tinta/10 bg-lino/50 px-5 pb-6 pt-5">

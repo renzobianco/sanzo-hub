@@ -77,26 +77,14 @@ function ComboArmado({ descuento }: { descuento: DescuentoAplicado }) {
   );
 }
 
-/** Combos a medio armar: qué tenés, qué falta y cuánto ahorrás si lo completás. */
-export function SugerenciasPromo() {
-  const { totales } = useCarrito();
-  if (totales.sugerencias.length === 0) return null;
-  return (
-    <ul className="mb-6 mt-5 space-y-3">
-      {totales.sugerencias.map((s) => (
-        <ItemSugerencia key={s.promoId} sugerencia={s} />
-      ))}
-    </ul>
-  );
-}
-
-function ItemSugerencia({ sugerencia }: { sugerencia: Sugerencia }) {
+/** Combo a medio armar, debajo del producto que lo empieza: qué tenés, qué falta y cuánto ahorrás. */
+export function ItemSugerencia({ sugerencia }: { sugerencia: Sugerencia }) {
   const { combo, tiene, faltan, ahorro, desde } = sugerencia;
   const total = tiene.length + faltan.length;
   const piezas = combo.incluye.map((id) => tiene.find((p) => p.id === id) ?? faltan.find((p) => p.id === id)!);
 
   return (
-    <li className="animate-entrada rounded-[0.8rem] bg-lino p-4">
+    <div className="mt-4 animate-entrada rounded-[0.8rem] bg-lino p-4">
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-[13px] uppercase tracking-[0.14em]">
           {desde
@@ -132,7 +120,7 @@ function ItemSugerencia({ sugerencia }: { sugerencia: Sugerencia }) {
           <PiezaQueFalta key={p.id} producto={p} />
         ))}
       </ul>
-    </li>
+    </div>
   );
 }
 
