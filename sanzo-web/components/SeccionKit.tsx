@@ -25,17 +25,13 @@ export function SeccionKit() {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 md:grid-cols-[1.15fr_1fr] md:gap-16 md:px-8 lg:gap-24">
         <Reveal className="relative">
           <KitGaleria imagenes={kit.imagenes} nombre={kit.nombre} />
-          {kit.etiqueta && (
-            <p className="pointer-events-none absolute left-3 top-3 flex animate-entrada items-center gap-1.5 rounded-full bg-tinta px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-crema [animation-delay:900ms]">
-              <span aria-hidden="true" className="text-marron">★</span>
-              {kit.etiqueta}
-            </p>
-          )}
         </Reveal>
 
         {/* Jerarquía: dato chico en marrón → nombre bien grande → precio → piezas → talle → comprar. */}
         <Reveal delay={120} className="flex flex-col pt-1 md:pt-6">
           <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-marron">
+            {/* "Más vendido" va acá, junto al dato chico (no como cartel sobre la foto). */}
+            {kit.etiqueta && <span className="text-tinta">{kit.etiqueta} · </span>}
             {kit.incluye.length} piezas{kit.envioGratis && " · Envío gratis"}
           </p>
           <h2 id="kit-titulo" className="mt-2 text-[2.1rem] font-medium uppercase leading-[1.05] tracking-[0.1em] md:text-5xl">

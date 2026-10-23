@@ -38,15 +38,17 @@ function valoresConAgotados(valores: string[], agotados: string[] = []) {
   return todos.sort((a, b) => pos(a) - pos(b));
 }
 
-/** Talle agotado: se ve apagado y tachado, pero no se puede tocar. */
+/** Talle agotado: apagado, con borde punteado y la palabra "agotado" adentro. No se puede tocar. */
 function Agotado({ valor, clase }: { valor: string; clase: string }) {
   return (
     <span
       aria-label={`${valor}, agotado`}
       title="Agotado"
-      className={`flex cursor-default select-none items-center justify-center border border-tinta/10 uppercase tracking-[0.12em] text-tinta/30 line-through decoration-tinta/30 ${clase}`}
+      className={`flex cursor-default select-none flex-col items-center justify-center border border-dashed border-tinta/25 bg-tinta/[0.03] uppercase leading-none tracking-[0.12em] text-tinta/45 ${clase}`}
     >
       {valor}
+      {/* La palabra, chiquita, adentro del cuadrito: se entiende sin adivinar. */}
+      <span className="mt-[3px] text-[8px] lowercase tracking-[0.04em]">agotado</span>
     </span>
   );
 }

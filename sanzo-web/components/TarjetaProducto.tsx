@@ -33,8 +33,7 @@ export function TarjetaProducto({ producto, desfase = 0 }: { producto: Producto;
             sizes="(min-width: 768px) 25vw, 50vw"
           />
           {producto.etiqueta && (
-            <span className="pointer-events-none absolute left-2.5 top-2.5 flex items-center gap-1 rounded-full bg-tinta px-2.5 py-1 text-[9px] uppercase tracking-[0.16em] text-crema">
-              <span aria-hidden="true" className="text-marron">★</span>
+            <span className="pointer-events-none absolute left-2.5 top-2.5 rounded-full border border-marron/35 bg-crema/90 px-2.5 py-1 text-[9px] uppercase tracking-[0.16em] text-marron">
               {producto.etiqueta}
             </span>
           )}

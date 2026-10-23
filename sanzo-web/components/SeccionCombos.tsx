@@ -106,7 +106,8 @@ export function SeccionCombos() {
 
         <Reveal>
           {/* Solapas: los 4 combos a la vista; mueven el carrusel y siguen al que está en el medio. */}
-          <div role="tablist" aria-label="Combos" className="sin-scrollbar mb-3 flex justify-center gap-1.5 overflow-x-auto pb-1">
+          {/* Solapas finas: los nombres como texto y una rayita que crece debajo del elegido. */}
+          <div role="tablist" aria-label="Combos" className="sin-scrollbar mb-4 flex justify-center gap-5 overflow-x-auto">
             {combos.map((c, i) => (
               <button
                 key={c.id}
@@ -114,11 +115,17 @@ export function SeccionCombos() {
                 role="tab"
                 aria-selected={i === activo}
                 onClick={() => irCombo(i)}
-                className={`shrink-0 rounded-full px-3.5 py-2 text-[10.5px] font-normal uppercase tracking-[0.12em] transition-colors duration-300 ease-suave ${
-                  i === activo ? "bg-tinta text-crema" : "bg-crema text-tinta/65 hover:text-tinta"
+                className={`relative shrink-0 py-2 text-[11px] uppercase tracking-[0.16em] transition-colors duration-300 ease-suave ${
+                  i === activo ? "text-tinta" : "text-tinta/45 hover:text-tinta/70"
                 }`}
               >
                 {c.nombre.replace(/^Combo /, "")}
+                <span
+                  aria-hidden="true"
+                  className={`absolute inset-x-0 bottom-0 h-px origin-center bg-tinta transition-transform duration-500 ease-suave motion-reduce:transition-none ${
+                    i === activo ? "scale-x-100" : "scale-x-0"
+                  }`}
+                />
               </button>
             ))}
           </div>
@@ -160,8 +167,7 @@ export function SeccionCombos() {
                         />
                       </ConZoom>
                       {combo.etiqueta && (
-                        <p className="pointer-events-none absolute left-2.5 top-2.5 flex items-center gap-1.5 rounded-full bg-tinta px-2.5 py-1 text-[9px] uppercase tracking-[0.18em] text-crema">
-                          <span aria-hidden="true" className="text-marron">★</span>
+                        <p className="pointer-events-none absolute left-2.5 top-2.5 rounded-full border border-marron/35 bg-crema/90 px-2.5 py-1 text-[9px] uppercase tracking-[0.16em] text-marron">
                           {combo.etiqueta}
                         </p>
                       )}
