@@ -226,3 +226,9 @@ Lo que definió Santi (2026-10-16):
 
 - **Combos en carrusel circular** (idea de Santi, con dibujo; después de Sol viene Paseo, nunca termina — 3 vueltas seguidas y salto invisible a la del medio): la tarjeta del medio enfocada y las de los costados asomando, más chicas, apagadas y desenfocadas, para que se note que hay más. Se desliza con el dedo, tocando una de los costados o con las solapas de Renzo (quedaron arriba, sincronizadas). Al entrar en pantalla hace un amague corto. Puntitos abajo. Las fotos de cada combo cambian solas (no se deslizan, para no pelear con el carrusel). Si no convence, se vuelve atrás.
 - **Poo bag trae un rollito de bolsitas**: en la descripción del individual y, chiquito, "con rollito" debajo del poo bag en combos, ficha y en la lista de piezas del kit (`incluyeExtra` en data/products.ts).
+
+## 2026-10-23 · Zoom más suave
+
+- Santi: "el zoom está re trabado". Causa: con cada movimiento del dedo se re-dibujaba todo el visor y la foto perseguía al dedo con una animación de 0,5 s. Ahora (`FotoZoom` en ConZoom.tsx) el movimiento va directo al estilo: arrastre 1 a 1, **pellizco para acercar/alejar** (hasta 4x, centrado entre los dedos), tocar acerca donde tocaste (2,5x) y otro toque aleja, con animación suave solo en esos toques. El tope es la foto (no se ven las franjas vacías). Si el pellizco la deja casi en su tamaño, vuelve sola.
+- Ojo: algunas fotos son chicas (ej. `arnes/1.jpg` mide 421 px de ancho): acercadas se ven blandas. Para un zoom nítido hacen falta fotos de 1500 px o más.
+- Combo Estilo ya no dice "Más vendido" (Santi). Queda solo en el kit.

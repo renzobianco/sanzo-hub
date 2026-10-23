@@ -4,18 +4,22 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { IconoCerrar } from "./Iconos";
 
+const MAX = 4; // acercamiento máximo
+const TOQUE = 2.5; // acercamiento al tocar
+const SUAVE = "transform 340ms cubic-bezier(0.16, 1, 0.3, 1)";
+
 /**
  * Envuelve una foto: al tocarla se abre a pantalla completa con todas las fotos del producto.
- * Tocás la foto y se acerca justo donde tocaste; con el dedo apoyado la recorrés; otro toque la aleja.
+ * Tocás la foto y se acerca justo donde tocaste; con el dedo la arrastrás; pellizcando acercás o alejás;
+ * otro toque la aleja.
  */
 export function ConZoom({ fotos, nombre, inicial = 0, children }: { fotos: string[]; nombre: string; inicial?: number; children: React.ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null);
   const pista = useRef<HTMLUListElement>(null);
   const [activa, setActiva] = useState(inicial);
-  const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null);
+  const [acercada, setAcercada] = useState(false);
   // Las fotos grandes se montan recién al abrir: así no se piden todas al cargar la página.
   const [abierto, setAbierto] = useState(false);
-  const tocado = useRef<{ x: number; y: number; t: number } | null>(null);
 
   // Al abrir, arranca en la foto que se tocó.
   useEffect(() => {
@@ -26,18 +30,12 @@ export function ConZoom({ fotos, nombre, inicial = 0, children }: { fotos: strin
   if (fotos.length === 0) return <>{children}</>;
 
   function abrir() {
-    setZoom(null);
+    setAcercada(false);
     setActiva(inicial);
     setAbierto(true);
     document.body.style.overflow = "hidden";
     ref.current?.showModal();
   }
-
-  // Punto tocado en % de la foto: ahí se centra el acercamiento.
-  const punto = (e: React.PointerEvent) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    return { x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 };
-  };
 
   return (
     <>
@@ -60,6 +58,7 @@ export function ConZoom({ fotos, nombre, inicial = 0, children }: { fotos: strin
         onClose={() => {
           document.body.style.overflow = "";
           setAbierto(false);
+          setAcercada(false);
         }}
         className="m-0 h-[100dvh] max-h-none w-full max-w-none overflow-hidden bg-crema p-0 text-tinta backdrop:bg-tinta/60"
       >
@@ -76,56 +75,173 @@ export function ConZoom({ fotos, nombre, inicial = 0, children }: { fotos: strin
 
           <ul
             ref={pista}
-            className={`sin-scrollbar flex flex-1 snap-x snap-mandatory ${zoom ? "overflow-hidden" : "overflow-x-auto"}`}
+            className={`sin-scrollbar flex flex-1 snap-x snap-mandatory ${acercada ? "overflow-hidden" : "overflow-x-auto"}`}
             onScroll={(e) => {
               const el = e.currentTarget;
               setActiva(Math.round(el.scrollLeft / el.clientWidth));
             }}
           >
-            {abierto && fotos.map((src, i) => {
-              const esta = zoom && i === activa;
-              return (
+            {abierto &&
+              fotos.map((src, i) => (
                 <li key={src} className="relative h-full w-full shrink-0 snap-center overflow-hidden bg-lino">
-                  <div
-                    className={`absolute inset-0 ${esta ? "cursor-zoom-out touch-none" : "cursor-zoom-in"}`}
-                    onPointerDown={(e) => {
-                      tocado.current = { x: e.clientX, y: e.clientY, t: Date.now() };
-                    }}
-                    onPointerMove={(e) => {
-                      // Con la foto acercada, la recorrés moviendo el dedo (o el mouse).
-                      if (esta && (e.buttons > 0 || e.pointerType === "mouse")) setZoom(punto(e));
-                    }}
-                    onPointerUp={(e) => {
-                      const t = tocado.current;
-                      tocado.current = null;
-                      // Solo cuenta como toque si casi no se movió (si no, era para deslizar).
-                      if (!t || Math.hypot(e.clientX - t.x, e.clientY - t.y) > 10) return;
-                      setZoom(esta ? null : punto(e));
-                    }}
-                  >
-                    <Image
-                      src={src}
-                      alt={`${nombre}, foto ${i + 1}`}
-                      fill
-                      sizes="100vw"
-                      draggable={false}
-                      className="select-none object-contain transition-transform duration-500 ease-suave"
-                      style={{
-                        transform: esta ? "scale(2.5)" : "scale(1)",
-                        transformOrigin: esta ? `${zoom.x}% ${zoom.y}%` : "50% 50%",
-                      }}
-                    />
-                  </div>
+                  <FotoZoom src={src} alt={`${nombre}, foto ${i + 1}`} visible={i === activa} onAcercada={setAcercada} />
                 </li>
-              );
-            })}
+              ))}
           </ul>
 
           <p className="px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 text-center text-[11px] uppercase tracking-amplio text-tinta/55">
-            {zoom ? "Mové el dedo para recorrerla · tocá para alejar" : "Tocá la foto para verla de cerca"}
+            {acercada ? "Arrastrala para recorrerla · tocá para alejar" : "Tocá o pellizcá la foto para verla de cerca"}
           </p>
         </div>
       </dialog>
     </>
+  );
+}
+
+/**
+ * Una foto que se acerca. Todo el movimiento va directo al estilo (sin re-dibujar con React),
+ * así sigue al dedo sin trabarse: arrastre 1 a 1, pellizco centrado entre los dedos y animación
+ * suave solo al tocar para acercar o alejar.
+ */
+function FotoZoom({ src, alt, visible, onAcercada }: { src: string; alt: string; visible: boolean; onAcercada: (v: boolean) => void }) {
+  const caja = useRef<HTMLDivElement>(null);
+  const capa = useRef<HTMLDivElement>(null);
+  const estado = useRef({ s: 1, x: 0, y: 0 }); // escala y corrimiento (origen arriba a la izquierda)
+  const dedos = useRef(new Map<number, { x: number; y: number }>());
+  const gesto = useRef<{ s: number; x: number; y: number; dist: number; mx: number; my: number } | null>(null);
+  const toque = useRef<{ x: number; y: number; t: number; dedos: number } | null>(null);
+  const cuadro = useRef(0);
+
+  const pintar = (animar: boolean) => {
+    const el = capa.current;
+    if (!el) return;
+    const { s, x, y } = estado.current;
+    el.style.transition = animar ? SUAVE : "none";
+    el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${s})`;
+  };
+
+  // Que la foto nunca deje ver bordes vacíos: el límite es la foto (que entra "contenida"), no la pantalla.
+  const limitar = () => {
+    const c = caja.current;
+    const img = capa.current?.querySelector("img");
+    if (!c) return;
+    const { s } = estado.current;
+    const W = c.clientWidth, H = c.clientHeight;
+    const r = img && img.naturalWidth ? img.naturalWidth / img.naturalHeight : W / H;
+    const cw = Math.min(W, H * r), ch = Math.min(H, W / r); // tamaño de la foto sin acercar
+    const ox = (W - cw) / 2, oy = (H - ch) / 2; // franjas vacías a los costados / arriba y abajo
+    const eje = (v: number, total: number, tam: number, borde: number) =>
+      s * tam >= total ? Math.min(-s * borde, Math.max(total - s * (borde + tam), v)) : (total - s * tam) / 2 - s * borde;
+    estado.current.x = eje(estado.current.x, W, cw, ox);
+    estado.current.y = eje(estado.current.y, H, ch, oy);
+  };
+
+  const fijar = (s: number, x: number, y: number, animar: boolean) => {
+    estado.current = { s, x, y };
+    limitar();
+    if (animar) pintar(true);
+    else {
+      cancelAnimationFrame(cuadro.current);
+      cuadro.current = requestAnimationFrame(() => pintar(false));
+    }
+  };
+
+  const alejar = () => {
+    fijar(1, 0, 0, true);
+    onAcercada(false);
+  };
+
+  // Si pasás a otra foto, esta vuelve a su tamaño.
+  useEffect(() => {
+    if (!visible && estado.current.s !== 1) {
+      estado.current = { s: 1, x: 0, y: 0 };
+      pintar(false);
+    }
+  }, [visible]);
+
+  const local = (e: React.PointerEvent) => {
+    const r = caja.current!.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  };
+
+  const empezarPellizco = () => {
+    const [a, b] = [...dedos.current.values()];
+    gesto.current = {
+      ...estado.current,
+      dist: Math.hypot(a.x - b.x, a.y - b.y),
+      mx: (a.x + b.x) / 2,
+      my: (a.y + b.y) / 2,
+    };
+  };
+
+  return (
+    <div
+      ref={caja}
+      className="absolute inset-0 overflow-hidden"
+      // Sin acercar, el dedo desliza entre fotos; acercada, el gesto es nuestro.
+      style={{ touchAction: estado.current.s > 1 ? "none" : "pan-x" }}
+      onPointerDown={(e) => {
+        const p = local(e);
+        dedos.current.set(e.pointerId, p);
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId);
+        } catch {
+          // Algunos navegadores no dejan capturar (no pasa nada: el gesto sigue igual).
+        }
+        toque.current = { x: e.clientX, y: e.clientY, t: Date.now(), dedos: dedos.current.size };
+        if (dedos.current.size === 2) empezarPellizco();
+        else gesto.current = { ...estado.current, dist: 0, mx: p.x, my: p.y };
+      }}
+      onPointerMove={(e) => {
+        if (!dedos.current.has(e.pointerId)) return;
+        const p = local(e);
+        dedos.current.set(e.pointerId, p);
+        const g = gesto.current;
+        if (!g) return;
+        if (dedos.current.size >= 2 && g.dist > 0) {
+          // Pellizco: escala según la distancia entre dedos, centrado entre ellos.
+          const [a, b] = [...dedos.current.values()];
+          const s = Math.min(MAX, Math.max(1, (g.s * Math.hypot(a.x - b.x, a.y - b.y)) / g.dist));
+          const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+          const lx = (g.mx - g.x) / g.s, ly = (g.my - g.y) / g.s;
+          fijar(s, mx - lx * s, my - ly * s, false);
+          if (s > 1) onAcercada(true);
+        } else if (estado.current.s > 1) {
+          // Arrastre: la foto va pegada al dedo.
+          fijar(estado.current.s, g.x + (p.x - g.mx), g.y + (p.y - g.my), false);
+        }
+      }}
+      onPointerUp={(e) => {
+        dedos.current.delete(e.pointerId);
+        const t = toque.current;
+        if (dedos.current.size === 1) {
+          // Quedó un dedo después del pellizco: sigue arrastrando desde ahí.
+          const [p] = [...dedos.current.values()];
+          gesto.current = { ...estado.current, dist: 0, mx: p.x, my: p.y };
+          return;
+        }
+        gesto.current = null;
+        // Toque corto, quieto y con un dedo: acerca donde tocaste o aleja.
+        if (t && t.dedos === 1 && Date.now() - t.t < 350 && Math.hypot(e.clientX - t.x, e.clientY - t.y) < 10) {
+          if (estado.current.s > 1) alejar();
+          else {
+            const p = local(e);
+            fijar(TOQUE, p.x * (1 - TOQUE), p.y * (1 - TOQUE), true);
+            onAcercada(true);
+          }
+          return;
+        }
+        // Si el pellizco la dejó casi en su tamaño, vuelve sola.
+        if (estado.current.s < 1.08 && estado.current.s !== 1) alejar();
+      }}
+      onPointerCancel={(e) => {
+        dedos.current.delete(e.pointerId);
+        gesto.current = null;
+      }}
+    >
+      <div ref={capa} className="absolute inset-0 origin-top-left will-change-transform">
+        <Image src={src} alt={alt} fill sizes="200vw" draggable={false} className="pointer-events-none select-none object-contain" />
+      </div>
+    </div>
   );
 }
