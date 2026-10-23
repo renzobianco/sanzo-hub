@@ -24,14 +24,12 @@ export function SeccionKit() {
     <section id="kit" aria-labelledby="kit-titulo" className="bg-lino pb-12 pt-8 md:py-16">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 md:grid-cols-[1.15fr_1fr] md:gap-16 md:px-8 lg:gap-24">
         <Reveal className="relative">
-          <KitGaleria imagenes={kit.imagenes} nombre={kit.nombre} />
+          <KitGaleria imagenes={kit.imagenes} nombre={kit.nombre} etiqueta={kit.etiqueta} />
         </Reveal>
 
         {/* Jerarquía: dato chico en marrón → nombre bien grande → precio → piezas → talle → comprar. */}
         <Reveal delay={120} className="flex flex-col pt-1 md:pt-6">
           <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-marron">
-            {/* "Más vendido" va acá, junto al dato chico (no como cartel sobre la foto). */}
-            {kit.etiqueta && <span className="text-tinta">{kit.etiqueta} · </span>}
             {kit.incluye.length} piezas{kit.envioGratis && " · Envío gratis"}
           </p>
           <h2 id="kit-titulo" className="mt-2 text-[2.1rem] font-medium uppercase leading-[1.05] tracking-[0.1em] md:text-5xl">

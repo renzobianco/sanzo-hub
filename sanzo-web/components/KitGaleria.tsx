@@ -9,9 +9,12 @@ export function KitGaleria({
   imagenes,
   nombre,
   aspecto = "aspect-square",
+  etiqueta,
 }: {
   imagenes: string[];
   nombre: string;
+  /** Cartelito sobre la foto, abajo a la izquierda (ej. "Más vendido"). */
+  etiqueta?: string;
   /** Proporción de la foto. Por defecto cuadrada (la del kit). */
   aspecto?: string;
 }) {
@@ -41,6 +44,11 @@ export function KitGaleria({
       {/* Destellos marrones suaves saliendo del marco. */}
       <div className="relative">
         <div aria-hidden="true" className="destellos" />
+        {etiqueta && (
+          <p className="pointer-events-none absolute bottom-3 left-3 z-10 animate-entrada rounded-full bg-marron px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-crema shadow-[0_6px_16px_-8px_rgb(var(--tinta)/0.6)] [animation-delay:900ms]">
+            {etiqueta}
+          </p>
+        )}
         <ul
           ref={pista}
           className="sin-scrollbar relative flex snap-x snap-mandatory overflow-x-auto rounded-2xl"

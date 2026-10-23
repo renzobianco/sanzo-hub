@@ -262,3 +262,4 @@ Lo que definió Santi (2026-10-16):
 - **Combo Sol con talle** (uno para las dos piezas) + color de cada una. Gorra + piluso del mismo talle sueltos en el carrito se juntan en el Combo Sol. El "Sumar" de la sugerencia pide color y después talle.
 - Ojo: carritos viejos con gorra o piluso sin talle pierden esa línea (ya no es una opción válida).
 - 2026-10-23 · **Talle agotado definitivo (opción 1 de Santi, de 6 diseños)**: el mismo cuadrito que S y M, más clarito (borde y letra apagados), sin poder tocarlo. Nada de tachado, palabra adentro ni texto al lado. También en el "Sumar" del carrito.
+- 2026-10-23 · **"Más vendido" del kit: opción 4 de Santi** (de 6): píldora marrón llena con letra crema, sobre la foto abajo a la izquierda (`etiqueta` en `KitGaleria`). Sale de la línea de arriba del nombre.
