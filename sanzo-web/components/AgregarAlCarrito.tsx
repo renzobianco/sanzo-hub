@@ -30,13 +30,24 @@ interface Props {
 }
 
 
-/** Talles agotados: un texto chico al lado de los botones ("L agotado", "S y L agotados"). */
-function Agotados({ valores }: { valores?: string[] }) {
-  if (!valores || valores.length === 0) return null;
-  const lista = valores.length > 1 ? `${valores.slice(0, -1).join(", ")} y ${valores[valores.length - 1]}` : valores[0];
+const ORDEN_TALLES = ["XS", "S", "M", "L", "XL"];
+
+/** Los elegibles y los agotados juntos, en orden de talle (S, M, L…). */
+export function valoresConAgotados(valores: string[], agotados: string[] = []) {
+  const todos = [...valores, ...agotados.filter((a) => !valores.includes(a))];
+  const pos = (v: string) => (ORDEN_TALLES.includes(v) ? ORDEN_TALLES.indexOf(v) : 99);
+  return todos.sort((a, b) => pos(a) - pos(b));
+}
+
+/** Talle agotado: el mismo cuadrito, más clarito, sin poder tocarlo (opción 1 de Santi). */
+export function Agotado({ valor, clase }: { valor: string; clase: string }) {
   return (
-    <span className="self-center whitespace-nowrap text-[12px] text-tinta/50">
-      {lista} {valores.length > 1 ? "agotados" : "agotado"}
+    <span
+      aria-label={`${valor}, agotado`}
+      title="Agotado"
+      className={`flex cursor-not-allowed select-none items-center justify-center border border-tinta/10 uppercase tracking-[0.12em] text-tinta/25 ${clase}`}
+    >
+      {valor}
     </span>
   );
 }
@@ -61,7 +72,10 @@ function Botones({
 }) {
   return (
     <div className="clear-both flex flex-wrap gap-2">
-      {valores.map((v) => (
+      {valoresConAgotados(valores, agotados).map((v) =>
+        !valores.includes(v) ? (
+          <Agotado key={v} valor={v} clase={grande ? "h-12 min-w-[3.25rem] px-4 text-sm" : "h-9 min-w-[2.5rem] px-2.5 text-[11px]"} />
+        ) : (
         <label key={v} className="cursor-pointer">
           <input type="radio" name={nombre} value={v} checked={elegido === v} onChange={() => onElegir(v)} className="peer sr-only" />
           <span
@@ -79,8 +93,8 @@ function Botones({
             {v}
           </span>
         </label>
-      ))}
-      <Agotados valores={agotados} />
+        ),
+      )}
     </div>
   );
 }
@@ -141,7 +155,10 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
             <div className="flex items-center gap-4">
               <legend className="eyebrow float-left">{opcion.nombre}</legend>
               <div className="flex gap-2">
-                {opcion.valores.map((v) => (
+                {valoresConAgotados(opcion.valores, opcion.agotados).map((v) =>
+                  !opcion.valores.includes(v) ? (
+                    <Agotado key={v} valor={v} clase="h-11 min-w-[2.9rem] px-3 text-sm" />
+                  ) : (
                   <label key={v} className="cursor-pointer">
                     <input
                       type="radio"
@@ -159,8 +176,8 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
                       {v}
                     </span>
                   </label>
-                ))}
-                <Agotados valores={opcion.agotados} />
+                  ),
+                )}
               </div>
             </div>
             {extraOpcion}

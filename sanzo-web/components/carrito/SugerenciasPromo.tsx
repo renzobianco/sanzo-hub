@@ -7,6 +7,7 @@ import { armables, type DescuentoAplicado, type Sugerencia } from "@/lib/promos"
 import { formatearPrecio } from "@/lib/formato";
 import { useCarrito } from "./CarritoProvider";
 import { ImagenProducto } from "../ImagenProducto";
+import { Agotado, valoresConAgotados } from "../AgregarAlCarrito";
 
 /** "Collar" / "collar y poo bag" / "correa, collar y poo bag". */
 function lista(piezas: Producto[]) {
@@ -173,13 +174,14 @@ function PiezaQueFalta({ producto }: { producto: Producto }) {
           <span className="eyebrow mr-1">
             Talle <span className="text-tinta">· {color}</span>
           </span>
-          {talles.valores.map((t) => (
-            <button key={t} type="button" onClick={() => agregar(producto.id, `${color} · ${t}`)} className={boton}>
-              {t}
-            </button>
-          ))}
-          {talles.agotados && talles.agotados.length > 0 && (
-            <span className="text-[12px] text-tinta/50">{talles.agotados.join(", ")} agotado</span>
+          {valoresConAgotados(talles.valores, talles.agotados).map((t) =>
+            talles.valores.includes(t) ? (
+              <button key={t} type="button" onClick={() => agregar(producto.id, `${color} · ${t}`)} className={boton}>
+                {t}
+              </button>
+            ) : (
+              <Agotado key={t} valor={t} clase="h-9 min-w-[2.5rem] px-2.5 text-[11px]" />
+            ),
           )}
         </div>
       )}

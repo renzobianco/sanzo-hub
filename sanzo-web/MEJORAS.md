@@ -261,3 +261,4 @@ Lo que definió Santi (2026-10-16):
 - 2026-10-23 · **Gorra y piluso con talle además del color** (`opcionTalle`): se elige color y talle, al carrito va "Beige · M" (se lee "Color Beige · Talle M"). Medidas: gorra S ancho 16 cm / M 18 cm; piluso S 21 cm / M 23 cm (Santi). L agotado.
 - **Combo Sol con talle** (uno para las dos piezas) + color de cada una. Gorra + piluso del mismo talle sueltos en el carrito se juntan en el Combo Sol. El "Sumar" de la sugerencia pide color y después talle.
 - Ojo: carritos viejos con gorra o piluso sin talle pierden esa línea (ya no es una opción válida).
+- 2026-10-23 · **Talle agotado definitivo (opción 1 de Santi, de 6 diseños)**: el mismo cuadrito que S y M, más clarito (borde y letra apagados), sin poder tocarlo. Nada de tachado, palabra adentro ni texto al lado. También en el "Sumar" del carrito.
