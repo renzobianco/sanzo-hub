@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import type { Producto } from "@/data/products";
 import { armarOpcion, piezasConColor } from "@/lib/combos";
+import { llevaChapita } from "@/lib/chapita";
 import { esPersonalizable, type Personalizacion } from "@/lib/personalizacion";
 import { useCarrito } from "./carrito/CarritoProvider";
 import { Personalizar } from "./personalizar/Personalizar";
@@ -100,7 +101,7 @@ function Botones({
 }
 
 export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout, grande, extraOpcion, onSeleccion, onColores, compacto, acento }: Props) {
-  const { agregar, abrir: abrirCarrito, ofrecerChapita } = useCarrito();
+  const { agregar, abrir: abrirCarrito, ofrecerChapita, pedirGrabado } = useCarrito();
   const router = useRouter();
   const [seleccion, setSeleccion] = useState<string>("");
   // Combos con piezas de color (ej. gorra + piluso): un color por pieza.
@@ -133,9 +134,18 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
     }
     setAviso("");
     const valor = conColor.length ? armarOpcion(producto, seleccion, colores) : producto.opcionTalle ? `${seleccion} · ${talle}` : seleccion;
+    const seguir = () => (irAlCheckout ? router.push("/checkout") : abrirCarrito());
+    // Combo que trae chapita: primero se elige el grabado, y va en la opción ("M · Corazón · Coco").
+    if (llevaChapita(producto)) {
+      pedirGrabado((grabado) => {
+        agregar(producto.id, `${valor} · ${grabado}`, { abrir: false });
+        seguir();
+      });
+      return;
+    }
     agregar(producto.id, valor || undefined, { abrir: false, personalizacion });
     // Antes de seguir (carrito o checkout) le ofrecemos la chapita personalizada.
-    ofrecerChapita(() => (irAlCheckout ? router.push("/checkout") : abrirCarrito()));
+    ofrecerChapita(seguir);
   }
 
   let texto = etiqueta;

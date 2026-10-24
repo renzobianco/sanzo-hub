@@ -73,9 +73,28 @@ export function normalizarOpcionChapita(opcion?: string): string | null {
   return textoGrabado(g);
 }
 
-/** La chapita lleva la foto de su perro (hay que pedírsela por WhatsApp). */
-export function chapitaConFoto(productoId: string, opcion?: string) {
-  return esChapita(productoId) && !!opcion && opcion.split(SEP)[1]?.trim() === FOTO;
+/** La chapita suelta o un combo que la trae (Combo Identidad). */
+export function llevaChapita(producto: Producto) {
+  return esChapita(producto.id) || (producto.tipo === "combo" && producto.incluye.includes(chapita.id));
+}
+
+/**
+ * Combo con chapita: la opción es el talle y después el grabado ("M · Corazón · Coco").
+ * Devuelve el texto limpio o null si el talle o el grabado no sirven.
+ */
+export function normalizarOpcionComboChapita(combo: Producto, opcion?: string): string | null {
+  if (!opcion) return null;
+  const i = opcion.indexOf(SEP);
+  if (i === -1) return null;
+  const talle = opcion.slice(0, i).trim();
+  if (combo.opcion && !combo.opcion.valores.includes(talle)) return null;
+  const grabado = normalizarOpcionChapita(opcion.slice(i + SEP.length));
+  return grabado ? `${talle}${SEP}${grabado}` : null;
+}
+
+/** Lleva una chapita con la foto de su perro (hay que pedírsela por WhatsApp). */
+export function chapitaConFoto(producto: Producto, opcion?: string) {
+  return llevaChapita(producto) && !!opcion && opcion.split(SEP).some((p) => p.trim() === FOTO);
 }
 
 /** Foto para la línea del carrito/checkout: en la chapita, la forma elegida; en el resto, la primera foto. */

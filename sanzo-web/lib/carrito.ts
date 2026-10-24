@@ -1,5 +1,5 @@
 import { getProducto, ofertaChapita, type Producto } from "@/data/products";
-import { esChapita, normalizarOpcionChapita } from "./chapita";
+import { esChapita, llevaChapita, normalizarOpcionChapita, normalizarOpcionComboChapita } from "./chapita";
 import { envioInfo, zonaPorProvincia, type ZonaEnvio } from "@/data/envios";
 import { clavePersonalizacion, normalizarPersonalizacion, precioPersonalizacion, type Personalizacion } from "./personalizacion";
 import { armables, calcularPromos, type DescuentoAplicado, type Sugerencia } from "./promos";
@@ -68,6 +68,11 @@ export function resolverLineas(lineas: LineaCarrito[]): LineaResuelta[] {
     let opcion = l.opcion;
     if (esChapita(producto.id)) {
       const limpia = normalizarOpcionChapita(l.opcion);
+      if (!limpia) continue;
+      opcion = limpia;
+    } else if (llevaChapita(producto)) {
+      // Combo con chapita: talle + grabado ("M · Corazón · Coco").
+      const limpia = normalizarOpcionComboChapita(producto, l.opcion);
       if (!limpia) continue;
       opcion = limpia;
     } else {

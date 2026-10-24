@@ -1,4 +1,4 @@
-import { combos, getProducto, kit, type Producto } from "@/data/products";
+import { chapita, combos, getProducto, kit, type Producto } from "@/data/products";
 import { piezasConColor } from "./combos";
 
 /**
@@ -43,6 +43,9 @@ export function armables(): Armable[] {
   const out: Armable[] = [];
   for (const combo of [kit, ...combos]) {
     if (!comprable(combo)) continue;
+    // Los que traen chapita (Combo Identidad) no se arman solos: el grabado se elige al agregarlo,
+    // y collar + chapita sueltos ya salen lo mismo que por separado (la chapita a precio de oferta).
+    if (combo.incluye.includes(chapita.id)) continue;
     const piezas = combo.incluye.map(getProducto);
     if (!piezas.every(comprable)) continue;
     const ahorro = piezas.reduce((s, p) => s + p.precio!, 0) - combo.precio!;

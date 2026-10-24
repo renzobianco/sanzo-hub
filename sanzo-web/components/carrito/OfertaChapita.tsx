@@ -12,10 +12,12 @@ interface Props {
   /** Sumó la chapita: llega el texto del grabado ("Corazón · Coco · Tel. 11 2345 6789"). */
   onSumar: (texto: string) => void;
   onNo: () => void;
+  /** "oferta": cartel al comprar (con Agregar y precio). "combo": la chapita viene en el combo, directo a personalizar. */
+  modo?: "oferta" | "combo";
 }
 
 /** Cartel que aparece al comprar: primero la pieza con "Agregar"; al tocarlo, elegir forma y grabado con vista en vivo. */
-export function OfertaChapita({ abierta, onSumar, onNo }: Props) {
+export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
   const [paso, setPaso] = useState<"cartel" | "personalizar">("cartel");
@@ -30,11 +32,11 @@ export function OfertaChapita({ abierta, onSumar, onNo }: Props) {
     if (!d) return;
     if (abierta && !d.open) {
       setErrores({});
-      setPaso("cartel");
+      setPaso(modo === "combo" ? "personalizar" : "cartel");
       document.body.style.overflow = "hidden";
       d.showModal();
     } else if (!abierta && d.open) d.close();
-  }, [abierta]);
+  }, [abierta, modo]);
 
   function abrirPersonalizar() {
     setPaso("personalizar");
@@ -59,7 +61,7 @@ export function OfertaChapita({ abierta, onSumar, onNo }: Props) {
   );
   const noGracias = (
     <button type="button" onClick={onNo} className="mx-auto mt-2 block px-4 py-3 text-[13px] uppercase tracking-[0.16em] text-tinta/60">
-      {oferta.no}
+      {modo === "combo" ? "Cancelar" : oferta.no}
     </button>
   );
 
@@ -202,17 +204,26 @@ export function OfertaChapita({ abierta, onSumar, onNo }: Props) {
               {errores.telefono && <p className="mt-1.5 text-[15px] text-marron">{errores.telefono}</p>}
             </div>
 
-            <div className="mt-5 flex items-baseline gap-3">
-              <span className="text-[1.6rem] font-medium leading-none">{formatearPrecio(oferta.precio)}</span>
-              {chapita.precio !== null && chapita.precio > oferta.precio && (
-                <s className="text-[15px] text-tinta/50">{formatearPrecio(chapita.precio)}</s>
-              )}
-            </div>
-            <p className="mt-1 text-[12px] uppercase tracking-[0.18em] text-marron">{oferta.soloAhora}</p>
+            {modo === "combo" ? (
+              // Viene en el combo: ya está en el precio, solo falta el grabado.
+              <button type="button" onClick={sumar} className="btn-primario mt-6 w-full py-4 text-sm">
+                {oferta.botonCombo}
+              </button>
+            ) : (
+              <>
+                <div className="mt-5 flex items-baseline gap-3">
+                  <span className="text-[1.6rem] font-medium leading-none">{formatearPrecio(oferta.precio)}</span>
+                  {chapita.precio !== null && chapita.precio > oferta.precio && (
+                    <s className="text-[15px] text-tinta/50">{formatearPrecio(chapita.precio)}</s>
+                  )}
+                </div>
+                <p className="mt-1 text-[12px] uppercase tracking-[0.18em] text-marron">{oferta.soloAhora}</p>
 
-            <button type="button" onClick={sumar} className="btn-primario mt-4 w-full py-4 text-sm">
-              {oferta.boton} · {formatearPrecio(oferta.precio)}
-            </button>
+                <button type="button" onClick={sumar} className="btn-primario mt-4 w-full py-4 text-sm">
+                  {oferta.boton} · {formatearPrecio(oferta.precio)}
+                </button>
+              </>
+            )}
             {noGracias}
           </div>
         </>

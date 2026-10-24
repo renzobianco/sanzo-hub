@@ -338,6 +338,22 @@ export const combos: Producto[] = [
     // Un talle para las dos piezas; el color de la gorra y el del piluso se eligen aparte (salen de cada pieza).
     opcion: { nombre: "Talle", valores: TALLES, agotados: TALLES_AGOTADOS },
   },
+  {
+    // Collar (base 8.500) + chapita (6.000, lo que sale sumada a una compra) → 14.499.
+    // Al agregarlo se abre la personalización de la chapita; el grabado va en la opción: "M · Corazón · Coco".
+    id: "combo-identidad",
+    nombre: "Combo Identidad",
+    tipo: "combo",
+    descripcion: "Su collar y su chapita grabada. Para que siempre vuelva a casa.",
+    incluye: ["collar", "chapita"],
+    precio: 14499,
+    imagenes: ["/productos/combo-identidad/1.jpg"],
+    envioGratis: false,
+    linkPago: "",
+    disponible: true,
+    // Mismos talles que el collar.
+    opcion: { nombre: "Talle", valores: ["M"], agotados: ["S", ...TALLES_AGOTADOS] },
+  },
 ];
 
 // -----------------------------------------------------------------------------
@@ -660,7 +676,8 @@ export const chapita: Producto = {
   descripcion: "Grabada con láser, con su nombre y tu teléfono.",
   incluye: [],
   precio: 8000,
-  imagenes: ["/productos/chapitas/oferta.jpg"],
+  miniatura: "/productos/piezas/chapita.jpg",
+  imagenes: ["/productos/piezas/chapita.jpg"],
   envioGratis: false,
   linkPago: "",
   disponible: true,
@@ -680,6 +697,8 @@ export const ofertaChapita = {
   bajada: "Elegí la forma y escribí lo que va grabado. Así se ve:",
   soloAhora: "Solo sumándola a tu compra",
   boton: "Sumar chapita",
+  /** Combo Identidad: la chapita ya viene en el combo. */
+  botonCombo: "Agregar al carrito",
   no: "No, gracias",
   maxNombre: 12,
   /**

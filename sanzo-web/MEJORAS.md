@@ -273,3 +273,12 @@ Lo que definió Santi (2026-10-16):
 - La opción viaja como "Corazón · Coco · Tel. 11 2345 6789" (el teléfono marcado con "Tel."). Carrito y checkout muestran la foto de la forma elegida.
 - Ojo: carritos viejos con la chapita del formato anterior pierden esa línea.
 - 2026-10-24 · **Opción "Grabar la foto de tu perro"** (Renzo): casilla en la personalización de la chapita. Se puede sola o con nombre y/o teléfono. En la vista en vivo se ve una carita de ejemplo grabada (`public/productos/chapitas/perro-grabado.png`, sacada de la pieza del cartel). La opción viaja como "Circular · Con su foto · Coco". En `/gracias`, si el pedido la lleva, aparece "Falta un paso" con un botón que abre WhatsApp con el número de pedido ya escrito (`ofertaChapita.foto.mensajeWhatsapp`). Mismo precio que sin foto.
+
+## 2026-10-24 · Combo Identidad: collar + chapita (Renzo)
+
+- Combo nuevo `combo-identidad` (`data/products.ts`): collar + chapita personalizada, **$14.499** (regla de combos: collar base 8.500 + chapita 6.000, la de la oferta). Talles como el collar (hoy solo M). Foto: `public/productos/combo-identidad/1.jpg`.
+- Al tocar Agregar (con el talle elegido) se abre **directo la personalización de la chapita** (sin el cartel; botón "Agregar al carrito" y "Cancelar"). El grabado va en la opción del combo: "M · Corazón · Coco · Tel. 11 2345 6789" (`normalizarOpcionComboChapita` en `lib/chapita.ts`). Si lleva foto, también aparece el botón de WhatsApp en `/gracias`.
+- "Por separado" usa la chapita a $6.000 (lo que sale sumada a una compra): $16.499 → Ahorrás $2.000.
+- No se arma solo en el carrito con collar + chapita sueltos (ya salen lo mismo) y, si el carrito ya lo tiene, no se ofrece otra chapita.
+- La chapita tiene foto nueva para miniaturas: `public/productos/piezas/chapita.jpg` (las 4 formas, recorte de la foto del combo).
+- En el Hub se carga como 2 ventas: collar y chapita.

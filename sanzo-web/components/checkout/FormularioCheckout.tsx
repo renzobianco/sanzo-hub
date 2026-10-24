@@ -104,7 +104,7 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
 
       try {
         // fotoPerro: en /gracias le pedimos la foto por WhatsApp.
-        const fotoPerro = totales.lineas.some((l) => chapitaConFoto(l.productoId, l.opcion));
+        const fotoPerro = totales.lineas.some((l) => chapitaConFoto(l.producto, l.opcion));
         window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ numero: data.numero, nombre: d.nombre, pago: data.redirigirA, fotoPerro }));
       } catch {
         // sin almacenamiento: /gracias igual recibe el número por la URL

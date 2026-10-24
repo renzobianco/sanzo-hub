@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Palabras } from "./Palabras";
-import { combos, getProducto, sitio, type Producto } from "@/data/products";
+import { chapita, combos, getProducto, ofertaChapita, sitio, type Producto } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
 import { ConZoom } from "./ConZoom";
@@ -17,7 +17,8 @@ const N = combos.length;
 const VUELTAS = [0, 1, 2];
 /** Lo que salen las piezas sueltas y cuánto se ahorra con el combo (con precios reales; null si falta alguno). */
 function ahorroDe(combo: Producto) {
-  const sueltos = combo.incluye.map((id) => getProducto(id)?.precio ?? null);
+  // La chapita, sumada a otra compra, sale el precio de la oferta: eso es lo real "por separado".
+  const sueltos = combo.incluye.map((id) => (id === chapita.id ? ofertaChapita.precio : getProducto(id)?.precio ?? null));
   if (combo.precio === null || sueltos.some((p) => p === null)) return null;
   const porSeparado = sueltos.reduce<number>((a, p) => a + (p ?? 0), 0);
   return porSeparado > combo.precio ? { porSeparado, ahorro: porSeparado - combo.precio } : null;

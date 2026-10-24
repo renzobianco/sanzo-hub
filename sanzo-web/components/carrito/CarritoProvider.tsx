@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { chapita, ofertaChapita } from "@/data/products";
-import { esChapita } from "@/lib/chapita";
+import { chapita, getProducto, ofertaChapita } from "@/data/products";
+import { llevaChapita } from "@/lib/chapita";
 import {
   armarCombos,
   calcularTotales,
@@ -44,6 +44,11 @@ interface CarritoContexto {
    * (abrir el carrito o ir al checkout). Si ya tiene chapita o dijo que no, sigue directo.
    */
   ofrecerChapita: (seguir: () => void) => void;
+  /**
+   * Combo que trae chapita (Combo Identidad): abre directo la personalización y, si la completa,
+   * llama a `listo` con el texto del grabado ("Corazón · Coco"). Si cancela, no pasa nada.
+   */
+  pedirGrabado: (listo: (grabado: string) => void) => void;
 }
 
 const Ctx = createContext<CarritoContexto | null>(null);
@@ -57,6 +62,7 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
   const [listo, setListo] = useState(false);
   const [armado, setArmado] = useState<string | null>(null);
   const [seguirTrasOferta, setSeguirTrasOferta] = useState<(() => void) | null>(null);
+  const [alGrabar, setAlGrabar] = useState<((grabado: string) => void) | null>(null);
   const dijoQueNo = useRef(false);
   const lineasRef = useRef(lineas);
   lineasRef.current = lineas;
@@ -142,10 +148,15 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
   const cerrar = useCallback(() => setAbierto(false), []);
 
   const ofrecerChapita = useCallback((seguir: () => void) => {
-    const yaTiene = lineasRef.current.some((l) => esChapita(l.productoId));
+    const yaTiene = lineasRef.current.some((l) => {
+      const p = getProducto(l.productoId);
+      return !!p && llevaChapita(p);
+    });
     if (!ofertaChapita.activa || !chapita.disponible || dijoQueNo.current || yaTiene) seguir();
     else setSeguirTrasOferta(() => seguir);
   }, []);
+
+  const pedirGrabado = useCallback((listo: (grabado: string) => void) => setAlGrabar(() => listo), []);
 
   function cerrarOferta(sumar?: string) {
     const seguir = seguirTrasOferta;
@@ -174,14 +185,26 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
       abrir,
       cerrar,
       ofrecerChapita,
+      pedirGrabado,
     }),
-    [lineas, ubicacion, totales, abierto, listo, armado, agregar, cambiarCantidad, personalizar, quitar, vaciar, abrir, cerrar, ofrecerChapita],
+    [lineas, ubicacion, totales, abierto, listo, armado, agregar, cambiarCantidad, personalizar, quitar, vaciar, abrir, cerrar, ofrecerChapita, pedirGrabado],
   );
 
   return (
     <Ctx.Provider value={valor}>
       {children}
-      <OfertaChapita abierta={seguirTrasOferta !== null} onSumar={(texto) => cerrarOferta(texto)} onNo={() => cerrarOferta()} />
+      {/* Un solo cartel: la oferta al comprar, o la personalización de la chapita de un combo. */}
+      <OfertaChapita
+        abierta={seguirTrasOferta !== null || alGrabar !== null}
+        modo={alGrabar ? "combo" : "oferta"}
+        onSumar={(texto) => {
+          if (alGrabar) {
+            alGrabar(texto);
+            setAlGrabar(null);
+          } else cerrarOferta(texto);
+        }}
+        onNo={() => (alGrabar ? setAlGrabar(null) : cerrarOferta())}
+      />
     </Ctx.Provider>
   );
 }
