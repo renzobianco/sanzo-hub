@@ -13,6 +13,7 @@ import { IconoCerrar, IconoMas, IconoMenos } from "../Iconos";
 import { formatearPrecio, textoEnvio } from "@/lib/formato";
 import { MAX_CANTIDAD } from "@/lib/carrito";
 import { textoOpcion } from "@/lib/combos";
+import { fotoDeLinea } from "@/lib/chapita";
 import { textoPersonalizacion } from "@/lib/personalizacion";
 
 export function CarritoDrawer() {
@@ -90,7 +91,7 @@ export function CarritoDrawer() {
                 <li key={l.key} className="py-5">
                   <div className="flex gap-4">
                   <ImagenProducto
-                    src={l.producto.imagenes[0]}
+                    src={fotoDeLinea(l.producto, l.opcion)}
                     nombre={l.producto.nombre}
                     sizes="80px"
                     className="w-20 shrink-0"

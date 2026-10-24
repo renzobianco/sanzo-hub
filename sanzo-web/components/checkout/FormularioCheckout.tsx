@@ -8,6 +8,7 @@ import { formatearPrecio, textoEnvio } from "@/lib/formato";
 import { CLAVE_ULTIMO_PEDIDO, type PedidoEntrada, type PedidoRespuesta } from "@/lib/pedido";
 import { sinImagen, textoPersonalizacion } from "@/lib/personalizacion";
 import { datosVacios, validarCheckout, type DatosCheckout } from "@/lib/validacion";
+import { fotoDeLinea } from "@/lib/chapita";
 import { useCarrito } from "../carrito/CarritoProvider";
 import { ImagenProducto } from "../ImagenProducto";
 import { textoOpcion } from "@/lib/combos";
@@ -371,7 +372,7 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
           {lineas.map((l) => (
             <li key={l.key} className="flex gap-4 py-4">
               <ImagenProducto
-                src={l.producto.imagenes[0]}
+                src={fotoDeLinea(l.producto, l.opcion)}
                 nombre={l.producto.nombre}
                 sizes="56px"
                 className="w-14 shrink-0"

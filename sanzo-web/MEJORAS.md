@@ -264,3 +264,11 @@ Lo que definió Santi (2026-10-16):
 - 2026-10-23 · **Talle agotado definitivo (opción 1 de Santi, de 6 diseños)**: el mismo cuadrito que S y M, más clarito (borde y letra apagados), sin poder tocarlo. Nada de tachado, palabra adentro ni texto al lado. También en el "Sumar" del carrito.
 - 2026-10-23 · **"Más vendido" del kit: opción 4 de Santi** (de 6): píldora marrón llena con letra crema, sobre la foto abajo a la izquierda (`etiqueta` en `KitGaleria`). Sale de la línea de arriba del nombre.
 - 2026-10-23 · **"Más vendido" holográfico** (opción B de Santi, arcoíris suave): degradé pastel que se mueve y un brillo que cruza cada pocos segundos (clase `.holografico` en globals.css). Quieto con "reducir movimiento". Es la única excepción a la paleta (anotado en CLAUDE.md).
+
+## 2026-10-23 · Chapita: cartel + 4 formas con vista en vivo (Renzo)
+
+- Reemplaza la oferta del 2026-10-20. Al tocar "Comprar el kit" o "Agregar" aparece primero **la pieza de la chapita** (`public/productos/chapitas/cartel.jpg`, ya trae título y $6.000) con un botón **Agregar** y "No, gracias". Recién al tocar Agregar se abre la personalización.
+- **4 formas** con foto real: Huesito, Corazón, Circular y Placa (`ofertaChapita.tipos`, fotos en `public/productos/chapitas/`). Se graba **su nombre, tu teléfono o los dos** (al menos uno). Se sacó "con su cara".
+- **Vista en vivo**: la foto de la forma elegida con el texto grabado encima (gris claro, como láser sobre acero), fija arriba mientras escribe; el texto se achica solo si es largo. Dónde va el texto en cada foto: `zona` de cada tipo (píxeles de la foto 541×722).
+- La opción viaja como "Corazón · Coco · Tel. 11 2345 6789" (el teléfono marcado con "Tel."). Carrito y checkout muestran la foto de la forma elegida.
+- Ojo: carritos viejos con la chapita del formato anterior pierden esa línea.

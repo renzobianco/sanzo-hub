@@ -651,13 +651,13 @@ export const preguntas: { pregunta: string; respuesta: string }[] = [
 // -----------------------------------------------------------------------------
 // Chapita personalizada: se ofrece en un cartel al tocar "Comprar el kit" o "Agregar".
 // Suelta sale `precio`; sumada a otra compra sale `oferta.precio` (lo calcula el carrito).
-// El grabado viaja como la opción de la línea, ej. "Huesito · KALA".
+// El grabado viaja como la opción de la línea, ej. "Corazón · Coco · Tel. 11 2345 6789".
 // -----------------------------------------------------------------------------
 export const chapita: Producto = {
   id: "chapita",
   nombre: "Chapita personalizada",
   tipo: "individual",
-  descripcion: "Grabada con láser, con su nombre o su carita.",
+  descripcion: "Grabada con láser, con su nombre y tu teléfono.",
   incluye: [],
   precio: 8000,
   imagenes: ["/productos/chapitas/oferta.jpg"],
@@ -672,22 +672,28 @@ export const ofertaChapita = {
   /** Precio de la chapita cuando se suma a otra compra. */
   precio: 6000,
   imagen: "/productos/chapitas/oferta.jpg",
-  titulo: "¿Le sumamos su chapita?",
-  bajada: "Grabada con láser, para que siempre sepan cómo se llama y cómo encontrarte.",
+  /** Lo primero que se ve: la pieza de la chapita (ya trae título y precio) y abajo el botón `agregar`. */
+  cartel: "/productos/chapitas/cartel.jpg",
+  cartelAlt: "¿Le sumás una chapita personalizada? Grabá el nombre y el teléfono de tu perro. Por solo $6.000.",
+  agregar: "Agregar",
+  titulo: "Personalizá su chapita",
+  bajada: "Elegí la forma y escribí lo que va grabado. Así se ve:",
   soloAhora: "Solo sumándola a tu compra",
   boton: "Sumar chapita",
   no: "No, gracias",
   maxNombre: 12,
+  /** Medida de las fotos de las chapitas (todas iguales), en píxeles. */
+  fotoTam: { ancho: 541, alto: 722 },
   /**
-   * Tipos de chapita. pide: "nombre" (solo nombre), "cara" (su cara: nos manda la foto
-   * por WhatsApp después del pedido; nombre opcional) o "telefono" (nombre + teléfono).
+   * Formas de chapita. Se graba el nombre, el teléfono o los dos (al menos uno).
+   * zona: dónde va el grabado sobre la foto, en píxeles de la foto: centro (x, y) y lo que entra (ancho, alto).
    */
   tipos: [
-    { id: "Huesito", texto: "Huesito", detalle: "Con su nombre", pide: "nombre" },
-    { id: "Circular", texto: "Circular", detalle: "Con su cara", pide: "cara" },
-    { id: "Rectangular", texto: "Rectangular", detalle: "Nombre y teléfono", pide: "telefono" },
-  ] as { id: string; texto: string; detalle: string; pide: "nombre" | "cara" | "telefono" }[],
-  avisoCara: "Después del pedido nos mandás una foto de su cara por WhatsApp y la grabamos.",
+    { id: "Huesito", texto: "Huesito", imagen: "/productos/chapitas/huesito.jpg", zona: { x: 300, y: 380, ancho: 250, alto: 120 } },
+    { id: "Corazón", texto: "Corazón", imagen: "/productos/chapitas/corazon.jpg", zona: { x: 278, y: 350, ancho: 185, alto: 120 } },
+    { id: "Circular", texto: "Circular", imagen: "/productos/chapitas/circular.jpg", zona: { x: 256, y: 390, ancho: 185, alto: 140 } },
+    { id: "Placa", texto: "Placa", imagen: "/productos/chapitas/rectangular.jpg", zona: { x: 266, y: 365, ancho: 180, alto: 200 } },
+  ] as { id: string; texto: string; imagen: string; zona: { x: number; y: number; ancho: number; alto: number } }[],
 };
 
 // -----------------------------------------------------------------------------
