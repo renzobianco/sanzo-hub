@@ -20,6 +20,7 @@ export function OfertaChapita({ abierta, onSumar, onNo }: Props) {
   const id = useId();
   const [paso, setPaso] = useState<"cartel" | "personalizar">("cartel");
   const [tipo, setTipo] = useState(oferta.tipos[0]?.id ?? "");
+  const [foto, setFoto] = useState(false);
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [errores, setErrores] = useState<ErroresGrabado>({});
@@ -41,7 +42,7 @@ export function OfertaChapita({ abierta, onSumar, onNo }: Props) {
   }
 
   function sumar() {
-    const g = { tipo, nombre, telefono };
+    const g = { tipo, foto, nombre, telefono };
     const e = validarGrabado(g);
     setErrores(e);
     if (Object.keys(e).length > 0) {
@@ -96,7 +97,7 @@ export function OfertaChapita({ abierta, onSumar, onNo }: Props) {
         <>
           {/* Fija arriba: mientras escribe, sigue viendo cómo queda. */}
           <div className="sticky top-0 z-10">
-            <VistaChapita tipo={tipo} nombre={nombre} telefono={telefono} />
+            <VistaChapita tipo={tipo} foto={foto} nombre={nombre} telefono={telefono} />
             {cerrar}
           </div>
 
@@ -133,7 +134,25 @@ export function OfertaChapita({ abierta, onSumar, onNo }: Props) {
               </div>
             </fieldset>
 
-            <p className="mt-5 text-[14px] text-tinta/65">Grabá su nombre, tu teléfono o los dos.</p>
+            <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-lg border border-tinta/15 p-3.5 transition-colors has-[:checked]:border-tinta has-[:checked]:bg-lino/60">
+              <input
+                type="checkbox"
+                checked={foto}
+                onChange={(e) => {
+                  setFoto(e.target.checked);
+                  setErrores({});
+                }}
+                className="mt-0.5 size-5 shrink-0 accent-tinta"
+              />
+              <span>
+                <span className="block text-[15px]">{oferta.foto.texto}</span>
+                <span className="mt-0.5 block text-[13px] leading-snug text-tinta/60">{oferta.foto.detalle}</span>
+              </span>
+            </label>
+
+            <p className="mt-5 text-[14px] text-tinta/65">
+              {foto ? "Si querés, sumale su nombre y tu teléfono." : "Grabá su nombre, tu teléfono o los dos."}
+            </p>
 
             <div className="mt-3">
               <label htmlFor={`${id}-nombre`} className="etiqueta flex justify-between">
@@ -207,21 +226,28 @@ export function OfertaChapita({ abierta, onSumar, onNo }: Props) {
  * chapa entera) y el texto se ubica y se achica con las medidas de `zona`, en píxeles de la foto
  * (cqw = parte del ancho de la vista).
  */
-function VistaChapita({ tipo, nombre, telefono }: { tipo: string; nombre: string; telefono: string }) {
+function VistaChapita({ tipo, foto, nombre, telefono }: { tipo: string; foto: boolean; nombre: string; telefono: string }) {
   const t = tipoChapita(tipo) ?? oferta.tipos[0];
   const { ancho, alto } = oferta.fotoTam;
   const recorte = (alto - (ancho * 3) / 4) / 2; // lo que queda afuera arriba (y abajo) de la vista
   const z = t.zona;
   const n = nombre.trim().replace(/\s+/g, " ");
   const tel = telefono.trim().replace(/\s+/g, " ");
-  const vacio = !n && !tel;
-  // Sin nada escrito, un ejemplo apagado para que se entienda dónde va.
+  const vacio = !foto && !n && !tel;
+  // Sin nada elegido, un ejemplo apagado para que se entienda dónde va.
   const lineaNombre = vacio ? "Kala" : n;
   const lineaTel = vacio ? "" : tel;
+  const hayTexto = !!(lineaNombre || lineaTel);
+
+  // Con foto: la carita arriba y el texto (si hay) más chico abajo, todo dentro de la zona.
+  const ej = oferta.foto.ejemploTam;
+  const altoFoto = foto ? z.alto * (hayTexto ? 0.58 : 0.95) : 0;
+  const anchoFoto = Math.min(z.ancho * 0.8, (altoFoto * ej.ancho) / ej.alto);
+  const altoTexto = foto ? z.alto * 0.4 : z.alto;
 
   // Tamaño de letra en píxeles de la foto: lo más grande que entra a lo ancho y a lo alto.
-  const tamNombre = Math.min(z.alto * (lineaTel ? 0.42 : 0.55), z.ancho / (Math.max(lineaNombre.length, 3) * 0.58));
-  const tamTel = Math.min(z.alto * (lineaNombre ? 0.2 : 0.3), z.ancho / (Math.max(lineaTel.length, 6) * 0.56));
+  const tamNombre = Math.min(altoTexto * (lineaTel ? 0.42 : 0.55), z.ancho / (Math.max(lineaNombre.length, 3) * 0.58));
+  const tamTel = Math.min(altoTexto * (lineaNombre ? 0.2 : 0.3), z.ancho / (Math.max(lineaTel.length, 6) * 0.56));
   const cqw = (px: number) => `${(px / ancho) * 100}cqw`;
 
   return (
@@ -240,6 +266,10 @@ function VistaChapita({ tipo, nombre, telefono }: { tipo: string; nombre: string
           opacity: vacio ? 0.45 : 1,
         }}
       >
+        {foto && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={oferta.foto.ejemplo} alt="Ejemplo: la foto de tu perro grabada" style={{ width: cqw(anchoFoto), opacity: 0.9 }} />
+        )}
         {lineaNombre && (
           <span className="whitespace-nowrap font-normal" style={{ fontSize: cqw(tamNombre) }}>
             {lineaNombre}

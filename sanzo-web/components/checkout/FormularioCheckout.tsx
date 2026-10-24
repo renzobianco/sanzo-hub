@@ -8,7 +8,7 @@ import { formatearPrecio, textoEnvio } from "@/lib/formato";
 import { CLAVE_ULTIMO_PEDIDO, type PedidoEntrada, type PedidoRespuesta } from "@/lib/pedido";
 import { sinImagen, textoPersonalizacion } from "@/lib/personalizacion";
 import { datosVacios, validarCheckout, type DatosCheckout } from "@/lib/validacion";
-import { fotoDeLinea } from "@/lib/chapita";
+import { chapitaConFoto, fotoDeLinea } from "@/lib/chapita";
 import { useCarrito } from "../carrito/CarritoProvider";
 import { ImagenProducto } from "../ImagenProducto";
 import { textoOpcion } from "@/lib/combos";
@@ -103,7 +103,9 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
       if (!res.ok || !data.ok || !data.numero) throw new Error(data.error || "Error");
 
       try {
-        window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ numero: data.numero, nombre: d.nombre, pago: data.redirigirA }));
+        // fotoPerro: en /gracias le pedimos la foto por WhatsApp.
+        const fotoPerro = totales.lineas.some((l) => chapitaConFoto(l.productoId, l.opcion));
+        window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ numero: data.numero, nombre: d.nombre, pago: data.redirigirA, fotoPerro }));
       } catch {
         // sin almacenamiento: /gracias igual recibe el número por la URL
       }

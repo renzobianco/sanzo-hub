@@ -682,10 +682,22 @@ export const ofertaChapita = {
   boton: "Sumar chapita",
   no: "No, gracias",
   maxNombre: 12,
+  /**
+   * Opción de grabar la foto de su perro: después de comprar nos la manda por WhatsApp y la pasamos a
+   * grabado láser. En la vista previa se ve `ejemplo` (carita en línea, PNG blanco transparente).
+   */
+  foto: {
+    texto: "Grabar la foto de tu perro",
+    detalle: "Después de comprar nos la mandás por WhatsApp y la pasamos a grabado láser.",
+    ejemplo: "/productos/chapitas/perro-grabado.png",
+    ejemploTam: { ancho: 336, alto: 263 },
+    /** Mensaje que se arma en /gracias para mandar la foto ({numero} = número de pedido). */
+    mensajeWhatsapp: "Hola sanzo! Les mando la foto de mi perro para grabar en la chapita del pedido {numero}.",
+  },
   /** Medida de las fotos de las chapitas (todas iguales), en píxeles. */
   fotoTam: { ancho: 541, alto: 722 },
   /**
-   * Formas de chapita. Se graba el nombre, el teléfono o los dos (al menos uno).
+   * Formas de chapita. Se graba la foto, el nombre, el teléfono o cualquier combinación (al menos uno).
    * zona: dónde va el grabado sobre la foto, en píxeles de la foto: centro (x, y) y lo que entra (ancho, alto).
    */
   tipos: [

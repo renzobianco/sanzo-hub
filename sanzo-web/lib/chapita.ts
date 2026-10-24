@@ -1,8 +1,10 @@
 import { chapita, ofertaChapita, type Producto } from "@/data/products";
 
-/** Lo que el cliente pidió grabar en la chapita: el nombre, el teléfono o los dos. */
+/** Lo que el cliente pidió grabar en la chapita: la foto de su perro, el nombre, el teléfono (al menos uno). */
 export interface Grabado {
   tipo: string;
+  /** Nos manda la foto por WhatsApp después del pedido y la grabamos. */
+  foto: boolean;
   nombre: string;
   telefono: string;
 }
@@ -14,6 +16,8 @@ const TELEFONO = /^[\d +-]+$/;
 const SEP = " · ";
 /** El teléfono va marcado para no confundirlo con un nombre: "Corazón · Coco · Tel. 11 2345 6789". */
 const TEL = "Tel. ";
+/** Marca de la foto en la opción: "Circular · Con su foto · Coco". */
+const FOTO = "Con su foto";
 
 export function esChapita(productoId: string) {
   return productoId === chapita.id;
@@ -34,8 +38,8 @@ export function validarGrabado(g: Grabado): ErroresGrabado {
   }
   const nombre = limpiarNombre(g.nombre);
   const tel = limpiarTelefono(g.telefono);
-  if (!nombre && !tel) {
-    e.nombre = "Poné su nombre, tu teléfono o los dos.";
+  if (!g.foto && !nombre && !tel) {
+    e.nombre = "Elegí la foto, poné su nombre o tu teléfono.";
     return e;
   }
   if (nombre.length > ofertaChapita.maxNombre) e.nombre = `Hasta ${ofertaChapita.maxNombre} letras.`;
@@ -47,24 +51,31 @@ export function validarGrabado(g: Grabado): ErroresGrabado {
   return e;
 }
 
-/** Grabado → texto de la opción de la línea: "Huesito · Kala", "Placa · Tel. 11 2345 6789", "Corazón · Coco · Tel. 11 2345 6789". */
+/** Grabado → texto de la opción de la línea: "Huesito · Kala", "Circular · Con su foto", "Placa · Coco · Tel. 11 2345 6789". */
 export function textoGrabado(g: Grabado) {
   const nombre = limpiarNombre(g.nombre);
   const tel = limpiarTelefono(g.telefono);
-  return [g.tipo, nombre, tel && `${TEL}${tel}`].filter(Boolean).join(SEP);
+  return [g.tipo, g.foto && FOTO, nombre, tel && `${TEL}${tel}`].filter(Boolean).join(SEP);
 }
 
 /** Revisa la opción que llega del carrito (o del pedido). Devuelve el texto limpio o null si no sirve. */
 export function normalizarOpcionChapita(opcion?: string): string | null {
   if (!opcion) return null;
-  const [tipo, ...resto] = opcion.split(SEP).map((p) => p.trim());
-  if (!tipoChapita(tipo) || resto.length === 0 || resto.length > 2) return null;
+  const [tipo, ...partes] = opcion.split(SEP).map((p) => p.trim());
+  const foto = partes[0] === FOTO;
+  const resto = foto ? partes.slice(1) : partes;
+  if (!tipoChapita(tipo) || resto.length > 2 || (!foto && resto.length === 0)) return null;
   const tels = resto.filter((p) => p.startsWith(TEL));
   const nombres = resto.filter((p) => !p.startsWith(TEL));
   if (tels.length > 1 || nombres.length > 1) return null;
-  const g: Grabado = { tipo, nombre: nombres[0] ?? "", telefono: tels[0]?.slice(TEL.length) ?? "" };
+  const g: Grabado = { tipo, foto, nombre: nombres[0] ?? "", telefono: tels[0]?.slice(TEL.length) ?? "" };
   if (Object.keys(validarGrabado(g)).length > 0) return null;
   return textoGrabado(g);
+}
+
+/** La chapita lleva la foto de su perro (hay que pedírsela por WhatsApp). */
+export function chapitaConFoto(productoId: string, opcion?: string) {
+  return esChapita(productoId) && !!opcion && opcion.split(SEP)[1]?.trim() === FOTO;
 }
 
 /** Foto para la línea del carrito/checkout: en la chapita, la forma elegida; en el resto, la primera foto. */
