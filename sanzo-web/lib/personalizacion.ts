@@ -24,6 +24,8 @@ export interface Personalizacion {
   fuente: string;
   /** La imagen original ya subida (link público de Supabase Storage). Va con el pedido y se ve en el Hub. */
   imagenUrl?: string;
+  /** Dónde va el parche en cada pieza: centro como parte del ancho y alto de su foto (0 a 1). Lo eligen arrastrando. */
+  posiciones?: Record<string, [number, number]>;
   /** Vista previa del grabado de su imagen. Solo vive en el navegador (carrito y editor): no viaja al servidor. */
   vista?: Grabado;
 }
@@ -134,6 +136,17 @@ const ANCHO_VIEJO: Record<string, number> = { chico: 4.5, mediano: 5.5, grande: 
 const num = (v: unknown) => (typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN);
 const redondear = (v: number) => Math.round(v * 10) / 10;
 
+function posicionesValidas(v: unknown): Personalizacion["posiciones"] {
+  if (!v || typeof v !== "object") return undefined;
+  const out: Record<string, [number, number]> = {};
+  for (const [pz, p] of Object.entries(v as Record<string, unknown>)) {
+    if (!(pz in config.piezas) || !Array.isArray(p) || p.length !== 2) continue;
+    const [x, y] = p.map(Number);
+    if (x >= 0 && x <= 1 && y >= 0 && y <= 1) out[pz] = [Math.round(x * 1000) / 1000, Math.round(y * 1000) / 1000];
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 function vistaValida(v: unknown): Grabado | undefined {
   if (!v || typeof v !== "object") return undefined;
   const g = v as Grabado;
@@ -173,6 +186,7 @@ export function normalizarPersonalizacion(producto: Producto, p: unknown): Perso
     fuente: typeof o.fuente === "string" && o.fuente ? o.fuente : config.fuentes[0].id,
     imagenUrl: enImagen ? imagenUrl : undefined,
     vista: enImagen ? vistaValida(o.vista) : undefined,
+    posiciones: posicionesValidas(o.posiciones),
   };
   if (Object.keys(validarPersonalizacion(limpio)).length > 0) return null;
   return limpio;
@@ -182,7 +196,7 @@ export function clavePersonalizacion(p?: Personalizacion) {
   if (!p) return "";
   // Dos imágenes distintas = dos líneas distintas en el carrito.
   const huella = p.imagenUrl ?? (p.vista ? `${p.vista.grabado.length}-${p.vista.grabado.slice(-24)}` : "");
-  return [p.forma, p.formaOtra ?? "", p.material, p.color, p.ancho, p.alto, p.modo, p.nombre, p.telefono ?? "", p.modo === "nombre" ? p.fuente : "", huella].join("|");
+  return [p.forma, p.formaOtra ?? "", p.material, p.color, p.ancho, p.alto, p.modo, p.nombre, p.telefono ?? "", p.modo === "nombre" ? p.fuente : "", huella, JSON.stringify(p.posiciones ?? {})].join("|");
 }
 
 const cm = (v: number) => String(v).replace(".", ",");

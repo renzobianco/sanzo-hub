@@ -1,4 +1,4 @@
-import { getProducto, type Producto } from "@/data/products";
+import { getProducto, personalizacion, type Producto } from "@/data/products";
 import type { Totales } from "./carrito";
 import { textoOpcion } from "./combos";
 import { textoEnvio } from "./formato";
@@ -28,6 +28,14 @@ interface VentaHub {
   clientName: string;
   clientHandle: string;
   notes: string;
+}
+
+/** Dirección pública de la web (para que el Hub muestre las fotos de las piezas). */
+function urlSitio() {
+  return (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "https://sanzo-web.vercel.app")
+  ).replace(/\/+$/, "");
 }
 
 export function hubActivo() {
@@ -136,6 +144,13 @@ export async function guardarPedidoEnHub(numero: string, c: DatosCheckout, t: To
       personalizacion: l.personalizacion ? textoPersonalizacion(l.personalizacion) : "",
       // Imagen original para grabar (link público). Vacío si no se pudo subir: la manda por WhatsApp.
       imagen: l.personalizacion?.modo === "imagen" ? l.personalizacion.imagenUrl ?? "" : "",
+      // Dónde va el parche en cada pieza: foto de la pieza + punto (x, y en % de la foto).
+      ubicacion: Object.entries(l.personalizacion?.posiciones ?? {}).map(([pieza, [x, y]]) => ({
+        pieza: getProducto(pieza)?.nombre ?? pieza,
+        foto: urlSitio() + (personalizacion.piezas[pieza]?.imagen ?? ""),
+        x: Math.round(x * 1000) / 10,
+        y: Math.round(y * 1000) / 10,
+      })),
       cantidad: l.cantidad,
       subtotal: l.subtotal,
     })),

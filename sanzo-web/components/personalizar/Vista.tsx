@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { personalizacion as config, type ColorParche, type PiezaPersonalizable } from "@/data/products";
 import { defForma, medidaFinal } from "@/lib/formas";
 import { familia } from "@/lib/fuentes";
 import type { Grabado } from "@/lib/laser";
 import { colorPorId, fuentePorId } from "@/lib/personalizacion";
+import { colocar, imagenZona, mover, recortarZona, type Zona } from "@/lib/zonas";
 
 /** Lo que define cómo se ve el parche (lo mismo que se elige en el editor). */
 export interface DisenoParche {
@@ -219,41 +220,145 @@ export function Parche({ forma, w, h, color, pxCm, contenido }: { forma: string;
 }
 
 /** Versión optimizada de una foto de /public (la misma que arma next/image). */
-const optimizada = (src: string) => `/_next/image?url=${encodeURIComponent(src)}&w=1080&q=75`;
+const optimizada = (src: string) => `/_next/image?url=${encodeURIComponent(src)}&w=1080&q=80`;
+
+type Punto = { x: number; y: number };
 
 /**
- * Vista previa de una pieza: la foto del artículo con el parche encima, en su lugar y a escala
- * (si el parche no entra en esta pieza, se achica a lo que entra). Todo en un SVG con las medidas de la foto.
+ * Vista previa de una pieza: la foto real con el parche encima, a escala. El parche se arrastra con el dedo
+ * y no se sale de la zona de la pieza (la tela, sin ribete, logo ni herrajes). Si no entra, se achica solo.
  */
-export function VistaPieza({ pieza, nombrePieza, diseno }: { pieza: PiezaPersonalizable; nombrePieza: string; diseno: DisenoParche }) {
-  const { imagen: foto, tam, recorte, fondoBlanco, parche, cm } = pieza;
+export function VistaPieza({
+  pieza,
+  nombrePieza,
+  diseno,
+  zona,
+  posicion,
+  onMover,
+}: {
+  pieza: PiezaPersonalizable;
+  nombrePieza: string;
+  diseno: DisenoParche;
+  zona?: Zona;
+  /** Dónde lo dejaron (centro, en píxeles de la foto). */
+  posicion?: Punto;
+  onMover: (p: Punto) => void;
+}) {
+  const { imagen: foto, tam, recorte, sinFondo, pxCm, giro = 0 } = pieza;
   const vista = recorte ?? [0, 0, tam.ancho, tam.alto];
-  const pxCm = parche.ancho / cm.ancho;
+  const svg = useRef<SVGSVGElement>(null);
+  const idSombra = `sombra${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+  const arrastre = useRef<{ dx: number; dy: number; desde: Punto } | null>(null);
+  const [arrastrando, setArrastrando] = useState(false);
+  const [movio, setMovio] = useState(false);
   const { ancho, alto } = medidaFinal(diseno.forma, diseno.ancho, diseno.alto, diseno.vista?.proporcionSilueta);
-  const k = Math.min(1, cm.ancho / ancho, cm.alto / alto);
+
   const color = colorPorId(diseno.color) ?? config.colores[0];
+  const zonaVisible = useMemo(() => (zona ? recortarZona(zona, vista) : undefined), [zona, vista.join()]); // eslint-disable-line react-hooks/exhaustive-deps
+  const mapaZona = useMemo(() => (zonaVisible ? imagenZona(zonaVisible) : ""), [zonaVisible]);
+  const lugar = colocar(pieza, ancho, alto, posicion, zonaVisible);
+
+  // Si al cambiar forma o medida el parche tuvo que correrse para entrar, queda guardado ahí.
+  useEffect(() => {
+    if (!posicion || Math.abs(posicion.x - lugar.x) > 0.5 || Math.abs(posicion.y - lugar.y) > 0.5) onMover({ x: lugar.x, y: lugar.y });
+  }, [lugar.x, lugar.y]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function aFoto(e: React.PointerEvent): Punto | null {
+    const m = svg.current?.getScreenCTM();
+    if (!m) return null;
+    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+    return { x: p.x, y: p.y };
+  }
+
+  function empezar(e: React.PointerEvent<SVGSVGElement>) {
+    const p = aFoto(e);
+    if (!p) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    // Se arrastra desde donde toques: el parche sigue al dedo sin saltar.
+    arrastre.current = { dx: lugar.x - p.x, dy: lugar.y - p.y, desde: { x: lugar.x, y: lugar.y } };
+    setArrastrando(true);
+  }
+
+  function seguir(e: React.PointerEvent<SVGSVGElement>) {
+    const a = arrastre.current;
+    const p = aFoto(e);
+    if (!a || !p) return;
+    const destino = { x: p.x + a.dx, y: p.y + a.dy };
+    const nuevo = zonaVisible
+      ? mover(zonaVisible!, a.desde, destino, lugar.w, lugar.h, giro)
+      : { x: Math.min(Math.max(destino.x, vista[0]), vista[0] + vista[2]), y: Math.min(Math.max(destino.y, vista[1]), vista[1] + vista[3]) };
+    a.desde = nuevo;
+    setMovio(true);
+    onMover(nuevo);
+  }
+
+  function soltar() {
+    arrastre.current = null;
+    setArrastrando(false);
+  }
 
   return (
-    <div role="img" aria-label={`Vista previa: ${nombrePieza}`} className="relative aspect-[4/5] w-full overflow-hidden bg-lino">
-      <svg viewBox={vista.join(" ")} preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full" aria-hidden="true">
-        {/* Fondo lino dentro del SVG: el multiply de la foto se mezcla con esto y el blanco desaparece. */}
+    <div role="img" aria-label={`Vista previa: ${nombrePieza}. Arrastrá el parche para moverlo.`} className="relative w-full bg-lino"
+      style={{ aspectRatio: `${vista[2]} / ${vista[3]}` }}
+    >
+      {/* Bordes difuminados para que la pieza no se vea cortada de golpe (los cartelitos quedan afuera del difuminado). */}
+      <div className="absolute inset-0 overflow-hidden [mask-image:radial-gradient(closest-side,black_86%,transparent)]">
+      <svg
+        ref={svg}
+        viewBox={vista.join(" ")}
+        preserveAspectRatio="xMidYMid meet"
+        className={`absolute inset-0 h-full w-full touch-none select-none ${arrastrando ? "cursor-grabbing" : "cursor-grab"}`}
+        aria-hidden="true"
+        onPointerDown={empezar}
+        onPointerMove={seguir}
+        onPointerUp={soltar}
+        onPointerCancel={soltar}
+      >
+        <defs>
+          {/* Sombra suave de la pieza apoyada (filtro SVG con región amplia: no deja bordes rectos). */}
+          <filter id={idSombra} x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="18" stdDeviation="14" floodColor="rgb(37 29 22)" floodOpacity="0.22" />
+          </filter>
+        </defs>
         <rect x={-tam.ancho} y={-tam.alto} width={tam.ancho * 3} height={tam.alto * 3} fill="rgb(var(--lino))" />
         <image
           href={optimizada(foto)}
           width={tam.ancho}
           height={tam.alto}
-          style={fondoBlanco ? { mixBlendMode: "multiply", filter: "brightness(1.1) contrast(1.05)" } : undefined}
+          filter={sinFondo ? `url(#${idSombra})` : undefined}
         />
-        <g transform={`translate(${parche.x} ${parche.y}) rotate(${parche.giro ?? 0})`}>
-          {/* key: al cambiar de forma aparece de nuevo con un pequeño rebote. */}
+        {/* Mientras arrastra, se ve suave dónde puede ir. */}
+        {mapaZona && (
+          <image
+            href={mapaZona}
+            width={zonaVisible!.cols * zonaVisible!.celda}
+            height={zonaVisible!.filas * zonaVisible!.celda}
+            preserveAspectRatio="none"
+            opacity={arrastrando ? 0.22 : 0}
+            style={{ transition: "opacity 0.35s", imageRendering: "auto" }}
+          />
+        )}
+        <g transform={`translate(${lugar.x} ${lugar.y}) rotate(${giro})`}>
+          {/* key: al cambiar de forma aparece de nuevo con un pequeño rebote. Al arrastrar, se levanta apenas. */}
           <g key={diseno.forma} className="parche-aparece">
-            <Parche forma={diseno.forma} w={ancho * k * pxCm} h={alto * k * pxCm} color={color} pxCm={pxCm} contenido={diseno} />
+            <g style={{ transform: `scale(${arrastrando ? 1.06 : 1})`, transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)" }}>
+              <Parche forma={diseno.forma} w={lugar.w} h={lugar.h} color={color} pxCm={pxCm} contenido={diseno} />
+            </g>
           </g>
         </g>
       </svg>
-      {k < 0.99 && (
-        <p className="absolute inset-x-0 bottom-2 text-center text-[10px] uppercase tracking-[0.12em] text-tinta/60">
-          En esta pieza va a {String(Math.round(ancho * k * 10) / 10).replace(".", ",")} cm: lo máximo que entra
+      </div>
+      {!movio && (
+        <p className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center">
+          <span className="flex animate-entrada items-center gap-1.5 rounded-full bg-crema/90 px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] text-tinta/80 shadow-sm">
+            <span aria-hidden="true" className="inline-block animate-[empujar_1.6s_ease-in-out_infinite]">☝</span>
+            Arrastralo para moverlo
+          </span>
+        </p>
+      )}
+      {lugar.k < 0.99 && movio && (
+        <p className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-[10px] uppercase tracking-[0.12em] text-tinta/60">
+          Acá va a {String(Math.round(ancho * lugar.k * 10) / 10).replace(".", ",")} cm: lo máximo que entra
         </p>
       )}
     </div>

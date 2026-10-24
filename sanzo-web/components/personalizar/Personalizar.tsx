@@ -6,6 +6,7 @@ import { formatearPrecio } from "@/lib/formato";
 import { medidaFinal, proporcionForma } from "@/lib/formas";
 import { familia } from "@/lib/fuentes";
 import { aGrabadoLaser, imagenParaSubir, type Grabado } from "@/lib/laser";
+import { cargarZonas, colocar, recortarZona, type Zona } from "@/lib/zonas";
 import {
   colorPorId,
   materialInicial,
@@ -36,6 +37,16 @@ interface Props {
 type EstadoSubida = "nada" | "subiendo" | "ok" | "error";
 
 const cm = (v: number) => String(Math.round(v * 10) / 10).replace(".", ",");
+
+/** Posiciones guardadas (parte del ancho y alto de la foto) → píxeles de la foto de cada pieza. */
+function aPixeles(pos?: Personalizacion["posiciones"]) {
+  const out: Record<string, { x: number; y: number }> = {};
+  for (const [pz, [x, y]] of Object.entries(pos ?? {})) {
+    const c = config.piezas[pz];
+    if (c) out[pz] = { x: x * c.tam.ancho, y: y * c.tam.alto };
+  }
+  return out;
+}
 
 /** Lo que el parche muestra a partir de la personalización guardada (resúmenes del carrito). */
 function disenoDe(p: Personalizacion): DisenoParche {
@@ -96,6 +107,9 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
   const [procesando, setProcesando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [errores, setErrores] = useState<ErroresPersonalizacion>({});
+  // Dónde dejó el parche en cada pieza (píxeles de la foto) y las zonas donde puede ir.
+  const [posiciones, setPosiciones] = useState<Record<string, { x: number; y: number }>>({});
+  const [zonas, setZonas] = useState<Record<string, Zona>>({});
 
   // Pestañas de la vista: una por pieza, más el 360° si está el arnés.
   const vistas = [
@@ -103,6 +117,8 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
     ...(vista360.activo && piezas.includes("arnes") ? [{ id: "360", texto: vista360.pestana360 }] : []),
   ];
   const [vista, setVista] = useState(vistas[0]?.id);
+  const recorteVista = vista ? config.piezas[vista]?.recorte : undefined;
+  const apaisada = !!recorteVista && recorteVista[2] / recorteVista[3] > 1.2;
 
   function abrir() {
     setForma(valor?.forma ?? config.formas[0].id);
@@ -121,6 +137,8 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
     setSubida(valor?.imagenUrl ? "ok" : "nada");
     setErrores({});
     setVista(vistas[0]?.id);
+    setPosiciones(aPixeles(valor?.posiciones));
+    cargarZonas().then(setZonas);
     document.body.style.overflow = "hidden";
     ref.current?.showModal();
   }
@@ -161,6 +179,15 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
       fuente,
       imagenUrl: enImagen ? url : undefined,
       vista: enImagen ? vistaImagen : undefined,
+      // Las piezas que no miró también quedan ubicadas (donde arranca o lo más cerca que entre).
+      posiciones: Object.fromEntries(
+        piezas.map((pz) => {
+          const c = config.piezas[pz];
+          const z = zonas[pz] && recortarZona(zonas[pz], c.recorte ?? [0, 0, c.tam.ancho, c.tam.alto]);
+          const l = colocar(c, final.ancho, final.alto, posiciones[pz], z);
+          return [pz, [Math.round((l.x / c.tam.ancho) * 1000) / 1000, Math.round((l.y / c.tam.alto) * 1000) / 1000]];
+        }),
+      ),
     };
     const e = validarPersonalizacion(p, { pedirImagen: true });
     setErrores(e);
@@ -328,11 +355,20 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                 ))}
               </div>
             )}
-            <div className="mx-auto w-[min(100%,30dvh)] sm:w-[min(100%,56vh)]">
+            {/* Piezas apaisadas (collar estirado): todo el ancho. Las demás: cuadradas. */}
+            <div className={`mx-auto ${apaisada ? "w-full" : "w-[min(100%,34dvh)] sm:w-[min(100%,56vh)]"}`}>
               {vista === "360" ? (
                 <Visor360 />
               ) : vista && config.piezas[vista] ? (
-                <VistaPieza pieza={config.piezas[vista]} nombrePieza={getProducto(vista)?.nombre ?? vista} diseno={diseno} />
+                <VistaPieza
+                  key={vista}
+                  pieza={config.piezas[vista]}
+                  nombrePieza={getProducto(vista)?.nombre ?? vista}
+                  diseno={diseno}
+                  zona={zonas[vista]}
+                  posicion={posiciones[vista]}
+                  onMover={(p) => setPosiciones((x) => ({ ...x, [vista]: p }))}
+                />
               ) : null}
             </div>
             <p className="pb-3 pt-2 text-center text-[11px] text-tinta/60">
@@ -343,146 +379,8 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
           <div className="relative flex-1 space-y-7 overflow-y-auto px-4 py-6 sm:col-start-2 sm:row-start-2 sm:px-6">
             <p className="text-[15px] text-tinta/80">{config.bajada}</p>
 
-            {config.materiales.length > 1 && (
-              <fieldset>
-                <legend id={`${id}-material`} tabIndex={-1} className="eyebrow mb-3">
-                  Material
-                </legend>
-                <div className="grid grid-cols-2 gap-2">
-                  {config.materiales.map((m) => (
-                    <label key={m.id} className={m.proximamente ? "cursor-not-allowed" : "cursor-pointer"}>
-                      <input
-                        type="radio"
-                        name={`${id}-material`}
-                        value={m.id}
-                        checked={material === m.id}
-                        disabled={m.proximamente}
-                        onChange={() => {
-                          setMaterial(m.id);
-                          setErrores((x) => ({ ...x, material: undefined }));
-                        }}
-                        className="peer sr-only"
-                      />
-                      <span className="flex h-11 flex-col items-center justify-center border border-tinta/20 text-[11px] uppercase tracking-[0.12em] transition-colors peer-checked:border-tinta peer-checked:bg-tinta peer-checked:text-crema peer-disabled:opacity-45 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
-                        {m.nombre}
-                        {m.proximamente && <span className="mt-0.5 text-[9px] tracking-[0.14em] text-tinta/70">Muy pronto</span>}
-                        {!m.proximamente && m.precioExtra > 0 && <span className="mt-0.5 text-[9px] tracking-normal opacity-80">+ {formatearPrecio(m.precioExtra)}</span>}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-                {errores.material && <p className="mt-2 text-sm text-marron">{errores.material}</p>}
-              </fieldset>
-            )}
-
             <fieldset>
-              <legend className="eyebrow mb-3">1 · Forma</legend>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                {config.formas.map((f, i) => {
-                  const bloqueada = f.especial === "silueta" && modo !== "imagen";
-                  return (
-                    <label key={f.id} className={bloqueada ? "cursor-pointer opacity-50" : "cursor-pointer"}>
-                      <input
-                        id={i === 0 ? `${id}-forma` : undefined}
-                        type="radio"
-                        name={`${id}-forma`}
-                        value={f.id}
-                        checked={forma === f.id}
-                        onChange={() => {
-                          setForma(f.id);
-                          // La silueta necesita una imagen: lo pasa directo a "Tu imagen".
-                          if (f.especial === "silueta") setModo("imagen");
-                          setErrores((x) => ({ ...x, forma: undefined, formaOtra: undefined }));
-                        }}
-                        className="peer sr-only"
-                      />
-                      <span className="flex flex-col items-center gap-1 border border-tinta/20 px-1 pb-2 pt-1.5 transition-colors peer-checked:border-tinta peer-checked:bg-lino peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
-                        {f.especial === "otra" ? (
-                          <span aria-hidden="true" className="flex h-12 items-center text-2xl font-light text-tinta/60">
-                            ?
-                          </span>
-                        ) : (
-                          <MiniForma forma={f.id} color={colorElegido} vista={vistaImagen} />
-                        )}
-                        <span className="text-center text-[10px] uppercase leading-tight tracking-[0.12em]">{f.nombre}</span>
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-              {forma === "silueta" && !vistaImagen && <p className="mt-2 text-[12px] text-tinta/60">Subí tu imagen abajo y recortamos el parche siguiendo su contorno.</p>}
-              {forma === "otra" && (
-                <div className="mt-3 animate-entrada">
-                  <label htmlFor={`${id}-formaOtra`} className="eyebrow block">
-                    ¿Qué forma querés?
-                  </label>
-                  <input
-                    id={`${id}-formaOtra`}
-                    className="campo"
-                    maxLength={120}
-                    autoComplete="off"
-                    placeholder="Ej. huellita, estrella, la cabeza de un caniche"
-                    value={formaOtra}
-                    onChange={(e) => {
-                      setFormaOtra(e.target.value);
-                      setErrores((x) => ({ ...x, formaOtra: undefined }));
-                    }}
-                    aria-invalid={!!errores.formaOtra}
-                  />
-                  <p className="mt-1.5 text-[12px] text-tinta/60">La recortamos a medida. La vista previa la muestra redondeada.</p>
-                </div>
-              )}
-              {errores.forma && <p className="mt-2 text-sm text-marron">{errores.forma}</p>}
-              {errores.formaOtra && <p className="mt-2 text-sm text-marron">{errores.formaOtra}</p>}
-            </fieldset>
-
-            <fieldset>
-              <legend className="eyebrow mb-3">
-                2 · Color <span className="ml-1 normal-case tracking-normal text-tinta/60">{colorElegido.nombre}</span>
-              </legend>
-              <div className="flex flex-wrap gap-3">
-                {config.colores.map((c) => (
-                  <label key={c.id} className="cursor-pointer" title={c.nombre}>
-                    <input
-                      type="radio"
-                      name={`${id}-color`}
-                      value={c.id}
-                      checked={color === c.id}
-                      onChange={() => setColor(c.id)}
-                      className="peer sr-only"
-                      aria-label={c.nombre}
-                    />
-                    {/* Muestra con el mismo grano del parche; al elegirla, un aro y un pequeño salto. */}
-                    <span className="block rounded-full p-[3px] ring-1 ring-tinta/15 transition-transform duration-300 ease-suave peer-checked:scale-110 peer-checked:ring-2 peer-checked:ring-tinta peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-marron">
-                      <svg viewBox="-20 -20 40 40" className="block h-9 w-9 rounded-full" aria-hidden="true">
-                        <ParcheMuestra color={c.id} />
-                      </svg>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset>
-              <legend className="eyebrow mb-3">
-                3 · Medida
-                <span className="ml-1 normal-case tracking-normal text-tinta/60">
-                  {tramo?.nombre}
-                  {tramo && tramo.precioExtra > 0 && ` · + ${formatearPrecio(tramo.precioExtra)}`}
-                </span>
-              </legend>
-              <div className="space-y-1">
-                <Medida etiqueta="Ancho" valor={anchoOk} min={minCm} max={anchoMax} onCambio={setAncho} />
-                {proporcion === null && <Medida etiqueta="Alto" valor={altoOk} min={minCm} max={max.alto} onCambio={setAlto} />}
-              </div>
-              <p className="mt-2 text-[12px] text-tinta/60">
-                {proporcion !== null ? `Esta forma mantiene su proporción: ${cm(final.ancho)} × ${cm(final.alto)} cm. ` : ""}
-                {piezas.length > 1 ? "En las piezas más chicas se ajusta a lo que entra." : ""}
-              </p>
-            </fieldset>
-
-            <fieldset>
-              <legend className="eyebrow mb-3">4 · ¿Qué grabamos?</legend>
+              <legend className="eyebrow mb-3">1 · ¿Qué grabamos?</legend>
               {/* Control segmentado: la píldora se desliza a la opción elegida. */}
               <div className="relative grid grid-cols-2 rounded-full bg-lino p-1">
                 <span
@@ -673,6 +571,147 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                 </fieldset>
               </>
             )}
+
+
+            {config.materiales.filter((m) => !m.proximamente).length > 1 && (
+              <fieldset>
+                <legend id={`${id}-material`} tabIndex={-1} className="eyebrow mb-3">
+                  Material
+                </legend>
+                <div className="grid grid-cols-2 gap-2">
+                  {config.materiales.map((m) => (
+                    <label key={m.id} className={m.proximamente ? "cursor-not-allowed" : "cursor-pointer"}>
+                      <input
+                        type="radio"
+                        name={`${id}-material`}
+                        value={m.id}
+                        checked={material === m.id}
+                        disabled={m.proximamente}
+                        onChange={() => {
+                          setMaterial(m.id);
+                          setErrores((x) => ({ ...x, material: undefined }));
+                        }}
+                        className="peer sr-only"
+                      />
+                      <span className="flex h-11 flex-col items-center justify-center border border-tinta/20 text-[11px] uppercase tracking-[0.12em] transition-colors peer-checked:border-tinta peer-checked:bg-tinta peer-checked:text-crema peer-disabled:opacity-45 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
+                        {m.nombre}
+                        {m.proximamente && <span className="mt-0.5 text-[9px] tracking-[0.14em] text-tinta/70">Muy pronto</span>}
+                        {!m.proximamente && m.precioExtra > 0 && <span className="mt-0.5 text-[9px] tracking-normal opacity-80">+ {formatearPrecio(m.precioExtra)}</span>}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {errores.material && <p className="mt-2 text-sm text-marron">{errores.material}</p>}
+              </fieldset>
+            )}
+
+            <fieldset>
+              <legend className="eyebrow mb-3">2 · Forma</legend>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                {config.formas.map((f, i) => {
+                  const bloqueada = f.especial === "silueta" && modo !== "imagen";
+                  return (
+                    <label key={f.id} className={bloqueada ? "cursor-pointer opacity-50" : "cursor-pointer"}>
+                      <input
+                        id={i === 0 ? `${id}-forma` : undefined}
+                        type="radio"
+                        name={`${id}-forma`}
+                        value={f.id}
+                        checked={forma === f.id}
+                        onChange={() => {
+                          setForma(f.id);
+                          // La silueta necesita una imagen: lo pasa directo a "Tu imagen".
+                          if (f.especial === "silueta") setModo("imagen");
+                          setErrores((x) => ({ ...x, forma: undefined, formaOtra: undefined }));
+                        }}
+                        className="peer sr-only"
+                      />
+                      <span className="flex flex-col items-center gap-1 border border-tinta/20 px-1 pb-2 pt-1.5 transition-colors peer-checked:border-tinta peer-checked:bg-lino peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
+                        {f.especial === "otra" ? (
+                          <span aria-hidden="true" className="flex h-12 items-center text-2xl font-light text-tinta/60">
+                            ?
+                          </span>
+                        ) : (
+                          <MiniForma forma={f.id} color={colorElegido} vista={vistaImagen} />
+                        )}
+                        <span className="text-center text-[10px] uppercase leading-tight tracking-[0.12em]">{f.nombre}</span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              {forma === "silueta" && !vistaImagen && <p className="mt-2 text-[12px] text-tinta/60">Subí tu imagen abajo y recortamos el parche siguiendo su contorno.</p>}
+              {forma === "otra" && (
+                <div className="mt-3 animate-entrada">
+                  <label htmlFor={`${id}-formaOtra`} className="eyebrow block">
+                    ¿Qué forma querés?
+                  </label>
+                  <input
+                    id={`${id}-formaOtra`}
+                    className="campo"
+                    maxLength={120}
+                    autoComplete="off"
+                    placeholder="Ej. huellita, estrella, la cabeza de un caniche"
+                    value={formaOtra}
+                    onChange={(e) => {
+                      setFormaOtra(e.target.value);
+                      setErrores((x) => ({ ...x, formaOtra: undefined }));
+                    }}
+                    aria-invalid={!!errores.formaOtra}
+                  />
+                  <p className="mt-1.5 text-[12px] text-tinta/60">La recortamos a medida. La vista previa la muestra redondeada.</p>
+                </div>
+              )}
+              {errores.forma && <p className="mt-2 text-sm text-marron">{errores.forma}</p>}
+              {errores.formaOtra && <p className="mt-2 text-sm text-marron">{errores.formaOtra}</p>}
+            </fieldset>
+
+            <fieldset>
+              <legend className="eyebrow mb-3">
+                3 · Color <span className="ml-1 normal-case tracking-normal text-tinta/60">{colorElegido.nombre}</span>
+              </legend>
+              <div className="flex flex-wrap gap-3">
+                {config.colores.map((c) => (
+                  <label key={c.id} className="cursor-pointer" title={c.nombre}>
+                    <input
+                      type="radio"
+                      name={`${id}-color`}
+                      value={c.id}
+                      checked={color === c.id}
+                      onChange={() => setColor(c.id)}
+                      className="peer sr-only"
+                      aria-label={c.nombre}
+                    />
+                    {/* Muestra con el mismo grano del parche; al elegirla, un aro y un pequeño salto. */}
+                    <span className="block rounded-full p-[3px] ring-1 ring-tinta/15 transition-transform duration-300 ease-suave peer-checked:scale-110 peer-checked:ring-2 peer-checked:ring-tinta peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-marron">
+                      <svg viewBox="-20 -20 40 40" className="block h-9 w-9 rounded-full" aria-hidden="true">
+                        <ParcheMuestra color={c.id} />
+                      </svg>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className="eyebrow mb-3">
+                4 · Medida
+                <span className="ml-1 normal-case tracking-normal text-tinta/60">
+                  {tramo?.nombre}
+                  {tramo && tramo.precioExtra > 0 && ` · + ${formatearPrecio(tramo.precioExtra)}`}
+                </span>
+              </legend>
+              <div className="space-y-1">
+                <Medida etiqueta="Ancho" valor={anchoOk} min={minCm} max={anchoMax} onCambio={setAncho} />
+                {proporcion === null && <Medida etiqueta="Alto" valor={altoOk} min={minCm} max={max.alto} onCambio={setAlto} />}
+              </div>
+              <p className="mt-2 text-[12px] text-tinta/60">
+                {proporcion !== null ? `Esta forma mantiene su proporción: ${cm(final.ancho)} × ${cm(final.alto)} cm. ` : ""}
+                {piezas.length > 1 ? "En las piezas más chicas se ajusta a lo que entra." : ""}
+              </p>
+            </fieldset>
+
+
           </div>
 
           <div className="border-t border-tinta/10 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:col-start-2 sm:row-start-3 sm:px-6">

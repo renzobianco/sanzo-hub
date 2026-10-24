@@ -74,15 +74,20 @@ export interface Producto {
  * Medidas en píxeles de la foto.
  */
 export interface PiezaPersonalizable {
+  /** Foto real de la pieza. Sin fondo (PNG/WebP transparente) → se ve sobre lino con una sombra suave. */
   imagen: string;
   tam: { ancho: number; alto: number };
-  /** Parte de la foto que se muestra (x, y, ancho, alto), para acercar el parche. Vacío → la foto entera. */
+  /** Parte de la foto que se muestra (x, y, ancho, alto). Vacío → la foto entera. */
   recorte?: [number, number, number, number];
-  /** true → la foto tiene fondo blanco y se funde con el fondo de la vista. */
-  fondoBlanco?: boolean;
-  /** Dónde va el parche: centro (x, y), ancho en píxeles del parche MÁS ANCHO que entra, y giro en grados. */
-  parche: { x: number; y: number; ancho: number; giro?: number };
-  /** Lo máximo que entra en esta pieza, en cm. `parche.ancho` (px) equivale a `cm.ancho`: de ahí sale la escala. */
+  /** true → la foto no tiene fondo. */
+  sinFondo?: boolean;
+  /** Cuántos píxeles de la foto es 1 cm en la pieza real (para dibujar el parche a escala). */
+  pxCm: number;
+  /** Dónde arranca el parche (centro, en píxeles de la foto). Después lo mueven arrastrando. */
+  inicial: { x: number; y: number };
+  /** Giro del parche en grados (para piezas fotografiadas en diagonal). */
+  giro?: number;
+  /** Lo máximo que entra en esta pieza, en cm. En las piezas con zona, además tiene que caber en la zona. */
   cm: { ancho: number; alto: number };
 }
 
@@ -285,18 +290,21 @@ export const personalizacion: {
     { nombre: "Grande", hastaCm2: Infinity, precioExtra: 100 },
   ],
   /**
-   * Vista previa de cada pieza (fotos del artículo sin logo). `parche`: dónde va y cuántos píxeles mide
-   * el parche más ancho que entra (`cm.ancho`). `cm`: lo máximo que entra en la pieza. PROVISORIO: medir
-   * cada pieza real y ajustar `cm`; si el parche queda corrido, ajustar `parche.x/y`.
+   * Vista previa de cada pieza: la foto real sin fondo (public/productos/personalizar/). El parche se mueve
+   * arrastrando, solo dentro de la zona de cada pieza (`personalizar/zonas.json`: la tela, sin ribete, logo
+   * ni herrajes; se arma con el script de la sesión 2026-10-24). PROVISORIO: `pxCm` y `cm` estimados, medir
+   * las piezas reales.
    */
   piezas: {
-    arnes: { imagen: "/productos/piezas/arnes.png", tam: { ancho: 927, alto: 1152 }, recorte: [150, 150, 627, 784], fondoBlanco: true, parche: { x: 460, y: 335, ancho: 175 }, cm: { ancho: 7, alto: 4 } },
-    correa: { imagen: "/productos/piezas/correa.jpg", tam: { ancho: 1798, alto: 576 }, recorte: [1010, 200, 540, 400], fondoBlanco: true, parche: { x: 1262, y: 397, ancho: 175 }, cm: { ancho: 6, alto: 3 } },
-    collar: { imagen: "/productos/piezas/collar.jpg", tam: { ancho: 1557, alto: 352 }, recorte: [930, 0, 580, 352], fondoBlanco: true, parche: { x: 1217, y: 196, ancho: 265 }, cm: { ancho: 6, alto: 3 } },
-    bandana: { imagen: "/productos/piezas/bandana.jpg", tam: { ancho: 1146, alto: 912 }, recorte: [380, 400, 600, 480], fondoBlanco: true, parche: { x: 668, y: 686, ancho: 190, giro: -32 }, cm: { ancho: 7, alto: 5 } },
-    "poo-bag": { imagen: "/productos/piezas/poo-bag.jpg", tam: { ancho: 928, alto: 1152 }, recorte: [180, 330, 600, 520], parche: { x: 425, y: 618, ancho: 140, giro: -22 }, cm: { ancho: 5, alto: 4 } },
-    gorra: { imagen: "/productos/solo/gorra/1.jpg", tam: { ancho: 1080, alto: 1350 }, recorte: [240, 280, 680, 700], parche: { x: 560, y: 560, ancho: 190, giro: -12 }, cm: { ancho: 6, alto: 4 } },
-    piluso: { imagen: "/productos/solo/piluso/1.jpg", tam: { ancho: 1080, alto: 1350 }, recorte: [260, 400, 560, 560], parche: { x: 540, y: 845, ancho: 170 }, cm: { ancho: 6, alto: 4 } },
+    arnes: { imagen: "/productos/personalizar/arnes.webp", tam: { ancho: 1080, alto: 1350 }, recorte: [130, 261, 820, 820], sinFondo: true, pxCm: 29, inicial: { x: 555, y: 560 }, cm: { ancho: 10, alto: 7 } },
+    correa: { imagen: "/productos/personalizar/correa.webp", tam: { ancho: 1080, alto: 1350 }, recorte: [520, 110, 480, 480], sinFondo: true, pxCm: 28, inicial: { x: 760, y: 300 }, cm: { ancho: 6, alto: 1.7 } },
+    // Collar estirado (foto real de Santi, 2026-10-24). Zona: el tramo entre el logo y el pasador.
+    collar: { imagen: "/productos/personalizar/collar.webp", tam: { ancho: 1600, alto: 500 }, recorte: [300, 40, 800, 400], sinFondo: true, pxCm: 26, inicial: { x: 750, y: 240 }, cm: { ancho: 8, alto: 2 } },
+    bandana: { imagen: "/productos/personalizar/bandana.webp", tam: { ancho: 1080, alto: 1350 }, recorte: [230, 260, 760, 760], sinFondo: true, pxCm: 27, inicial: { x: 640, y: 620 }, cm: { ancho: 8, alto: 6 } },
+    // Dorso del poo bag (la cara sin logo): PROVISORIO, armado espejando el frente; cambiar por la foto real.
+    "poo-bag": { imagen: "/productos/personalizar/poo-bag.webp", tam: { ancho: 1080, alto: 1350 }, recorte: [63, 254, 920, 920], sinFondo: true, pxCm: 50, inicial: { x: 474, y: 595 }, cm: { ancho: 5, alto: 4 } },
+    gorra: { imagen: "/productos/solo/gorra/1.jpg", tam: { ancho: 1080, alto: 1350 }, recorte: [240, 280, 680, 680], pxCm: 32, inicial: { x: 560, y: 560 }, giro: -12, cm: { ancho: 6, alto: 4 } },
+    piluso: { imagen: "/productos/solo/piluso/1.jpg", tam: { ancho: 1080, alto: 1350 }, recorte: [260, 400, 560, 560], pxCm: 28, inicial: { x: 540, y: 845 }, cm: { ancho: 6, alto: 4 } },
   },
 };
 

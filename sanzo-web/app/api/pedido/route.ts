@@ -39,6 +39,8 @@ function limpiarPersonalizacion(p: unknown): Personalizacion | undefined {
     nombre: str(o.nombre, 40),
     telefono: typeof o.telefono === "string" ? str(o.telefono, 30) : undefined,
     fuente: str(o.fuente, 30),
+    // Dónde va el parche en cada pieza (lo valida normalizarPersonalizacion).
+    posiciones: o.posiciones && typeof o.posiciones === "object" ? (o.posiciones as Personalizacion["posiciones"]) : undefined,
     // Solo links de imágenes que subimos nosotros.
     imagenUrl: imagenUrl && esImagenNuestra(imagenUrl) ? imagenUrl : undefined,
   };

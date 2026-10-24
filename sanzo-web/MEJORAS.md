@@ -317,3 +317,21 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - [ ] Medidas reales máximas de cada pieza (`piezas[x].cm`).
 - [ ] Fotos de muestras grabadas para ajustar `grabado` y `borde` de cada color.
 - [ ] Fotos de cada pieza sin la etiqueta clara de ejemplo (en el arnés se asoma detrás de parches chicos).
+
+## 2026-10-24 (tarde) · Personalizador sobre las piezas reales, parche que se arrastra
+
+- **Fotos reales sin fondo** como base de la vista (`public/productos/personalizar/*.webp`): arnés, correa, collar, poo bag y bandana, recortadas de las fotos con logo real (`solo/<pieza>/1.jpg`) y limpias de sombra. Se ven sobre lino con una sombra suave.
+- **El parche se arrastra con el dedo** dentro de la tela de cada pieza: en el arnés, toda la pechera menos el logo y el ribete; en correa, collar y poo bag, a lo largo de la tela y sin herrajes ni logo. Las zonas están en `personalizar/zonas.json` (se arman solas a partir de la foto recortada). Mientras arrastra se ve suave por dónde puede ir; si no entra, se achica solo.
+- **Vista cuadrada y más cerca** de cada pieza (en la correa, la manija; antes se veía chiquito y "re recortado").
+- **Pasos nuevos**: 1 · ¿Qué grabamos? (Su nombre / **Tu imagen**, con la subida ahí mismo) → 2 · Forma → 3 · Color → 4 · Medida. "Material" se oculta mientras haya uno solo para elegir.
+- **Ubicación en el Hub**: cada ítem personalizado muestra la foto de cada pieza con un punto rojo donde lo dejó el cliente.
+
+### Falta
+- [ ] Medir las piezas reales y ajustar `pxCm` y `cm` de cada una (hoy estimados).
+- [ ] Gorra y piluso siguen con su foto vieja y sin zona (no están en ningún producto con arnés, así que hoy no se personalizan).
+- [ ] La traba negra del collar quedó un poco comida en el recorte.
+- 2026-10-24 · **Corrección de Santi: las piezas se personalizan estiradas.**
+  - **Collar**: foto real estirada que pasó Santi (sin fondo, sin la mano, horizontal y derecho). El parche va solo en el tramo entre el logo y el pasador. La vista se adapta a piezas apaisadas (ocupa todo el ancho).
+  - **Poo bag**: el parche va **solo en la cara opuesta al logo**. PROVISORIO: el dorso se armó espejando el frente y borrando el logo con la misma tela; cambiar por una foto real del dorso (`personalizar/poo-bag.webp`).
+  - [ ] **Correa estirada**: falta la foto (estirada, sobre fondo liso, de arriba). Hoy sigue la enrollada.
+  - Cómo se arman las fotos y zonas: fondo con `@imgly/background-removal-node` (modelo medium) + limpieza de sombra; zonas con el script de la sesión (tela sin ribete claro, logo ni herrajes, achicada 10 px, grilla de 6 px) → `personalizar/zonas.json`.

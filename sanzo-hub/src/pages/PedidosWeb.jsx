@@ -191,6 +191,20 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete }) {
               {(it.opcion || it.personalizacion) && (
                 <div className="muted small">{[it.opcion, it.personalizacion && `Personalizado: ${it.personalizacion}`].filter(Boolean).join(' · ')}</div>
               )}
+              {/* Dónde va el parche en cada pieza (lo eligió arrastrándolo en la web). */}
+              {it.ubicacion?.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+                  {it.ubicacion.map((u) => (
+                    <div key={u.pieza} className="small muted" style={{ textAlign: 'center' }}>
+                      <div style={{ position: 'relative', width: 72, height: 90, background: '#f4ede3', borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(0,0,0,.08)' }}>
+                        <img src={u.foto} alt={u.pieza} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <span style={{ position: 'absolute', left: `${u.x}%`, top: `${u.y}%`, width: 10, height: 10, marginLeft: -5, marginTop: -5, borderRadius: 99, background: '#c0392b', boxShadow: '0 0 0 2px #fff' }} />
+                      </div>
+                      {u.pieza}
+                    </div>
+                  ))}
+                </div>
+              )}
               {/* Imagen que subió para grabar: tocándola se abre la original en alta calidad (para descargarla). */}
               {it.imagen ? (
                 <a href={it.imagen} target="_blank" rel="noreferrer" className="small" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
