@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../context/AppContext.jsx'
 import { PageHeader, ConfirmDialog, EmptyState, Segmented } from '../components/ui/Primitives.jsx'
-import { IconCheck, IconX, IconPhone, IconRefresh } from '../components/ui/Icons.jsx'
+import { IconCheck, IconX, IconPhone, IconRefresh, IconTrash } from '../components/ui/Icons.jsx'
 import { fmtARS, fmtNum } from '../utils/format.js'
 
 // Pedidos que entran por la tienda (sanzo-web). Los pagados con Mercado Pago se pasan solos a
@@ -28,11 +28,23 @@ function linkWhatsapp(celular) {
 }
 
 export default function PedidosWeb() {
-  const { state, confirmWebOrder, setWebOrderStatus } = useApp()
+  const { state, confirmWebOrder, setWebOrderStatus, removeItem, removeSale, notify } = useApp()
   const orders = state.webOrders
   const [seg, setSeg] = useState('open')
   const [confirming, setConfirming] = useState(null)
   const [canceling, setCanceling] = useState(null)
+  const [deleting, setDeleting] = useState(null)
+
+  // Ventas que salieron de este pedido (las crea la base con webOrderId al confirmarlo).
+  const ventasDe = (o) => state.sales.filter((s) => s.webOrderId === o.id)
+
+  // Para pedidos de prueba o cargados por error: borra el pedido y sus ventas, y devuelve el stock.
+  const borrar = (o) => {
+    const ventas = ventasDe(o)
+    for (const s of ventas) removeSale(s.id, { restoreStock: true })
+    removeItem('webOrders', o.id)
+    notify(ventas.length ? `Pedido borrado, con sus ${ventas.length} ventas. Stock devuelto.` : 'Pedido borrado')
+  }
 
   const sorted = useMemo(() => [...orders].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')), [orders])
   const filtered = sorted.filter((o) => (seg === 'open' ? !cerrado(o) : seg === 'done' ? o.aplicado : true))
@@ -76,7 +88,7 @@ export default function PedidosWeb() {
         ) : (
           <div className="grid grid-2" style={{ marginTop: 14 }}>
             {filtered.map((o) => (
-              <OrderCard key={o.id} order={o} onConfirm={() => setConfirming(o)} onCancel={() => setCanceling(o)} onReopen={() => setWebOrderStatus(o.id, 'a_coordinar')} />
+              <OrderCard key={o.id} order={o} onConfirm={() => setConfirming(o)} onCancel={() => setCanceling(o)} onReopen={() => setWebOrderStatus(o.id, 'a_coordinar')} onDelete={() => setDeleting(o)} />
             ))}
           </div>
         )}
@@ -99,6 +111,17 @@ export default function PedidosWeb() {
         message="No toca ventas ni stock. Lo podés reactivar después."
         confirmLabel="Sí, cancelar"
       />
+      <ConfirmDialog
+        open={!!deleting}
+        onClose={() => setDeleting(null)}
+        onConfirm={() => borrar(deleting)}
+        title={`¿Borrar el pedido ${deleting?.numero || ''}?`}
+        message={
+          deleting && ventasDe(deleting).length
+            ? `Se borra el pedido y sus ${ventasDe(deleting).length} ventas, y vuelve el stock. Para pedidos de prueba o cargados por error. La plata de Mercado Pago no se devuelve sola: eso se hace en MP.`
+            : 'Se borra el pedido. No tiene ventas cargadas.'
+        }
+      />
     </div>
   )
 }
@@ -115,7 +138,7 @@ function Stat({ label, value, sub }) {
   )
 }
 
-function OrderCard({ order: o, onConfirm, onCancel, onReopen }) {
+function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete }) {
   const c = o.cliente || {}
   const est = ESTADOS[o.estado] || ESTADOS.a_coordinar
   const wa = linkWhatsapp(c.celular)
@@ -137,9 +160,14 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen }) {
           </div>
           <div className="muted small">{fmtCuando(o.createdAt)}</div>
         </div>
-        <div className="serif" style={{ fontSize: 22, textAlign: 'right' }}>
-          {fmtARS(o.total)}
-          {o.envioACotizar && <div className="muted small">+ envío</div>}
+        <div className="row" style={{ gap: 2, alignItems: 'flex-start' }}>
+          <div className="serif" style={{ fontSize: 22, textAlign: 'right' }}>
+            {fmtARS(o.total)}
+            {o.envioACotizar && <div className="muted small">+ envío</div>}
+          </div>
+          <button className="btn btn-icon" onClick={onDelete} aria-label="Borrar pedido" title="Borrar pedido">
+            <IconTrash />
+          </button>
         </div>
       </div>
 
