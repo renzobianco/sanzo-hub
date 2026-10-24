@@ -1,5 +1,6 @@
 "use client";
 
+import { Rollito } from "./Rollito";
 import Image from "next/image";
 import { Fragment, useEffect, useRef, useState } from "react";
 import type { Producto } from "@/data/products";
@@ -136,9 +137,7 @@ export function FichaProducto({
                             className={`object-cover transition-transform duration-[1.2s] ease-suave ${arriba ? "scale-100" : "scale-[1.06]"}`}
                           />
                           {/* Detalles señalados en la primera foto (se dibujan al abrir y al volver a ella). */}
-                          {i === 0 && producto.detalles && producto.detalles.length > 0 && (
-                            <Detalles puntos={producto.detalles} visible={arriba && foto === 0} />
-                          )}
+                          {i === 0 && <Detalles id={producto.id} visible={arriba && foto === 0} />}
                         </div>
                       </ConZoom>
                     </li>
@@ -159,7 +158,10 @@ export function FichaProducto({
                 arriba ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
               }`}
             >
-              <h2 className="text-2xl font-light uppercase tracking-marca">{producto.nombre}</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-light uppercase tracking-marca">{producto.nombre}</h2>
+                {producto.incluyeExtra && <Rollito texto={producto.incluyeExtra} />}
+              </div>
               {producto.precio !== null && <p className="mt-1.5 text-xl font-light tracking-wide">{formatearPrecio(producto.precio)}</p>}
               {producto.descripcion && <p className="mt-3 text-[15px] text-tinta/75">{producto.descripcion}</p>}
 

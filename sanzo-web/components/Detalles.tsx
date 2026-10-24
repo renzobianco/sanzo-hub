@@ -1,63 +1,187 @@
 "use client";
 
-import type { Producto } from "@/data/products";
+import { useEffect, useRef, useState } from "react";
+import { detallesDe, type Detalle } from "@/data/detalles";
 
-type Punto = NonNullable<Producto["detalles"]>[number];
+/** Largo del tramo recto que entra a la etiqueta (en % de la foto). */
+const TRAMO = 4;
+
+/** La etiqueta sale siempre del lado contrario al puntito: la línea nunca la cruza. */
+const lado = (p: Detalle) => (p.tx >= p.x ? 1 : -1);
 
 /**
- * Detalles señalados sobre la foto (estilo ficha técnica): un puntito en la pieza, una línea negra
- * que se dibuja sola y una etiqueta corta al final. No toma toques: tocar la foto sigue abriendo el zoom.
- * Coordenadas en % de la foto tal como se ve en la ficha (cuadrada).
+ * Detalles señalados sobre la foto (estilo ficha técnica): un puntito sobre la pieza, una línea fina
+ * que se dibuja sola (diagonal + tramo recto) y una tarjetita con el título y para qué sirve.
+ * No toma toques: tocar la foto sigue abriendo el zoom.
+ *
+ * Editor a mano (solo en tu compu, con `?editar` en la dirección): arrastrás el puntito y la etiqueta,
+ * cambiás textos, y "Guardar" lo escribe en `data/detalles.json`.
  */
-export function Detalles({ puntos, visible }: { puntos: Punto[]; visible: boolean }) {
+export function Detalles({ id, visible }: { id: string; visible: boolean }) {
+  const [puntos, setPuntos] = useState<Detalle[]>(() => detallesDe(id));
+  const [editar, setEditar] = useState(false);
+  const [sel, setSel] = useState(0);
+  const [estado, setEstado] = useState("");
+  const [barraAbajo, setBarraAbajo] = useState(false);
+  const caja = useRef<HTMLDivElement>(null);
+  const arrastre = useRef<{ i: number; que: "punto" | "etiqueta"; dx: number; dy: number } | null>(null);
+
+  useEffect(() => {
+    setEditar(process.env.NODE_ENV === "development" && new URLSearchParams(location.search).has("editar"));
+  }, []);
+
+  if (!editar && puntos.length === 0) return null;
+  const ver = visible || editar;
+
+  const enPorcentaje = (e: React.PointerEvent) => {
+    const r = caja.current!.getBoundingClientRect();
+    return { x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 };
+  };
+  const cambiar = (i: number, c: Partial<Detalle>) => {
+    setPuntos((ps) => ps.map((p, j) => (j === i ? { ...p, ...c } : p)));
+    setEstado("Sin guardar");
+  };
+  const agarrar = (i: number, que: "punto" | "etiqueta") => (e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const m = enPorcentaje(e);
+    const p = puntos[i];
+    arrastre.current = que === "punto" ? { i, que, dx: p.x - m.x, dy: p.y - m.y } : { i, que, dx: p.tx - m.x, dy: p.ty - m.y };
+    setSel(i);
+  };
+  const mover = (e: React.PointerEvent) => {
+    const a = arrastre.current;
+    if (!a) return;
+    const m = enPorcentaje(e);
+    const lim = (v: number) => Math.round(Math.min(100, Math.max(0, v)) * 10) / 10;
+    cambiar(a.i, a.que === "punto" ? { x: lim(m.x + a.dx), y: lim(m.y + a.dy) } : { tx: lim(m.x + a.dx), ty: lim(m.y + a.dy) });
+  };
+  const soltar = () => (arrastre.current = null);
+
+  const guardar = async () => {
+    setEstado("Guardando…");
+    const r = await fetch("/api/detalles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, puntos }) });
+    setEstado(r.ok ? "Guardado ✓" : "No se pudo guardar");
+  };
+  const textos = (i: number) => {
+    const p = puntos[i];
+    if (!p) return;
+    const texto = prompt("Título (corto)", p.texto);
+    if (texto === null) return;
+    const sub = prompt("Para qué sirve (una línea, opcional)", p.sub ?? "");
+    cambiar(i, { texto, sub: sub || undefined });
+  };
+
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+    <div
+      ref={caja}
+      aria-hidden="true"
+      className={`absolute inset-0 ${editar ? "touch-none" : "pointer-events-none"}`}
+      // En el editor, que tocar no abra el zoom ni deslice las fotos.
+      onClick={editar ? (e) => (e.preventDefault(), e.stopPropagation()) : undefined}
+      onPointerMove={editar ? mover : undefined}
+      onPointerUp={editar ? soltar : undefined}
+    >
       {/* La foto es cuadrada: el dibujo escala parejo y la línea mantiene su grosor. */}
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
-        {puntos.map((p, i) => (
-          <line
-            key={p.texto}
-            x1={p.x}
-            y1={p.y}
-            x2={p.tx}
-            y2={p.ty}
-            pathLength={1}
-            stroke="rgb(var(--tinta))"
-            strokeWidth={0.38}
-            strokeDasharray="1"
-            style={{
-              strokeDashoffset: visible ? 0 : 1,
-              transition: `stroke-dashoffset 700ms cubic-bezier(0.16, 1, 0.3, 1) ${450 + i * 180}ms`,
-            }}
-          />
-        ))}
+        {puntos.map((p, i) => {
+          const s = lado(p);
+          return (
+            <polyline
+              key={i}
+              points={`${p.x},${p.y} ${p.tx - s * TRAMO},${p.ty} ${p.tx},${p.ty}`}
+              pathLength={1}
+              fill="none"
+              stroke="rgb(var(--tinta))"
+              strokeOpacity={0.85}
+              strokeWidth={0.3}
+              strokeLinejoin="round"
+              strokeDasharray="1"
+              style={{
+                strokeDashoffset: ver ? 0 : 1,
+                transition: editar ? "none" : `stroke-dashoffset 800ms cubic-bezier(0.16, 1, 0.3, 1) ${450 + i * 200}ms`,
+              }}
+            />
+          );
+        })}
       </svg>
 
       {puntos.map((p, i) => (
-        <span key={p.texto}>
-          {/* Puntito con un latido suave. */}
+        <span key={i}>
+          {/* Puntito: aro crema con centro oscuro y un latido suave. */}
           <span
-            className="absolute flex h-3 w-3 -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-opacity duration-500"
-            style={{ left: `${p.x}%`, top: `${p.y}%`, opacity: visible ? 1 : 0, transitionDelay: `${350 + i * 180}ms` }}
+            onPointerDown={editar ? agarrar(i, "punto") : undefined}
+            className={`absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-opacity duration-500 ${editar ? "h-8 w-8 cursor-grab" : "h-3.5 w-3.5"}`}
+            style={{ left: `${p.x}%`, top: `${p.y}%`, opacity: ver ? 1 : 0, transitionDelay: editar ? "0ms" : `${350 + i * 200}ms` }}
           >
-            <span className="absolute inset-0 animate-ping rounded-full bg-crema/70 [animation-duration:2.4s]" />
-            <span className="relative h-2 w-2 rounded-full bg-tinta ring-2 ring-crema" />
+            <span className="absolute h-3.5 w-3.5 animate-ping rounded-full bg-crema/60 [animation-duration:2.6s]" />
+            <span className={`relative h-[9px] w-[9px] rounded-full bg-tinta ring-[2.5px] ring-crema ${editar && sel === i ? "outline outline-2 outline-marron" : ""}`} />
           </span>
-          {/* Etiqueta al final de la línea. */}
+          {/* Etiqueta: título + para qué sirve, al final del tramo recto. */}
           <span
-            className="absolute whitespace-nowrap rounded-full bg-crema/90 px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] text-tinta shadow-[0_4px_14px_-6px_rgb(var(--tinta)/0.5)] transition-[opacity,transform] duration-500 ease-suave"
+            onPointerDown={editar ? agarrar(i, "etiqueta") : undefined}
+            onDoubleClick={editar ? () => textos(i) : undefined}
+            className={`absolute w-max max-w-[8rem] rounded-[0.55rem] bg-crema/90 px-2 py-[5px] shadow-[0_6px_18px_-8px_rgb(var(--tinta)/0.55)] backdrop-blur-[3px] transition-[opacity,transform] duration-700 ease-suave ${
+              lado(p) < 0 ? "text-right" : "text-left"
+            } ${editar ? "cursor-grab" : ""} ${editar && sel === i ? "ring-1 ring-marron" : ""}`}
             style={{
               left: `${p.tx}%`,
               top: `${p.ty}%`,
-              opacity: visible ? 1 : 0,
-              transform: `translate(${p.alinear === "izq" ? "-100%" : "0"}, ${visible ? "-50%" : "-20%"})`,
-              transitionDelay: `${800 + i * 180}ms`,
+              opacity: ver ? 1 : 0,
+              transform: `translate(${lado(p) < 0 ? "calc(-100% - 3px)" : "3px"}, ${ver ? "-50%" : "-30%"})`,
+              transitionDelay: editar ? "0ms" : `${850 + i * 200}ms`,
             }}
           >
-            {p.texto}
+            <span className="block text-[9px] uppercase leading-tight tracking-[0.18em] text-tinta">{p.texto}</span>
+            {p.sub && <span className="mt-0.5 block text-[10px] leading-tight text-tinta/65">{p.sub}</span>}
           </span>
         </span>
       ))}
+
+      {editar && (
+        <div className={`absolute inset-x-1.5 flex ${barraAbajo ? "bottom-1.5" : "top-1.5"} flex-wrap items-center gap-1 rounded-lg bg-tinta/85 p-1 text-[10px] text-crema`} onPointerDown={(e) => e.stopPropagation()}>
+          <BotonEditor
+            onClick={() => {
+              setPuntos((ps) => [...ps, { x: 50, y: 50, tx: 58, ty: 35, texto: "Detalle", sub: "Para qué sirve" }]);
+              setSel(puntos.length);
+              setEstado("Sin guardar");
+            }}
+          >
+            + Punto
+          </BotonEditor>
+          <BotonEditor onClick={() => setBarraAbajo((b) => !b)}>{barraAbajo ? "Barra ↑" : "Barra ↓"}</BotonEditor>
+          <BotonEditor onClick={() => textos(sel)}>Texto</BotonEditor>
+          <BotonEditor
+            onClick={() => {
+              setPuntos((ps) => ps.filter((_, j) => j !== sel));
+              setSel(0);
+              setEstado("Sin guardar");
+            }}
+          >
+            Borrar
+          </BotonEditor>
+          <BotonEditor onClick={guardar} fuerte>
+            Guardar
+          </BotonEditor>
+          {estado && <span className="px-1 text-crema/80">{estado}</span>}
+        </div>
+      )}
     </div>
+  );
+}
+
+function BotonEditor({ onClick, fuerte, children }: { onClick: () => void; fuerte?: boolean; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClick();
+      }}
+      className={`rounded-md px-2 py-1.5 ${fuerte ? "bg-crema text-tinta" : "bg-crema/15"}`}
+    >
+      {children}
+    </button>
   );
 }

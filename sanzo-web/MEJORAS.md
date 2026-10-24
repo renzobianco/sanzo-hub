@@ -283,6 +283,23 @@ Lo que definió Santi (2026-10-16):
 - La chapita tiene foto nueva para miniaturas: `public/productos/piezas/chapita.jpg` (las 4 formas, recorte de la foto del combo).
 - En el Hub se carga como 2 ventas: collar y chapita.
 
+## 2026-10-24 · Fotos de los individuales y rollito
+
+- **Individuales (arnés, correa, collar, moño, bandana, poo bag)**: 1ª foto = la del artículo con el logo real (`solo/<pieza>/1.jpg`); se sacó la foto vieja sin logo. 2ª y 3ª = piezas de IG aprobadas ("sin texto"), más cerca o con perro: arnés salchicha + doodle; correa vereda + montaña; collar peludo (hebilla y etiqueta de cerca) + nieve; moño dachshund + café; bandana de cerca (p11) + perrito; poo bag madera (con el rollito asomando) + corgi. Gorra y piluso sin tocar.
+- **Arnés**: el logo de la etiqueta se veía muy negro → pasado a marrón (solo esa zona de la foto).
+- **Moño**: el color durazno pasado a camel/marrón como el moño real (solo el moño, sin tocar el fondo).
+- **"+ rollito" con forma de rollito** (`components/Rollito.tsx`): una punta enrollada en espiral (gira lento; se apaga con "reducir movimiento") y el texto sobre la tira. Ahora sale también en la tarjeta del poo bag suelto y en su ficha (antes solo en kit y combos).
+- [ ] Santi: confirmar si el marrón del moño y del logo quedó bien, y si la forma del rollito es lo que imaginaba.
+- 2026-10-24 · **Moño rehecho** en ChatGPT (Sanzo Plus) desde cero, con la tela mate y el color del moño real (Santi: la corrección de color a mano quedaba fea). Reemplaza `solo/mono/1.jpg`.
+
+## 2026-10-24 · Detalles de la ficha: más premium y editables a mano
+
+- **Nuevo diseño** (`components/Detalles.tsx`): puntito con aro crema, línea fina diagonal + tramo recto que entra a la etiqueta, y tarjetita con **título + para qué sirve** (ej. "Traba rápida · Se pone en un segundo"). La etiqueta sale siempre del lado contrario al puntito: la línea nunca la cruza.
+- **Puntos corregidos** sobre las fotos con logo real: arnés (Personalizable, Traba rápida), correa (Manija, 152 cm, Mosquetón), collar (Traba rápida, Regulable, Argolla — antes estaban sobre la tela), poo bag (Rollito en el dispensador, Mosquetón en el gancho, Cierre).
+- **Editor a mano** (Santi lo pidió): con `npm run dev` abrir `localhost:3010/?editar`, abrir la ficha y: arrastrar el puntito o la etiqueta, "Texto" (o doble toque en la etiqueta) para cambiar título y línea, "+ Punto", "Borrar", "Barra ↓/↑" para mover la barra, "Guardar". Se escribe en `data/detalles.json` (`/api/detalles`, solo funciona en local). Después hay que commitear y pushear para que salga en la web.
+- Los detalles se sacaron de `data/products.ts` (ahora viven en `data/detalles.json`).
+- [ ] Moño, bandana, gorra y piluso siguen sin detalles (falta confirmar cómo se enganchan). Se pueden agregar con el editor.
+
 ## 2026-10-24 · Personalizador del parche, versión completa
 
 Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable en `personalizacion` de `data/products.ts`.

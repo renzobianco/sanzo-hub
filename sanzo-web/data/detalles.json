@@ -1,0 +1,21 @@
+{
+  "arnes": [
+    { "x": 58.5, "y": 27, "tx": 64, "ty": 8, "texto": "Personalizable", "sub": "Su nombre en el parche" },
+    { "x": 16.5, "y": 77, "tx": 23, "ty": 92, "texto": "Traba rápida", "sub": "Se regula en pecho y cuello" }
+  ],
+  "correa": [
+    { "x": 83, "y": 9, "tx": 72, "ty": 22, "texto": "Manija de mano", "sub": "Cómoda en todo el paseo" },
+    { "x": 25, "y": 45, "tx": 33, "ty": 58, "texto": "152 cm", "sub": "Libertad para explorar" },
+    { "x": 51, "y": 89, "tx": 42, "ty": 80, "texto": "Mosquetón", "sub": "Engancha y suelta fácil" }
+  ],
+  "collar": [
+    { "x": 14.5, "y": 39.5, "tx": 22, "ty": 9, "texto": "Traba rápida", "sub": "Se pone en un segundo" },
+    { "x": 90.5, "y": 42, "tx": 84, "ty": 24, "texto": "Regulable", "sub": "De 33 a 51 cm" },
+    { "x": 20, "y": 57.5, "tx": 27, "ty": 88, "texto": "Argolla", "sub": "Para la correa o su chapita" }
+  ],
+  "poo-bag": [
+    { "x": 34.5, "y": 45, "tx": 41, "ty": 74, "texto": "Trae un rollito", "sub": "Lista para salir" },
+    { "x": 53, "y": 83, "tx": 60, "ty": 93, "texto": "Mosquetón", "sub": "Va colgada de la correa" },
+    { "x": 70.5, "y": 58, "tx": 62, "ty": 12, "texto": "Cierre", "sub": "Para recargar bolsitas" }
+  ]
+}

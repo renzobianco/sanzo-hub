@@ -1,3 +1,4 @@
+import { Rollito } from "./Rollito";
 import Image from "next/image";
 import { getProducto } from "@/data/products";
 import { ImagenProducto } from "./ImagenProducto";
@@ -16,7 +17,7 @@ export function MiniPiezas({ incluye, columnas = "grid-cols-3" }: { incluye: str
           <li key={pieza} className="pieza text-center" style={{ transitionDelay: `${250 + i * 80}ms` }}>
             <span className="relative mx-auto block w-full max-w-[76px]">
             {/* Lo que trae adentro (ej. "+ rollito"): etiqueta chiquita sobre el círculo. */}
-            {p?.incluyeExtra && <span className="pointer-events-none absolute -right-1 -top-1 z-10 animate-pop whitespace-nowrap rounded-full bg-tinta px-1.5 py-0.5 text-[9px] lowercase tracking-[0.06em] text-crema shadow-[0_3px_8px_-3px_rgb(var(--tinta)/0.6)] [animation-delay:600ms]">{p.incluyeExtra}</span>}
+            {p?.incluyeExtra && <Rollito texto={p.incluyeExtra} className="absolute -right-1 -top-1 z-10" />}
             {p?.miniatura ? (
               // Artículo sobre fondo claro: el multiply funde el fondo de la foto con el lino.
               <span className="relative block aspect-square w-full overflow-hidden rounded-full bg-lino ring-1 ring-tinta/5">

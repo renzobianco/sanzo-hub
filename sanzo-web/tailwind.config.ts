@@ -24,6 +24,9 @@ const config: Config = {
         amplio: "0.32em",
       },
       keyframes: {
+        girar: {
+          to: { transform: "rotate(360deg)" },
+        },
         brillo: {
           from: { transform: "translateX(-100%)" },
           to: { transform: "translateX(500%)" },
@@ -101,6 +104,7 @@ const config: Config = {
         cinta: "cinta 32s linear infinite",
         "cinta-derecha": "cintaDerecha 70s linear infinite",
         bajar: "bajar 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite",
+        "girar-lento": "girar 6s linear infinite",
       },
     },
   },
