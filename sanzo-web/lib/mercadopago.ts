@@ -74,6 +74,8 @@ export async function crearPreferencia(numero: string, c: DatosCheckout, t: Tota
       },
       back_urls: { success: volver("aprobado"), pending: volver("pendiente"), failure: volver("rechazado") },
       auto_return: "approved",
+      // MP avisa acá cada cambio del pago; con eso el pedido se pasa solo a ventas del Hub.
+      notification_url: `${origen}/api/mp-webhook`,
     }),
   });
   if (!res.ok) throw new Error(`Mercado Pago ${res.status}: ${await res.text()}`);

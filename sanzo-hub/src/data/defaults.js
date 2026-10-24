@@ -16,6 +16,7 @@ export const PRODUCT_DEFS = [
   { id: 'portabolsa', name: 'Portabolsa', description: 'Pieza suelta del kit', isKit: false },
   { id: 'gorra', name: 'Gorra', description: 'Gorra para perro', isKit: false },
   { id: 'piluso', name: 'Piluso', description: 'Piluso para perro', isKit: false },
+  { id: 'chapita', name: 'Chapita', description: 'Chapita grabada (se vende en la web)', isKit: false },
 ]
 
 export const CHANNELS = ['Instagram', 'X', 'Facebook', 'WhatsApp', 'Tienda online', 'En persona']
@@ -155,5 +156,6 @@ export function buildInitialState() {
     phases: DEFAULT_PHASES.map((p) => ({ ...p })),
     contentPosts: [],
     notes: [],
+    webOrders: [],
   }
 }

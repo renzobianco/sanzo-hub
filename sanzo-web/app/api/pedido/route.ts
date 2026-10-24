@@ -3,6 +3,7 @@ import { calcularTotales, type LineaCarrito, type Totales } from "@/lib/carrito"
 import { formatearPrecio, textoEnvio } from "@/lib/formato";
 import { crearPreferencia, pagoOnlineActivo, sePuedeCobrar } from "@/lib/mercadopago";
 import type { PedidoEntrada, PedidoRespuesta } from "@/lib/pedido";
+import { guardarPedidoEnHub } from "@/lib/hub";
 import { textoPersonalizacion, type Personalizacion } from "@/lib/personalizacion";
 import { textoOpcion } from "@/lib/combos";
 import { validarCheckout, type DatosCheckout } from "@/lib/validacion";
@@ -208,6 +209,9 @@ export async function POST(req: Request) {
       );
     }
   }
+
+  // Copia en "Pedidos web" del Hub (se pasa a ventas cuando se confirma el pago).
+  await guardarPedidoEnHub(numero, cliente, totales, linkPago);
 
   // Sin credenciales de MP: link fijo del producto, solo si es un único producto (1 unidad), al precio
   // del link y sin envío a cobrar (el link de MP tiene precio fijo y no incluye el envío).

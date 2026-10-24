@@ -25,6 +25,7 @@ export const TABLES = {
   stockLog: 'sanzo_stock_log',
   contentPosts: 'sanzo_content_posts',
   notes: 'sanzo_notes',
+  webOrders: 'sanzo_web_orders',
 }
 
 export const COLLECTION_TABLES = Object.values(TABLES)

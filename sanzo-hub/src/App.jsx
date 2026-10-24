@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useApp } from './context/AppContext.jsx'
 import { Sidebar, BottomNav, TopBar, BackupBanner, UserPicker, useDocumentTitle } from './components/layout/Layout.jsx'
 import { Toast } from './components/ui/Primitives.jsx'
-import { IconHome, IconTag, IconReceipt, IconBox, IconChart, IconShip, IconTarget, IconUsers, IconCalendar, IconSettings, IconNote } from './components/ui/Icons.jsx'
+import { IconHome, IconTag, IconReceipt, IconBox, IconChart, IconShip, IconTarget, IconUsers, IconCalendar, IconSettings, IconNote, IconSend } from './components/ui/Icons.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Ventas from './pages/Ventas.jsx'
 import Gastos from './pages/Gastos.jsx'
@@ -14,10 +14,12 @@ import Clientes from './pages/Clientes.jsx'
 import Calendario from './pages/Calendario.jsx'
 import Ajustes from './pages/Ajustes.jsx'
 import Notas from './pages/Notas.jsx'
+import PedidosWeb from './pages/PedidosWeb.jsx'
 
 const NAV = [
   { key: 'dashboard', label: 'Inicio', icon: IconHome, page: Dashboard },
   { key: 'ventas', label: 'Ventas', icon: IconTag, page: Ventas },
+  { key: 'web', label: 'Pedidos web', short: 'Web', icon: IconSend, page: PedidosWeb },
   { key: 'gastos', label: 'Gastos', icon: IconReceipt, page: Gastos },
   { key: 'productos', label: 'Productos y stock', short: 'Stock', icon: IconBox, page: Productos },
   { key: 'calendario', label: 'Calendario', icon: IconCalendar, page: Calendario },

@@ -54,7 +54,7 @@ function hydrate(raw) {
     const saved = byId.get(def.id) || {}
     return { ...base.products.find((p) => p.id === def.id), ...saved, id: def.id, name: def.name, isKit: def.isKit }
   })
-  for (const key of ['sales', 'expenses', 'orders', 'goals', 'followers', 'clients', 'phases', 'stockLog', 'contentPosts', 'notes']) {
+  for (const key of ['sales', 'expenses', 'orders', 'goals', 'followers', 'clients', 'phases', 'stockLog', 'contentPosts', 'notes', 'webOrders']) {
     if (!Array.isArray(merged[key])) merged[key] = base[key]
   }
   if (merged.phases.length === 0) merged.phases = base.phases
@@ -107,6 +107,7 @@ function buildStateFromRows({ stateRows, productRows, collectionRows }) {
     stockLog: collections.stockLog,
     contentPosts: collections.contentPosts,
     notes: collections.notes,
+    webOrders: collections.webOrders,
   }
 }
 
@@ -140,6 +141,12 @@ async function fetchFullState() {
     supabase.from(PRODUCTS_TABLE).select('*'),
     ...Object.values(TABLES).map((t) => supabase.from(t).select('*')),
   ])
+  // Pedidos web: si todavía no se corrió 005_web_orders.sql, el Hub sigue andando sin esa sección.
+  const webIdx = Object.keys(TABLES).indexOf('webOrders')
+  if (collectionRes[webIdx]?.error) {
+    console.warn('Falta la tabla sanzo_web_orders (correr supabase/migrations/005_web_orders.sql)', collectionRes[webIdx].error)
+    collectionRes[webIdx] = { data: [], error: null }
+  }
   for (const r of [stateRes, productsRes, ...collectionRes]) if (r.error) throw r.error
 
   const stateRows = stateRes.data || []
@@ -528,6 +535,31 @@ export function AppProvider({ children }) {
     [notify],
   )
 
+  // ---- pedidos de la web (sanzo-web) ----
+  // Pasar a ventas lo hace la base (aplicar_pedido_web, ver 005_web_orders.sql): crea las ventas,
+  // descuenta el stock y marca el pedido, una sola vez. Los cambios llegan por realtime.
+  const confirmWebOrder = useCallback(
+    async (id) => {
+      const { data, error } = await supabase.rpc('aplicar_pedido_web', {
+        p_id: id,
+        p_pago: { manual: true, por: currentUser, fecha: new Date().toISOString() },
+      })
+      if (error) return notify('No se pudo confirmar el pedido: ' + error.message, 'error')
+      if (data === 'ya_aplicado') return notify('Ese pedido ya estaba pasado a ventas.')
+      notify('Pedido confirmado. Ventas cargadas y stock descontado.')
+    },
+    [currentUser, notify],
+  )
+
+  const setWebOrderStatus = useCallback(
+    async (id, estado) => {
+      const { data, error } = await supabase.rpc('estado_pedido_web', { p_id: id, p_estado: estado, p_pago: null })
+      if (error) return notify('No se pudo cambiar el estado: ' + error.message, 'error')
+      if (data === 'ya_aplicado') return notify('Ya está pasado a ventas: para anularlo, borrá esas ventas en Ventas.', 'error')
+    },
+    [notify],
+  )
+
   // ---- pedidos a China: recepción ----
   const receiveOrder = useCallback(
     (orderId, { addStock, addExpense }) => {
@@ -691,6 +723,8 @@ export function AppProvider({ children }) {
       updateSale,
       removeSale,
       receiveOrder,
+      confirmWebOrder,
+      setWebOrderStatus,
       exportBackup,
       importBackup,
       resetAll,
@@ -718,6 +752,8 @@ export function AppProvider({ children }) {
       updateSale,
       removeSale,
       receiveOrder,
+      confirmWebOrder,
+      setWebOrderStatus,
       exportBackup,
       importBackup,
       resetAll,

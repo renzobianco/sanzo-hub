@@ -32,6 +32,7 @@ Desde el celular en la misma red Wi-Fi: `npm run dev -- --host` y entrá a la IP
 | --- | --- |
 | Inicio | KPIs del mes, tendencia de 30 días, últimos movimientos, fase actual, tipo de cambio (con historial y mini-tarjeta "Dólar hoy"), foto de portada, "Contenido de hoy". |
 | Ventas | Alta/edición/baja con descuento automático de stock, filtros, totales del período y ticket promedio. |
+| Pedidos web | Lo que entra por la tienda (sanzo-web). Pagado con Mercado Pago → se pasa solo a Ventas (descuenta stock, suma a la ganancia); "a coordinar" → botón Confirmar venta. Necesita `supabase/migrations/005_web_orders.sql`. |
 | Gastos | ARS o USD, guardando la cotización del día del gasto (histórico) y mostrando también cuánto valdría hoy; categorías, gastos fijos mensuales con recordatorio para cargarlos. |
 | Productos y stock | Costo USD, precio ARS, margen, stock con alerta configurable, ajustes con motivo e historial, valor del inventario. |
 | Calendario | Planificador de contenido (Reels, Historias, carruseles, fotos) con estados, pilares, racha y cadencia, y programación directa en Buffer. |
