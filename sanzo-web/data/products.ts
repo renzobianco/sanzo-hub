@@ -415,10 +415,10 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "El detalle que le cambia la cara al paseo.",
     incluye: [],
-    precio: 9499,
+    precio: 10, // PRUEBA del Hub (2026-10-23): volver a 9499 y envioGratis false
     imagenes: ["/productos/solo/mono/1.jpg", "/productos/solo/mono/2.jpg"],
     medidas: [{ texto: "6 x 9 cm" }],
-    envioGratis: false,
+    envioGratis: true,
     linkPago: "",
     disponible: true,
   },
