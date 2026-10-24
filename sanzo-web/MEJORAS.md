@@ -335,3 +335,18 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
   - **Poo bag**: el parche va **solo en la cara opuesta al logo**. PROVISORIO: el dorso se armó espejando el frente y borrando el logo con la misma tela; cambiar por una foto real del dorso (`personalizar/poo-bag.webp`).
   - [ ] **Correa estirada**: falta la foto (estirada, sobre fondo liso, de arriba). Hoy sigue la enrollada.
   - Cómo se arman las fotos y zonas: fondo con `@imgly/background-removal-node` (modelo medium) + limpieza de sombra; zonas con el script de la sesión (tela sin ribete claro, logo ni herrajes, achicada 10 px, grilla de 6 px) → `personalizar/zonas.json`.
+- 2026-10-24 (noche) · **Fotos nuevas de Santi** (cada pieza estirada y de frente sobre la manta rayada) → base del personalizador.
+  - Arnés, correa entera, collar estirado, **dorso real** del poo bag y bandana colgando (punta abajo), sin fondo, sin halo en los bordes y con el logo derecho.
+  - **Zona = todo lo marrón de frente** (sin ribete claro, logo ni herrajes negros), grilla de 3 px. Mientras arrastran se ve suave (imagen `<pieza>-zona.webp`, sin pixelado).
+  - **Pieza entera, sin difuminado** que tape partes. El ancho de la vista sale de la proporción de cada pieza.
+  - **Correa y collar: lupa "De cerca"** debajo de la pieza entera para mover el parche fino (también se arrastra ahí).
+  - Escalas estimadas: correa 17,5 px/cm (tira de 2 cm), collar 25 px/cm (2,5 cm), arnés 32, poo bag 38, bandana 29. Ajustar con medidas reales.
+
+## 2026-10-24 (noche) · Personalizador HD, fluido y por pasos (estilo Away)
+
+- **Fotos de estudio HD** de las 5 piezas, hechas con el ChatGPT de Sanzo a partir de las fotos reales de Santi (aprobadas por Santi). Etiquetas: siempre el **parche real** (`sanzo\herramientas\colocar-parches\parche.png`) pegado encima, nunca el logo que dibuja la IA. Bandana: parche abajo, cerca de la punta. Poo bag: dorso (sin logo), cierre a la izquierda. Copias en `sanzo\salidas\personalizador\`.
+- **Arrastre fluido**: el parche se dibuja una sola vez y se mueve como capa con transform (placa de video); React no redibuja nada mientras se arrastra. Fotos en HTML (no SVG) y precargadas al abrir el editor.
+- **Pasos** (uno por pantalla, con barra de progreso): 1 Lugar → 2 Qué grabamos → 3 Forma y color → 4 Medida. "Atrás" / "Siguiente" y "Listo" al final. No deja pasar del 2 sin nombre o imagen.
+- **Lugares fijos** por pieza (`piezas[x].lugares`), con un toque el parche viaja suave; "A mano" si lo arrastran:
+  - Arnés: Bajo el logo · Abajo. Correa: Cerca de la manija · Al medio · Cerca del mosquetón. Collar: Junto al logo · Antes de la hebilla. Poo bag: Centro · Arriba. Bandana: Centro · Arriba.
+- Escalas (`pxCm`) medidas con el ancho de las tiras (correa 2 cm, collar 2,5 cm) y la etiqueta del arnés: confirmar con medidas reales.

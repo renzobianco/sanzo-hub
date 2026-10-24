@@ -89,6 +89,12 @@ export interface PiezaPersonalizable {
   giro?: number;
   /** Lo máximo que entra en esta pieza, en cm. En las piezas con zona, además tiene que caber en la zona. */
   cm: { ancho: number; alto: number };
+  /** Imagen suave de la zona donde puede ir el parche (se ve mientras lo arrastran). */
+  zona?: string;
+  /** Lugares fijos para elegir con un toque (estilo Away), en píxeles de la foto. Igual se puede arrastrar a mano. */
+  lugares?: { id: string; nombre: string; x: number; y: number }[];
+  /** Piezas largas (correa, collar): abajo de la pieza entera se ve un acercamiento del parche para moverlo fino. */
+  lupa?: boolean;
 }
 
 /** Material del parche. proximamente: se muestra pero todavía no se puede elegir. */
@@ -296,13 +302,38 @@ export const personalizacion: {
    * las piezas reales.
    */
   piezas: {
-    arnes: { imagen: "/productos/personalizar/arnes.webp", tam: { ancho: 1080, alto: 1350 }, recorte: [130, 261, 820, 820], sinFondo: true, pxCm: 29, inicial: { x: 555, y: 560 }, cm: { ancho: 10, alto: 7 } },
-    correa: { imagen: "/productos/personalizar/correa.webp", tam: { ancho: 1080, alto: 1350 }, recorte: [520, 110, 480, 480], sinFondo: true, pxCm: 28, inicial: { x: 760, y: 300 }, cm: { ancho: 6, alto: 1.7 } },
-    // Collar estirado (foto real de Santi, 2026-10-24). Zona: el tramo entre el logo y el pasador.
-    collar: { imagen: "/productos/personalizar/collar.webp", tam: { ancho: 1600, alto: 500 }, recorte: [300, 40, 800, 400], sinFondo: true, pxCm: 26, inicial: { x: 750, y: 240 }, cm: { ancho: 8, alto: 2 } },
-    bandana: { imagen: "/productos/personalizar/bandana.webp", tam: { ancho: 1080, alto: 1350 }, recorte: [230, 260, 760, 760], sinFondo: true, pxCm: 27, inicial: { x: 640, y: 620 }, cm: { ancho: 8, alto: 6 } },
-    // Dorso del poo bag (la cara sin logo): PROVISORIO, armado espejando el frente; cambiar por la foto real.
-    "poo-bag": { imagen: "/productos/personalizar/poo-bag.webp", tam: { ancho: 1080, alto: 1350 }, recorte: [63, 254, 920, 920], sinFondo: true, pxCm: 50, inicial: { x: 474, y: 595 }, cm: { ancho: 5, alto: 4 } },
+    // Fotos de estudio HD (ChatGPT de Sanzo, a partir de las fotos reales de Santi) con el parche real pegado,
+    // sin fondo. Zonas = todo lo marrón de frente. Lugares fijos: se eligen con un toque (estilo Away).
+    // pxCm medido con el ancho real de cada tira (correa 2 cm, collar 2,5 cm) y la etiqueta del arnés. PROVISORIO: confirmar con medidas.
+    arnes: {
+      imagen: "/productos/personalizar/arnes.webp", zona: "/productos/personalizar/arnes-zona.webp", tam: { ancho: 1222, alto: 1204 }, sinFondo: true,
+      pxCm: 42, inicial: { x: 605, y: 400 }, cm: { ancho: 10, alto: 7 },
+      lugares: [{ id: "pecho", nombre: "Bajo el logo", x: 605, y: 400 }, { id: "abajo", nombre: "Abajo", x: 605, y: 1000 }],
+    },
+    correa: {
+      imagen: "/productos/personalizar/correa.webp", zona: "/productos/personalizar/correa-zona.webp", tam: { ancho: 1564, alto: 380 }, sinFondo: true, lupa: true,
+      pxCm: 25, inicial: { x: 860, y: 113 }, cm: { ancho: 6, alto: 1.7 },
+      lugares: [
+        { id: "manija", nombre: "Cerca de la manija", x: 860, y: 113 },
+        { id: "medio", nombre: "Al medio", x: 500, y: 294 },
+        { id: "mosqueton", nombre: "Cerca del mosquetón", x: 990, y: 294 },
+      ],
+    },
+    collar: {
+      imagen: "/productos/personalizar/collar.webp", zona: "/productos/personalizar/collar-zona.webp", tam: { ancho: 1566, alto: 205 }, sinFondo: true, lupa: true,
+      pxCm: 46, inicial: { x: 660, y: 117 }, cm: { ancho: 8, alto: 2.2 },
+      lugares: [{ id: "logo", nombre: "Junto al logo", x: 660, y: 117 }, { id: "hebilla", nombre: "Antes de la hebilla", x: 930, y: 117 }],
+    },
+    bandana: {
+      imagen: "/productos/personalizar/bandana.webp", zona: "/productos/personalizar/bandana-zona.webp", tam: { ancho: 1616, alto: 1104 }, sinFondo: true,
+      pxCm: 27, inicial: { x: 808, y: 470 }, cm: { ancho: 10, alto: 8 },
+      lugares: [{ id: "centro", nombre: "Centro", x: 808, y: 470 }, { id: "arriba", nombre: "Arriba", x: 808, y: 320 }],
+    },
+    "poo-bag": {
+      imagen: "/productos/personalizar/poo-bag.webp", zona: "/productos/personalizar/poo-bag-zona.webp", tam: { ancho: 1104, alto: 1616 }, sinFondo: true,
+      pxCm: 64, inicial: { x: 560, y: 980 }, cm: { ancho: 6, alto: 6 },
+      lugares: [{ id: "centro", nombre: "Centro", x: 560, y: 980 }, { id: "arriba", nombre: "Arriba", x: 560, y: 720 }],
+    },
     gorra: { imagen: "/productos/solo/gorra/1.jpg", tam: { ancho: 1080, alto: 1350 }, recorte: [240, 280, 680, 680], pxCm: 32, inicial: { x: 560, y: 560 }, giro: -12, cm: { ancho: 6, alto: 4 } },
     piluso: { imagen: "/productos/solo/piluso/1.jpg", tam: { ancho: 1080, alto: 1350 }, recorte: [260, 400, 560, 560], pxCm: 28, inicial: { x: 540, y: 845 }, cm: { ancho: 6, alto: 4 } },
   },

@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useId, useMemo, useRef, useState } from "react";
 import { personalizacion as config, type ColorParche, type PiezaPersonalizable } from "@/data/products";
 import { defForma, medidaFinal } from "@/lib/formas";
 import { familia } from "@/lib/fuentes";
 import type { Grabado } from "@/lib/laser";
 import { colorPorId, fuentePorId } from "@/lib/personalizacion";
-import { colocar, imagenZona, mover, recortarZona, type Zona } from "@/lib/zonas";
+import { colocar, mover, recortarZona, type Zona } from "@/lib/zonas";
 
 /** Lo que define cómo se ve el parche (lo mismo que se elige en el editor). */
 export interface DisenoParche {
@@ -220,13 +220,117 @@ export function Parche({ forma, w, h, color, pxCm, contenido }: { forma: string;
 }
 
 /** Versión optimizada de una foto de /public (la misma que arma next/image). */
-const optimizada = (src: string) => `/_next/image?url=${encodeURIComponent(src)}&w=1080&q=80`;
+const optimizada = (src: string, ancho: number) => `/_next/image?url=${encodeURIComponent(src)}&w=${ancho > 1100 ? 1920 : 1080}&q=90`;
 
 type Punto = { x: number; y: number };
 
+/** Baja de antemano las fotos de las piezas (al abrir el editor): al cambiar de pestaña ya están. */
+export function precargarPiezas(piezas: PiezaPersonalizable[]) {
+  for (const p of piezas) {
+    new Image().src = optimizada(p.imagen, p.tam.ancho);
+    if (p.zona) new Image().src = p.zona;
+  }
+}
+
+/** El parche dibujado una sola vez (memo): al arrastrarlo no se vuelve a dibujar, solo se mueve. */
+const ParcheFijo = memo(function ParcheFijo({ diseno, w, h, pxCm }: { diseno: DisenoParche; w: number; h: number; pxCm: number }) {
+  const color = colorPorId(diseno.color) ?? config.colores[0];
+  return (
+    <svg viewBox={`${-w / 2} ${-h / 2} ${w} ${h}`} className="block h-full w-full overflow-visible" aria-hidden="true">
+      <Parche forma={diseno.forma} w={w} h={h} color={color} pxCm={pxCm} contenido={diseno} />
+    </svg>
+  );
+});
+
 /**
- * Vista previa de una pieza: la foto real con el parche encima, a escala. El parche se arrastra con el dedo
- * y no se sale de la zona de la pieza (la tela, sin ribete, logo ni herrajes). Si no entra, se achica solo.
+ * Una escena: la foto de la pieza + la zona + el parche, en HTML con transform (lo mueve la placa de video:
+ * fluido en el celu). `s` = píxeles de pantalla por píxel de foto; (ox, oy) = esquina de la foto que se ve.
+ */
+function Escena({
+  pieza,
+  diseno,
+  lugar,
+  s,
+  ox,
+  oy,
+  arrastrando,
+  capaParche,
+  capaFoto,
+}: {
+  pieza: PiezaPersonalizable;
+  diseno: DisenoParche;
+  lugar: { x: number; y: number; w: number; h: number };
+  s: number;
+  ox: number;
+  oy: number;
+  arrastrando: boolean;
+  capaParche: React.Ref<HTMLDivElement>;
+  capaFoto?: React.Ref<HTMLDivElement>;
+}) {
+  const { imagen, tam, sinFondo, pxCm, giro = 0, zona } = pieza;
+  const pw = lugar.w * s;
+  const ph = lugar.h * s;
+  return (
+    <>
+      <div ref={capaFoto} className="absolute left-0 top-0 will-change-transform" style={{ transform: `translate3d(${-ox * s}px, ${-oy * s}px, 0)` }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={optimizada(imagen, tam.ancho)}
+          alt=""
+          draggable={false}
+          className="pointer-events-none max-w-none select-none"
+          style={{ width: tam.ancho * s, height: tam.alto * s, filter: sinFondo ? "drop-shadow(0 6px 10px rgb(37 29 22 / 0.16))" : undefined }}
+        />
+        {zona && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={zona}
+            alt=""
+            draggable={false}
+            className="pointer-events-none absolute left-0 top-0 max-w-none select-none transition-opacity duration-300"
+            style={{ width: tam.ancho * s, height: tam.alto * s, opacity: arrastrando ? 0.32 : 0 }}
+          />
+        )}
+      </div>
+      <div
+        ref={capaParche}
+        className="pointer-events-none absolute left-0 top-0 will-change-transform"
+        style={{
+          width: pw,
+          height: ph,
+          transform: `translate3d(${(lugar.x - ox) * s - pw / 2}px, ${(lugar.y - oy) * s - ph / 2}px, 0) rotate(${giro}deg)`,
+          // Al elegir un lugar fijo el parche viaja suave; mientras se arrastra va pegado al dedo.
+          transition: arrastrando ? "none" : "transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)",
+        }}
+      >
+        <div key={diseno.forma} className="parche-aparece h-full w-full">
+          <div className="h-full w-full transition-transform duration-200" style={{ transform: `scale(${arrastrando ? 1.06 : 1})` }}>
+            <ParcheFijo diseno={diseno} w={lugar.w} h={lugar.h} pxCm={pxCm} />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/** Ancho en pantalla de un elemento (se actualiza si cambia). */
+function useAncho<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [ancho, setAncho] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setAncho(e.contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return [ref, ancho] as const;
+}
+
+/**
+ * Vista previa de una pieza: la foto entera con el parche encima, a escala. El parche se arrastra con el dedo
+ * (sin redibujar nada: se mueve la capa) y no se sale de la zona de la pieza (todo lo marrón de frente).
+ * En piezas largas (correa, collar) abajo hay una lupa que sigue al parche.
  */
 export function VistaPieza({
   pieza,
@@ -244,18 +348,18 @@ export function VistaPieza({
   posicion?: Punto;
   onMover: (p: Punto) => void;
 }) {
-  const { imagen: foto, tam, recorte, sinFondo, pxCm, giro = 0 } = pieza;
+  const { tam, recorte, giro = 0, lupa } = pieza;
   const vista = recorte ?? [0, 0, tam.ancho, tam.alto];
-  const svg = useRef<SVGSVGElement>(null);
-  const idSombra = `sombra${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
-  const arrastre = useRef<{ dx: number; dy: number; desde: Punto } | null>(null);
+  const [marco, anchoMarco] = useAncho<HTMLDivElement>();
+  const [marcoLupa, anchoLupa] = useAncho<HTMLDivElement>();
+  const capaParche = useRef<HTMLDivElement>(null);
+  const capaParcheLupa = useRef<HTMLDivElement>(null);
+  const capaFotoLupa = useRef<HTMLDivElement>(null);
+  const arrastre = useRef<{ dx: number; dy: number; desde: Punto; s: number; ox: number; oy: number } | null>(null);
   const [arrastrando, setArrastrando] = useState(false);
   const [movio, setMovio] = useState(false);
   const { ancho, alto } = medidaFinal(diseno.forma, diseno.ancho, diseno.alto, diseno.vista?.proporcionSilueta);
-
-  const color = colorPorId(diseno.color) ?? config.colores[0];
   const zonaVisible = useMemo(() => (zona ? recortarZona(zona, vista) : undefined), [zona, vista.join()]); // eslint-disable-line react-hooks/exhaustive-deps
-  const mapaZona = useMemo(() => (zonaVisible ? imagenZona(zonaVisible) : ""), [zonaVisible]);
   const lugar = colocar(pieza, ancho, alto, posicion, zonaVisible);
 
   // Si al cambiar forma o medida el parche tuvo que correrse para entrar, queda guardado ahí.
@@ -263,103 +367,100 @@ export function VistaPieza({
     if (!posicion || Math.abs(posicion.x - lugar.x) > 0.5 || Math.abs(posicion.y - lugar.y) > 0.5) onMover({ x: lugar.x, y: lugar.y });
   }, [lugar.x, lugar.y]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function aFoto(e: React.PointerEvent): Punto | null {
-    const m = svg.current?.getScreenCTM();
-    if (!m) return null;
-    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
-    return { x: p.x, y: p.y };
+  const s = anchoMarco ? anchoMarco / vista[2] : 0;
+  // Lupa: recuadro 3:1 alrededor del parche, sin salirse de la pieza.
+  const lw = Math.min(vista[2], Math.max(lugar.w * 3.2, 320));
+  const lh = lw / 3;
+  const encuadreLupa = (p: Punto) => ({
+    x: Math.min(Math.max(p.x - lw / 2, vista[0]), vista[0] + vista[2] - lw),
+    y: Math.min(Math.max(p.y - lh / 2, vista[1] - lh / 3), vista[1] + vista[3] - lh + lh / 3),
+  });
+  const sl = anchoLupa ? anchoLupa / lw : 0;
+  const l0 = encuadreLupa(lugar);
+
+  // Mueve las capas directo (sin React) mientras se arrastra.
+  function pintar(p: Punto) {
+    const pw = lugar.w * s;
+    const ph = lugar.h * s;
+    if (capaParche.current) capaParche.current.style.transform = `translate3d(${(p.x - vista[0]) * s - pw / 2}px, ${(p.y - vista[1]) * s - ph / 2}px, 0) rotate(${giro}deg)`;
+    if (lupa && capaParcheLupa.current && capaFotoLupa.current) {
+      const l = encuadreLupa(p);
+      const qw = lugar.w * sl;
+      const qh = lugar.h * sl;
+      capaFotoLupa.current.style.transform = `translate3d(${-l.x * sl}px, ${-l.y * sl}px, 0)`;
+      capaParcheLupa.current.style.transform = `translate3d(${(p.x - l.x) * sl - qw / 2}px, ${(p.y - l.y) * sl - qh / 2}px, 0) rotate(${giro}deg)`;
+    }
   }
 
-  function empezar(e: React.PointerEvent<SVGSVGElement>) {
-    const p = aFoto(e);
-    if (!p) return;
+  function empezar(e: React.PointerEvent<HTMLDivElement>, escala: number, ox: number, oy: number) {
+    if (!escala) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const p = { x: (e.clientX - r.left) / escala + ox, y: (e.clientY - r.top) / escala + oy };
     e.currentTarget.setPointerCapture(e.pointerId);
     // Se arrastra desde donde toques: el parche sigue al dedo sin saltar.
-    arrastre.current = { dx: lugar.x - p.x, dy: lugar.y - p.y, desde: { x: lugar.x, y: lugar.y } };
+    arrastre.current = { dx: lugar.x - p.x, dy: lugar.y - p.y, desde: { x: lugar.x, y: lugar.y }, s: escala, ox, oy };
     setArrastrando(true);
   }
 
-  function seguir(e: React.PointerEvent<SVGSVGElement>) {
+  function seguir(e: React.PointerEvent<HTMLDivElement>) {
     const a = arrastre.current;
-    const p = aFoto(e);
-    if (!a || !p) return;
-    const destino = { x: p.x + a.dx, y: p.y + a.dy };
+    if (!a) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    // En la lupa el encuadre se mueve con el parche: las coordenadas salen del encuadre de cuando empezó.
+    const destino = { x: (e.clientX - r.left) / a.s + a.ox + a.dx, y: (e.clientY - r.top) / a.s + a.oy + a.dy };
     const nuevo = zonaVisible
-      ? mover(zonaVisible!, a.desde, destino, lugar.w, lugar.h, giro)
+      ? mover(zonaVisible, a.desde, destino, lugar.w, lugar.h, giro)
       : { x: Math.min(Math.max(destino.x, vista[0]), vista[0] + vista[2]), y: Math.min(Math.max(destino.y, vista[1]), vista[1] + vista[3]) };
     a.desde = nuevo;
-    setMovio(true);
-    onMover(nuevo);
+    pintar(nuevo);
+    if (!movio) setMovio(true);
   }
 
   function soltar() {
+    const a = arrastre.current;
     arrastre.current = null;
     setArrastrando(false);
+    if (a) onMover(a.desde);
   }
 
+  const eventos = (escala: number, ox: number, oy: number) => ({
+    onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => empezar(e, escala, ox, oy),
+    onPointerMove: seguir,
+    onPointerUp: soltar,
+    onPointerCancel: soltar,
+  });
+  const cursor = arrastrando ? "cursor-grabbing" : "cursor-grab";
+
   return (
-    <div role="img" aria-label={`Vista previa: ${nombrePieza}. Arrastrá el parche para moverlo.`} className="relative w-full bg-lino"
-      style={{ aspectRatio: `${vista[2]} / ${vista[3]}` }}
-    >
-      {/* Bordes difuminados para que la pieza no se vea cortada de golpe (los cartelitos quedan afuera del difuminado). */}
-      <div className="absolute inset-0 overflow-hidden [mask-image:radial-gradient(closest-side,black_86%,transparent)]">
-      <svg
-        ref={svg}
-        viewBox={vista.join(" ")}
-        preserveAspectRatio="xMidYMid meet"
-        className={`absolute inset-0 h-full w-full touch-none select-none ${arrastrando ? "cursor-grabbing" : "cursor-grab"}`}
-        aria-hidden="true"
-        onPointerDown={empezar}
-        onPointerMove={seguir}
-        onPointerUp={soltar}
-        onPointerCancel={soltar}
+    <div role="img" aria-label={`Vista previa: ${nombrePieza}. Arrastrá el parche para moverlo.`} className="relative w-full">
+      <div
+        ref={marco}
+        className={`relative w-full touch-none select-none overflow-hidden ${cursor}`}
+        style={{ aspectRatio: `${vista[2]} / ${vista[3]}` }}
+        {...eventos(s, vista[0], vista[1])}
       >
-        <defs>
-          {/* Sombra suave de la pieza apoyada (filtro SVG con región amplia: no deja bordes rectos). */}
-          <filter id={idSombra} x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="18" stdDeviation="14" floodColor="rgb(37 29 22)" floodOpacity="0.22" />
-          </filter>
-        </defs>
-        <rect x={-tam.ancho} y={-tam.alto} width={tam.ancho * 3} height={tam.alto * 3} fill="rgb(var(--lino))" />
-        <image
-          href={optimizada(foto)}
-          width={tam.ancho}
-          height={tam.alto}
-          filter={sinFondo ? `url(#${idSombra})` : undefined}
-        />
-        {/* Mientras arrastra, se ve suave dónde puede ir. */}
-        {mapaZona && (
-          <image
-            href={mapaZona}
-            width={zonaVisible!.cols * zonaVisible!.celda}
-            height={zonaVisible!.filas * zonaVisible!.celda}
-            preserveAspectRatio="none"
-            opacity={arrastrando ? 0.22 : 0}
-            style={{ transition: "opacity 0.35s", imageRendering: "auto" }}
-          />
-        )}
-        <g transform={`translate(${lugar.x} ${lugar.y}) rotate(${giro})`}>
-          {/* key: al cambiar de forma aparece de nuevo con un pequeño rebote. Al arrastrar, se levanta apenas. */}
-          <g key={diseno.forma} className="parche-aparece">
-            <g style={{ transform: `scale(${arrastrando ? 1.06 : 1})`, transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)" }}>
-              <Parche forma={diseno.forma} w={lugar.w} h={lugar.h} color={color} pxCm={pxCm} contenido={diseno} />
-            </g>
-          </g>
-        </g>
-      </svg>
+        {s > 0 && <Escena pieza={pieza} diseno={diseno} lugar={lugar} s={s} ox={vista[0]} oy={vista[1]} arrastrando={arrastrando} capaParche={capaParche} />}
       </div>
-      {!movio && (
-        <p className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center">
-          <span className="flex animate-entrada items-center gap-1.5 rounded-full bg-crema/90 px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] text-tinta/80 shadow-sm">
-            <span aria-hidden="true" className="inline-block animate-[empujar_1.6s_ease-in-out_infinite]">☝</span>
-            Arrastralo para moverlo
-          </span>
-        </p>
+      {lupa && (
+        <div
+          ref={marcoLupa}
+          className={`relative mt-4 w-full touch-none select-none overflow-hidden rounded-xl bg-crema/60 ring-1 ring-tinta/10 ${cursor}`}
+          style={{ aspectRatio: "3 / 1" }}
+          {...eventos(sl, l0.x, l0.y)}
+        >
+          {sl > 0 && (
+            <Escena pieza={pieza} diseno={diseno} lugar={lugar} s={sl} ox={l0.x} oy={l0.y} arrastrando={arrastrando} capaParche={capaParcheLupa} capaFoto={capaFotoLupa} />
+          )}
+          <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-crema/90 px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] text-tinta/60">De cerca</span>
+        </div>
       )}
-      {lugar.k < 0.99 && movio && (
-        <p className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-[10px] uppercase tracking-[0.12em] text-tinta/60">
+      {lugar.k < 0.99 && (
+        <p className="pointer-events-none mt-3 text-center text-[10px] uppercase tracking-[0.12em] text-tinta/60">
           Acá va a {String(Math.round(ancho * lugar.k * 10) / 10).replace(".", ",")} cm: lo máximo que entra
         </p>
+      )}
+      {!movio && lugar.k >= 0.99 && (
+        <p className="pointer-events-none mt-3 text-center text-[10px] uppercase tracking-[0.12em] text-tinta/50">También podés arrastrarlo</p>
       )}
     </div>
   );
