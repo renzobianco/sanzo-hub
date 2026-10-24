@@ -80,9 +80,14 @@ function ventasDelPedido(numero: string, c: DatosCheckout, t: Totales, pagoOnlin
   return ventas;
 }
 
+/** Acepta la URL del proyecto como venga pegada: con o sin "/" final o "/rest/v1". */
+function baseSupabase() {
+  return process.env.SUPABASE_URL!.trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
+}
+
 async function supabase(path: string, body: unknown) {
-  const key = process.env.SUPABASE_ANON_KEY!;
-  const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/${path}`, {
+  const key = process.env.SUPABASE_ANON_KEY!.trim();
+  const res = await fetch(`${baseSupabase()}/rest/v1/${path}`, {
     method: "POST",
     headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify(body),
