@@ -97,6 +97,28 @@ async function supabase(path: string, body: unknown) {
   return texto ? JSON.parse(texto) : null;
 }
 
+/** Bucket público donde quedan las imágenes que suben para grabar (sanzo-hub/supabase/migrations/006_imagenes_pedidos.sql). */
+export const BUCKET_IMAGENES = "sanzo-pedidos";
+
+/** Sube la imagen original para grabar y devuelve su link público (el que se ve en el Hub). */
+export async function subirImagenPedido(archivo: Blob, extension: string): Promise<string> {
+  const key = process.env.SUPABASE_ANON_KEY!.trim();
+  const mes = new Date().toISOString().slice(0, 7);
+  const ruta = `${mes}/${crypto.randomUUID()}.${extension}`;
+  const res = await fetch(`${baseSupabase()}/storage/v1/object/${BUCKET_IMAGENES}/${ruta}`, {
+    method: "POST",
+    headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": archivo.type, "x-upsert": "false" },
+    body: archivo,
+  });
+  if (!res.ok) throw new Error(`Supabase Storage ${res.status}: ${await res.text()}`);
+  return `${baseSupabase()}/storage/v1/object/public/${BUCKET_IMAGENES}/${ruta}`;
+}
+
+/** ¿Este link es de una imagen subida por nosotros? (que no nos cuelen cualquier link en el pedido) */
+export function esImagenNuestra(url: string) {
+  return hubActivo() && url.startsWith(`${baseSupabase()}/storage/v1/object/public/${BUCKET_IMAGENES}/`);
+}
+
 /** Guarda el pedido en "Pedidos web" del Hub. Si falla, solo queda en los logs: el pedido ya salió por mail. */
 export async function guardarPedidoEnHub(numero: string, c: DatosCheckout, t: Totales, linkPago?: string) {
   if (!hubActivo()) return;
@@ -112,6 +134,8 @@ export async function guardarPedidoEnHub(numero: string, c: DatosCheckout, t: To
       nombre: l.producto.nombre,
       opcion: l.opcion ? textoOpcion(l.producto, l.opcion) : "",
       personalizacion: l.personalizacion ? textoPersonalizacion(l.personalizacion) : "",
+      // Imagen original para grabar (link público). Vacío si no se pudo subir: la manda por WhatsApp.
+      imagen: l.personalizacion?.modo === "imagen" ? l.personalizacion.imagenUrl ?? "" : "",
       cantidad: l.cantidad,
       subtotal: l.subtotal,
     })),

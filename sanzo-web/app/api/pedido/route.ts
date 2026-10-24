@@ -3,7 +3,7 @@ import { calcularTotales, type LineaCarrito, type Totales } from "@/lib/carrito"
 import { formatearPrecio, textoEnvio } from "@/lib/formato";
 import { crearPreferencia, pagoOnlineActivo, sePuedeCobrar } from "@/lib/mercadopago";
 import type { PedidoEntrada, PedidoRespuesta } from "@/lib/pedido";
-import { guardarPedidoEnHub } from "@/lib/hub";
+import { esImagenNuestra, guardarPedidoEnHub } from "@/lib/hub";
 import { textoPersonalizacion, type Personalizacion } from "@/lib/personalizacion";
 import { textoOpcion } from "@/lib/combos";
 import { validarCheckout, type DatosCheckout } from "@/lib/validacion";
@@ -27,13 +27,20 @@ function str(v: unknown, max = 300) {
 function limpiarPersonalizacion(p: unknown): Personalizacion | undefined {
   if (!p || typeof p !== "object") return undefined;
   const o = p as Record<string, unknown>;
+  const imagenUrl = str(o.imagenUrl, 400);
   return {
-    estilo: str(o.estilo, 30),
+    forma: str(o.forma, 30),
+    formaOtra: typeof o.formaOtra === "string" ? str(o.formaOtra, 120) : undefined,
     material: str(o.material, 30),
-    tamano: str(o.tamano, 30),
+    color: str(o.color, 30),
+    ancho: Number(o.ancho),
+    alto: Number(o.alto),
     modo: o.modo === "imagen" ? "imagen" : "nombre",
     nombre: str(o.nombre, 40),
     telefono: typeof o.telefono === "string" ? str(o.telefono, 30) : undefined,
+    fuente: str(o.fuente, 30),
+    // Solo links de imágenes que subimos nosotros.
+    imagenUrl: imagenUrl && esImagenNuestra(imagenUrl) ? imagenUrl : undefined,
   };
 }
 
@@ -87,6 +94,7 @@ function armarMail(numero: string, c: DatosCheckout, t: Totales, pago: string) {
       l.producto.nombre +
       (l.opcion ? ` (${textoOpcion(l.producto, l.opcion)})` : "") +
       (l.personalizacion ? ` — PERSONALIZADO: ${textoPersonalizacion(l.personalizacion)}` : ""),
+    imagen: l.personalizacion?.modo === "imagen" ? l.personalizacion.imagenUrl ?? "FALTA LA IMAGEN: la manda por WhatsApp" : "",
     cantidad: l.cantidad,
     unitario: formatearPrecio(l.unitario),
     subtotal: formatearPrecio(l.subtotal),
@@ -104,7 +112,9 @@ function armarMail(numero: string, c: DatosCheckout, t: Totales, pago: string) {
       ${items
         .map(
           (i) =>
-            `<tr><td ${td}>${esc(i.nombre)}</td><td align="center" ${td}>${i.cantidad}</td><td align="right" ${td}>${i.unitario}</td><td align="right" ${td}>${i.subtotal}</td></tr>`,
+            `<tr><td ${td}>${esc(i.nombre)}${
+              i.imagen.startsWith("https://") ? `<br><a href="${esc(i.imagen)}">Ver imagen para grabar</a>` : i.imagen ? `<br><b>${esc(i.imagen)}</b>` : ""
+            }</td><td align="center" ${td}>${i.cantidad}</td><td align="right" ${td}>${i.unitario}</td><td align="right" ${td}>${i.subtotal}</td></tr>`,
         )
         .join("")}
       <tr><td colspan="3" align="right" ${td}>Subtotal</td><td align="right" ${td}>${formatearPrecio(t.subtotal)}</td></tr>
@@ -121,7 +131,7 @@ function armarMail(numero: string, c: DatosCheckout, t: Totales, pago: string) {
     "",
     ...filas.map(([k, v]) => `${k}: ${v}`),
     "",
-    ...items.map((i) => `${i.cantidad} x ${i.nombre} — ${i.subtotal}`),
+    ...items.map((i) => `${i.cantidad} x ${i.nombre} — ${i.subtotal}${i.imagen ? `\n   Imagen para grabar: ${i.imagen}` : ""}`),
     `Subtotal: ${formatearPrecio(t.subtotal)}`,
     ...t.descuentos.map((d) => `Armó el ${d.texto}: − ${formatearPrecio(d.monto)}`),
     `Envío: ${envio}`,

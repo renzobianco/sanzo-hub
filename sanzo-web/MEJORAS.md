@@ -282,3 +282,21 @@ Lo que definió Santi (2026-10-16):
 - No se arma solo en el carrito con collar + chapita sueltos (ya salen lo mismo) y, si el carrito ya lo tiene, no se ofrece otra chapita.
 - La chapita tiene foto nueva para miniaturas: `public/productos/piezas/chapita.jpg` (las 4 formas, recorte de la foto del combo).
 - En el Hub se carga como 2 ventas: collar y chapita.
+
+## 2026-10-24 · Personalizador del parche, versión completa
+
+Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable en `personalizacion` de `data/products.ts`.
+- **Forma libre**: rectángulo, redondeado, cápsula, óvalo, círculo, hueso, corazón, escudo, banderín, **Su silueta** (recorta siguiendo el contorno de su imagen) y **Otra** (la describe con sus palabras). Dibujos en `lib/formas.ts`.
+- **Colores de cuerina** (`colores`): tabaco envejecido (la referencia que pasó Santi), marrón chocolate, camel, blanco, negro. Cada uno con color del grabado y del canto quemado: **aproximados, ajustar con fotos de muestras reales**. Se suman más agregando una línea.
+- **Medida libre en cm** (barras de ancho y alto; las formas fijas mantienen su proporción). Máximo por pieza en `piezas[x].cm` (**provisorio: medir cada pieza real**). En kits, si no entra en una pieza chica, ahí se achica solo y la vista lo avisa.
+- **9 letras a elección** (`fuentes`, cargadas en `lib/fuentes.ts`): se muestra el nombre escrito con cada una.
+- **Vista previa realista**: grano de la cuerina, veteado, brillo suave, canto quemado por el láser, sombra corta de pegado y el grabado apenas hundido. Resumen con el parche dibujado en el carrito.
+- **Imagen del cliente**: al elegirla se ve grabada al instante y la original se sube en alta calidad a Supabase Storage (`/api/imagen`, bucket `sanzo-pedidos`). El link va con el pedido: mail ("Ver imagen para grabar") y **Hub → Pedidos web** (miniatura + descargar). Si no se pudo subir, el pedido dice "Falta la imagen: la manda por WhatsApp".
+- **Precios provisorios de $100** (base, imagen propia y cada tramo de tamaño Chico/Mediano/Grande por cm²). Cambiarlos en `precioExtra`, `precioImagen` y `tamanos`.
+
+### Falta
+- [ ] **Correr `sanzo-hub/supabase/migrations/006_imagenes_pedidos.sql` en Supabase** (SQL Editor). Sin esto, la imagen no se sube y cae al aviso de WhatsApp.
+- [ ] Precios reales (hoy $100).
+- [ ] Medidas reales máximas de cada pieza (`piezas[x].cm`).
+- [ ] Fotos de muestras grabadas para ajustar `grabado` y `borde` de cada color.
+- [ ] Fotos de cada pieza sin la etiqueta clara de ejemplo (en el arnés se asoma detrás de parches chicos).

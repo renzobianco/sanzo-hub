@@ -78,7 +78,7 @@ export interface Producto {
 /**
  * Pieza que se puede personalizar (todas menos el moño) y cómo se ve la vista previa:
  * la foto del artículo con el parche elegido encima y el nombre escrito.
- * Medidas en píxeles de la foto. El arnés usa sus fotos con cada parche (`estilos`), no esto.
+ * Medidas en píxeles de la foto.
  */
 export interface PiezaPersonalizable {
   imagen: string;
@@ -87,8 +87,10 @@ export interface PiezaPersonalizable {
   recorte?: [number, number, number, number];
   /** true → la foto tiene fondo blanco y se funde con el fondo de la vista. */
   fondoBlanco?: boolean;
-  /** Dónde va el parche: centro (x, y), ancho y giro en grados. */
+  /** Dónde va el parche: centro (x, y), ancho en píxeles del parche MÁS ANCHO que entra, y giro en grados. */
   parche: { x: number; y: number; ancho: number; giro?: number };
+  /** Lo máximo que entra en esta pieza, en cm. `parche.ancho` (px) equivale a `cm.ancho`: de ahí sale la escala. */
+  cm: { ancho: number; alto: number };
 }
 
 /** Material del parche. proximamente: se muestra pero todavía no se puede elegir. */
@@ -100,20 +102,41 @@ export interface MaterialParche {
   proximamente?: boolean;
 }
 
-/** Forma de parche. */
-export interface EstiloParche {
+/**
+ * Forma del parche (la recorta el láser, así que puede ser cualquiera). El dibujo de cada id está en
+ * `lib/formas.ts`. libre: se estira (ancho y alto por separado); si no, mantiene su proporción.
+ */
+export interface FormaParche {
   id: string;
   nombre: string;
-  /** Foto del parche solo, sin fondo (PNG transparente). Se usa en el botón y en la vista previa. */
-  parche: string;
+  /** "silueta": sigue el contorno de su imagen (solo con imagen). "otra": la describe con sus palabras. */
+  especial?: "silueta" | "otra";
 }
 
-/** Tamaño del parche. escala: parte del espacio máximo de cada pieza (1 = lo más grande que entra). */
-export interface TamanoParche {
+/** Color de la cuerina. grabado: cómo se ve lo quemado por el láser; borde: el canto cortado (también se quema). */
+export interface ColorParche {
   id: string;
   nombre: string;
-  escala: number;
-  /** Suma al precio por cada pieza personalizada. A más grande, más caro. 0 = nada. */
+  color: string;
+  grabado: string;
+  borde: string;
+  /** Cuánto manchado/envejecido tiene la cuerina (0 = parejo, 1 = muy veteado). El grano va siempre. */
+  veteado?: number;
+}
+
+/** Letra para el grabado. La fuente en sí se carga en `lib/fuentes.ts` (mismo id). */
+export interface FuenteGrabado {
+  id: string;
+  nombre: string;
+  /** true → se graba en mayúsculas (letras que solo quedan bien así). */
+  mayusculas?: boolean;
+}
+
+/** Precio según el tamaño: el primer tramo cuyo `hastaCm2` alcanza el área del parche (ancho × alto). */
+export interface TramoTamano {
+  nombre: string;
+  hastaCm2: number;
+  /** Suma al precio por cada pieza personalizada. */
   precioExtra: number;
 }
 
@@ -181,10 +204,11 @@ export const contadorKits: { restantes: number | null; total: number } = {
 };
 
 // -----------------------------------------------------------------------------
-// Personalización: parche con el nombre del perro (y su teléfono, si quieren).
-// Se puede personalizar todo menos el moño: el botón aparece en cada producto que tenga
-// alguna pieza en `piezas` (o el arnés). En kits y combos se personalizan todas sus piezas.
-// Precio: `precioExtra` por cada pieza personalizada + el extra del material. 0 = sin costo extra.
+// Personalización: parche de cuerina recortado y grabado con láser, pegado a la pieza.
+// Forma, color, medida, letra y grabado (nombre o imagen propia) a elección.
+// En kits y combos el mismo parche va en todas sus piezas (menos el moño).
+// Precio por pieza personalizada = precioExtra + material + tramo de tamaño + imagen propia.
+// PRECIOS DE $100: provisorios, para acordarnos de ponerlos.
 // -----------------------------------------------------------------------------
 export const personalizacion: {
   boton: string;
@@ -195,58 +219,91 @@ export const personalizacion: {
   precioExtra: number;
   /** Lo que suma por pieza si sube su propia imagen. 0 = nada. */
   precioImagen: number;
-  /** Texto que se muestra al subir una imagen (cómo nos la manda en buena calidad). */
+  /** Texto debajo de la imagen subida. */
   avisoImagen: string;
+  /** Si la imagen no se pudo subir (sin internet, Hub sin configurar): cómo nos la manda. */
+  avisoImagenSinSubir: string;
   maxNombre: number;
-  estilos: EstiloParche[];
+  formas: FormaParche[];
+  colores: ColorParche[];
+  fuentes: FuenteGrabado[];
   materiales: MaterialParche[];
-  tamanos: TamanoParche[];
+  /** Medida libre en cm: mínimo, de a cuánto se mueve y con cuál arranca. El máximo sale de cada pieza (`piezas[x].cm`). */
+  medidas: { minCm: number; pasoCm: number; inicial: { ancho: number; alto: number } };
+  tamanos: TramoTamano[];
   piezas: Record<string, PiezaPersonalizable>;
 } = {
   boton: "Personalizar",
   link: { pregunta: "¿Con su nombre?", accion: "Personalizalo" },
   titulo: "Hacelo suyo",
-  bajada: "Elegí el parche, el tamaño y poné su nombre o tu imagen.",
-  /**
-   * Lo que suma personalizar CADA pieza (un kit con 5 piezas personalizables suma 5 veces).
-   * PENDIENTE: poner el precio. 0 = sin costo extra (no se muestra).
-   */
-  precioExtra: 0,
-  /** PENDIENTE: precio por subir imagen propia (grabado láser de la imagen). */
-  precioImagen: 0,
-  avisoImagen: "Es una vista previa de cómo queda grabada. Después del pedido nos mandás la imagen original por WhatsApp.",
+  bajada: "Diseñá su parche: forma, color, medida y lo que quieras grabar.",
+  /** Lo que suma personalizar CADA pieza (un kit con 5 piezas personalizables suma 5 veces). PROVISORIO. */
+  precioExtra: 100,
+  /** Por grabar su propia imagen, por pieza. PROVISORIO. */
+  precioImagen: 100,
+  avisoImagen: "Es una vista previa: la grabamos con tu imagen original, en alta calidad.",
+  avisoImagenSinSubir: "No pudimos guardar la imagen original. Después del pedido mandala por WhatsApp con tu número de pedido.",
   /** Máximo de letras del nombre. */
-  maxNombre: 12,
-  /** Los estilos, en el orden en que se muestran. */
-  estilos: [
-    { id: "cinta", nombre: "Cinta", parche: "/productos/arnes/parche-cinta.png" },
-    { id: "hueso", nombre: "Hueso", parche: "/productos/arnes/parche-hueso.png" },
-    { id: "clasica", nombre: "Clásica", parche: "/productos/arnes/parche-clasica.png" },
-    { id: "redondeada", nombre: "Redondeada", parche: "/productos/arnes/parche-redondeada.png" },
+  maxNombre: 14,
+  /** Formas, en el orden en que se muestran (el dibujo de cada una está en lib/formas.ts). */
+  formas: [
+    { id: "rectangulo", nombre: "Rectángulo" },
+    { id: "redondeado", nombre: "Redondeado" },
+    { id: "capsula", nombre: "Cápsula" },
+    { id: "ovalo", nombre: "Óvalo" },
+    { id: "circulo", nombre: "Círculo" },
+    { id: "hueso", nombre: "Hueso" },
+    { id: "corazon", nombre: "Corazón" },
+    { id: "escudo", nombre: "Escudo" },
+    { id: "banderin", nombre: "Banderín" },
+    { id: "silueta", nombre: "Su silueta", especial: "silueta" },
+    { id: "otra", nombre: "Otra", especial: "otra" },
+  ],
+  /** Colores de cuerina. `grabado` y `borde` son aproximados: ajustarlos con fotos de muestras reales. */
+  colores: [
+    { id: "tabaco", nombre: "Tabaco envejecido", color: "#8f5535", grabado: "#2b170c", borde: "#3a2213", veteado: 0.9 },
+    { id: "chocolate", nombre: "Marrón chocolate", color: "#5b3a26", grabado: "#24140a", borde: "#2e1b10", veteado: 0.35 },
+    { id: "camel", nombre: "Camel", color: "#c08a55", grabado: "#4a2a14", borde: "#6e4423", veteado: 0.4 },
+    { id: "blanco", nombre: "Blanco", color: "#f1ece4", grabado: "#5a3a24", borde: "#8a6a50", veteado: 0.1 },
+    { id: "negro", nombre: "Negro", color: "#211f1e", grabado: "#8a8580", borde: "#121010", veteado: 0.15 },
+  ],
+  /** Letras para el grabado (se cargan en lib/fuentes.ts). La primera queda elegida de entrada. */
+  fuentes: [
+    { id: "jost", nombre: "Moderna", mayusculas: true },
+    { id: "playfair", nombre: "Clásica" },
+    { id: "cinzel", nombre: "Romana", mayusculas: true },
+    { id: "bebas", nombre: "Firme", mayusculas: true },
+    { id: "fredoka", nombre: "Redonda" },
+    { id: "courier", nombre: "Máquina" },
+    { id: "greatvibes", nombre: "Cursiva" },
+    { id: "pacifico", nombre: "Divertida" },
+    { id: "caveat", nombre: "A mano" },
   ],
   /** Materiales del parche, en orden. El primero disponible queda elegido de entrada. */
   materiales: [
     { id: "cuerina", nombre: "Cuerina", precioExtra: 0 },
     { id: "bordado", nombre: "Bordado", precioExtra: 0, proximamente: true },
   ],
-  /** Tamaños, del más chico al máximo. PENDIENTE: precios (a más grande, más caro). */
+  medidas: { minCm: 2, pasoCm: 0.5, inicial: { ancho: 6, alto: 3 } },
+  /** Tramos de precio por tamaño (área = ancho × alto en cm²), del más chico al más grande. PROVISORIOS. */
   tamanos: [
-    { id: "chico", nombre: "Chico", escala: 0.7, precioExtra: 0 },
-    { id: "mediano", nombre: "Mediano", escala: 0.85, precioExtra: 0 },
-    { id: "grande", nombre: "Grande", escala: 1, precioExtra: 0 },
+    { nombre: "Chico", hastaCm2: 10, precioExtra: 100 },
+    { nombre: "Mediano", hastaCm2: 20, precioExtra: 100 },
+    { nombre: "Grande", hastaCm2: Infinity, precioExtra: 100 },
   ],
   /**
-   * Vista previa de cada pieza (fotos del artículo sin logo). `parche` = el espacio MÁXIMO del parche
-   * en esa pieza (el tamaño "Grande"). Ajustalo si queda corrido.
+   * Vista previa de cada pieza (fotos del artículo sin logo). `parche`: dónde va y cuántos píxeles mide
+   * el parche más ancho que entra (`cm.ancho`). `cm`: lo máximo que entra en la pieza. PROVISORIO: medir
+   * cada pieza real y ajustar `cm`; si el parche queda corrido, ajustar `parche.x/y`.
    */
   piezas: {
-    arnes: { imagen: "/productos/piezas/arnes.png", tam: { ancho: 927, alto: 1152 }, recorte: [150, 150, 627, 784], fondoBlanco: true, parche: { x: 460, y: 335, ancho: 175 } },
-    correa: { imagen: "/productos/piezas/correa.jpg", tam: { ancho: 1798, alto: 576 }, recorte: [1010, 200, 540, 400], fondoBlanco: true, parche: { x: 1262, y: 397, ancho: 175 } },
-    collar: { imagen: "/productos/piezas/collar.jpg", tam: { ancho: 1557, alto: 352 }, recorte: [930, 0, 580, 352], fondoBlanco: true, parche: { x: 1217, y: 196, ancho: 265 } },
-    bandana: { imagen: "/productos/piezas/bandana.jpg", tam: { ancho: 1146, alto: 912 }, recorte: [380, 400, 600, 480], fondoBlanco: true, parche: { x: 668, y: 686, ancho: 190, giro: -32 } },
-    "poo-bag": { imagen: "/productos/piezas/poo-bag.jpg", tam: { ancho: 928, alto: 1152 }, recorte: [180, 330, 600, 520], parche: { x: 425, y: 618, ancho: 140, giro: -22 } },
-    gorra: { imagen: "/productos/solo/gorra/1.jpg", tam: { ancho: 1080, alto: 1350 }, recorte: [240, 280, 680, 700], parche: { x: 560, y: 560, ancho: 190, giro: -12 } },
-    piluso: { imagen: "/productos/solo/piluso/1.jpg", tam: { ancho: 1080, alto: 1350 }, recorte: [260, 400, 560, 560], parche: { x: 540, y: 845, ancho: 170 } },
+    arnes: { imagen: "/productos/piezas/arnes.png", tam: { ancho: 927, alto: 1152 }, recorte: [150, 150, 627, 784], fondoBlanco: true, parche: { x: 460, y: 335, ancho: 175 }, cm: { ancho: 7, alto: 4 } },
+    correa: { imagen: "/productos/piezas/correa.jpg", tam: { ancho: 1798, alto: 576 }, recorte: [1010, 200, 540, 400], fondoBlanco: true, parche: { x: 1262, y: 397, ancho: 175 }, cm: { ancho: 6, alto: 3 } },
+    collar: { imagen: "/productos/piezas/collar.jpg", tam: { ancho: 1557, alto: 352 }, recorte: [930, 0, 580, 352], fondoBlanco: true, parche: { x: 1217, y: 196, ancho: 265 }, cm: { ancho: 6, alto: 3 } },
+    bandana: { imagen: "/productos/piezas/bandana.jpg", tam: { ancho: 1146, alto: 912 }, recorte: [380, 400, 600, 480], fondoBlanco: true, parche: { x: 668, y: 686, ancho: 190, giro: -32 }, cm: { ancho: 7, alto: 5 } },
+    "poo-bag": { imagen: "/productos/piezas/poo-bag.jpg", tam: { ancho: 928, alto: 1152 }, recorte: [180, 330, 600, 520], parche: { x: 425, y: 618, ancho: 140, giro: -22 }, cm: { ancho: 5, alto: 4 } },
+    gorra: { imagen: "/productos/solo/gorra/1.jpg", tam: { ancho: 1080, alto: 1350 }, recorte: [240, 280, 680, 700], parche: { x: 560, y: 560, ancho: 190, giro: -12 }, cm: { ancho: 6, alto: 4 } },
+    piluso: { imagen: "/productos/solo/piluso/1.jpg", tam: { ancho: 1080, alto: 1350 }, recorte: [260, 400, 560, 560], parche: { x: 540, y: 845, ancho: 170 }, cm: { ancho: 6, alto: 4 } },
   },
 };
 
