@@ -55,6 +55,7 @@ function limpiarDiseno(p: unknown): DisenoPieza | undefined {
     modo: o.modo === "imagen" ? "imagen" : "nombre",
     nombre: str(o.nombre, 40),
     telefono: typeof o.telefono === "string" ? str(o.telefono, 30) : undefined,
+    linea2: typeof o.linea2 === "string" ? str(o.linea2, 40) : undefined,
     fuente: str(o.fuente, 30),
     // Solo links de imágenes que subimos nosotros.
     imagenUrl: imagenUrl && esImagenNuestra(imagenUrl) ? imagenUrl : undefined,

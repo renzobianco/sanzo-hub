@@ -229,6 +229,8 @@ export const personalizacion: {
   avisoImagen: string;
   /** Si la imagen no se pudo subir (sin internet, Hub sin configurar): cómo nos la manda. */
   avisoImagenSinSubir: string;
+  /** Mensaje de WhatsApp cuando piden ayuda con el diseño u otra forma. */
+  mensajeAyuda: string;
   /** Ejemplos que se muestran en "Tu imagen" para que se animen. */
   ideasImagen: string[];
   maxNombre: number;
@@ -250,6 +252,7 @@ export const personalizacion: {
   /** Por grabar su propia imagen, por pieza. PROVISORIO. */
   precioImagen: 100,
   avisoImagen: "Es una vista previa: la grabamos con tu imagen original, en alta calidad.",
+  mensajeAyuda: "Hola sanzo! Quiero personalizar un parche y necesito ayuda con el diseño",
   ideasImagen: ["Una foto tuya con tu perro", "Su carita", "El escudo de tu club", "Su huellita", "Un dibujo de tus hijos", "Tu logo"],
   avisoImagenSinSubir: "No pudimos guardar la imagen original. Después del pedido mandala por WhatsApp con tu número de pedido.",
   /** Máximo de letras del nombre. */
@@ -276,7 +279,7 @@ export const personalizacion: {
     { id: "chocolate", nombre: "Marrón chocolate", color: "#5b3a26", grabado: "#24140a", borde: "#2e1b10", veteado: 0.35 },
     { id: "camel", nombre: "Camel", color: "#c08a55", grabado: "#4a2a14", borde: "#6e4423", veteado: 0.4 },
     { id: "blanco", nombre: "Blanco", color: "#f1ece4", grabado: "#5a3a24", borde: "#8a6a50", veteado: 0.1 },
-    { id: "negro", nombre: "Negro", color: "#211f1e", grabado: "#8a8580", borde: "#121010", veteado: 0.15 },
+    { id: "negro", nombre: "Negro", color: "#2a2726", grabado: "#0c0b0a", borde: "#121010", veteado: 0.15 },
   ],
   /** Letras para el grabado (se cargan en lib/fuentes.ts). La primera queda elegida de entrada. */
   fuentes: [
@@ -316,7 +319,7 @@ export const personalizacion: {
     arnes: {
       imagen: "/productos/personalizar/arnes.webp", zona: "/productos/personalizar/arnes-zona.webp", tam: { ancho: 1222, alto: 1204 }, sinFondo: true,
       pxCm: 42, inicial: { x: 605, y: 400 }, cm: { ancho: 10, alto: 7 },
-      lugares: [{ id: "pecho", nombre: "Bajo el logo", x: 605, y: 400 }, { id: "abajo", nombre: "Abajo", x: 608, y: 968 }],
+      lugares: [{ id: "pecho", nombre: "Bajo el logo", x: 605, y: 400 }, { id: "abajo", nombre: "Abajo", x: 608, y: 915 }],
     },
     correa: {
       imagen: "/productos/personalizar/correa.webp", zona: "/productos/personalizar/correa-zona.webp", tam: { ancho: 1564, alto: 380 }, sinFondo: true, lupa: true,

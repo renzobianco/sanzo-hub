@@ -1,12 +1,12 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { getProducto, personalizacion as config, vista360, type Producto } from "@/data/products";
+import { getProducto, personalizacion as config, sitio, vista360, type Producto } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
 import { medidaFinal, proporcionForma } from "@/lib/formas";
 import { familia } from "@/lib/fuentes";
 import { aGrabadoLaser, imagenParaSubir, type Grabado } from "@/lib/laser";
-import { cargarZonas, colocar, recortarZona, type Zona } from "@/lib/zonas";
+import { cargarZonas, colocar, esRedonda, recortarZona, type Zona } from "@/lib/zonas";
 import {
   clavePersonalizacion,
   colorPorId,
@@ -15,6 +15,7 @@ import {
   piezasPersonalizables,
   precioPersonalizacion,
   precioPieza,
+  textoCorto,
   textoPersonalizacion,
   tramoTamano,
   validarPersonalizacion,
@@ -54,7 +55,14 @@ interface Diseno {
   nombre: string;
   conTelefono: boolean;
   telefono: string;
+  /** Otra línea libre debajo del nombre (en lugar del teléfono). */
+  conLinea2: boolean;
+  linea2: string;
   fuente: string;
+  /** "Tu letra" sin escribir acá: la manda por WhatsApp. */
+  letraWhatsapp: boolean;
+  /** La forma que tenía con nombre (al pasar a "Tu imagen" la forma es su silueta; al volver, vuelve esta). */
+  formaAntes?: string;
   vistaImagen?: Grabado;
   imagenUrl?: string;
   subida: EstadoSubida;
@@ -74,16 +82,21 @@ function disenoDesde(p?: DisenoPieza | null): Diseno {
     nombre: p?.nombre ?? "",
     conTelefono: !!p?.telefono,
     telefono: p?.telefono ?? "",
+    conLinea2: !!p?.linea2,
+    linea2: p?.linea2 ?? "",
     fuente: p?.fuente ?? config.fuentes[0].id,
+    letraWhatsapp: !!p?.letraWhatsapp,
     vistaImagen: p?.vista,
     imagenUrl: p?.imagenUrl,
     subida: p?.imagenUrl ? "ok" : "nada",
   };
 }
 
-/** El diseño de cada pieza al abrir: el suyo si tenía uno propio, si no el general. */
+/** Los diseños propios guardados (solo de las piezas que tenían uno distinto). Las demás no tienen: al pedir
+ * "Diseño propio" arrancan como copia del común (así no se pierde lo que ya estaba hecho). */
 function disenosIniciales(piezas: string[], valor?: Personalizacion) {
-  return Object.fromEntries(piezas.map((pz) => [pz, disenoDesde(valor?.piezas?.[pz] ?? valor)]));
+  const propios = propiosIniciales(piezas, valor);
+  return Object.fromEntries(piezas.filter((pz) => propios[pz] && valor?.piezas?.[pz]).map((pz) => [pz, disenoDesde(valor!.piezas![pz])]));
 }
 
 /** Qué piezas tienen diseño propio al abrir: las que guardaron uno distinto del común. */
@@ -105,6 +118,73 @@ function medidaDe(d: Diseno, max: { ancho: number; alto: number }) {
   return medidaFinal(d.forma, Math.min(Math.max(d.ancho, minCm), anchoMax), Math.min(Math.max(d.alto, minCm), max.alto), d.vistaImagen?.proporcionSilueta);
 }
 
+/**
+ * Lo personalizado, pieza por pieza: el parche dibujado, la pieza y un renglón corto, con "Quitar" en cada una
+ * (quitar la última saca toda la personalización). "Editar" abre el editor.
+ */
+function Resumen({
+  producto,
+  valor,
+  onCambio,
+  abrir,
+  extra,
+  compacto,
+}: {
+  producto: Producto;
+  valor: Personalizacion;
+  onCambio: (p: Personalizacion | undefined) => void;
+  abrir: () => void;
+  extra: string;
+  compacto?: boolean;
+}) {
+  const piezas = piezasPersonalizables(producto);
+  const { piezas: _p, posiciones: _pos, ...base } = valor;
+  const porPieza: Record<string, DisenoPieza | null> = valor.piezas ?? Object.fromEntries(piezas.map((pz) => [pz, base]));
+  const conParche = piezas.filter((pz) => porPieza[pz]);
+
+  function quitar(pz: string) {
+    const nuevo = { ...porPieza, [pz]: null };
+    if (!piezas.some((x) => nuevo[x])) return onCambio(undefined);
+    const primera = piezas.map((x) => nuevo[x]).find(Boolean)!;
+    onCambio({ ...primera, posiciones: valor.posiciones, piezas: nuevo });
+  }
+
+  return (
+    <div className="min-w-0 animate-entrada">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="eyebrow">
+          Personalizado {extra && <span className="ml-1 normal-case tracking-normal text-tinta">{extra}</span>}
+        </p>
+        <button type="button" onClick={abrir} className="py-1 text-[11px] uppercase tracking-[0.12em] underline underline-offset-4">
+          Editar
+        </button>
+      </div>
+      <ul className={`mt-2 divide-y divide-tinta/10 ${compacto ? "" : "border-t border-tinta/10"}`}>
+        {conParche.map((pz) => {
+          const d = porPieza[pz]!;
+          return (
+            <li key={pz} className="flex items-center gap-3 py-2">
+              <ParcheSolo diseno={disenoDe({ ...d, piezas: undefined })} className={compacto ? "h-8 w-12 shrink-0" : "h-10 w-16 shrink-0"} />
+              <div className="min-w-0 flex-1">
+                {piezas.length > 1 && <p className="text-[10px] uppercase tracking-[0.14em] text-tinta/60">{getProducto(pz)?.nombre ?? pz}</p>}
+                <p className={`break-words leading-snug text-marron ${compacto ? "text-[12px]" : "text-[13px]"}`}>{textoCorto(d)}</p>
+              </div>
+              <button type="button" onClick={() => quitar(pz)} aria-label={`Quitar el parche de ${getProducto(pz)?.nombre ?? pz}`} className="shrink-0 py-1 text-[11px] uppercase tracking-[0.12em] text-tinta/60 underline underline-offset-4">
+                Quitar
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {piezas.length > 1 && conParche.length < piezas.length && (
+        <p className="mt-1 text-[11px] text-tinta/50">
+          Sin parche: {piezas.filter((pz) => !porPieza[pz]).map((pz) => getProducto(pz)?.nombre ?? pz).join(", ")}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /** Posiciones guardadas (parte del ancho y alto de la foto) → píxeles de la foto de cada pieza. */
 function aPixeles(pos?: Personalizacion["posiciones"]) {
   const out: Record<string, { x: number; y: number }> = {};
@@ -117,7 +197,7 @@ function aPixeles(pos?: Personalizacion["posiciones"]) {
 
 /** Lo que el parche muestra a partir de la personalización guardada (resúmenes del carrito). */
 function disenoDe(p: Personalizacion): DisenoParche {
-  return { ...p, telefono: p.telefono ?? "" };
+  return { ...p, telefono: p.telefono ?? p.linea2 ?? "" };
 }
 
 /** Barra de medida en cm. */
@@ -244,15 +324,41 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
     setPosiciones((x) => ({ ...x, [vista]: { x: posVista.x + dx * paso, y: posVista.y + dy * paso } }));
   }
 
+  /** Ir a un paso tocándolo: hacia adelante pasa por la misma revisión que "Siguiente". */
+  function irAPaso(i: number) {
+    if (i > paso && PASOS.indexOf("Qué grabamos") >= paso && PASOS.indexOf("Qué grabamos") < i && activa) {
+      const e = validarPersonalizacion(
+        { forma, material, color, ancho: final.ancho, alto: final.alto, modo, nombre, telefono: modo === "nombre" && conTelefono ? telefono : undefined, linea2: modo === "nombre" && actual.conLinea2 ? actual.linea2 : undefined, fuente, vista: vistaImagen, imagenUrl, letraWhatsapp: actual.letraWhatsapp },
+        { pedirImagen: true },
+      );
+      if (e.nombre || e.telefono || e.linea2 || e.imagen || e.fuente) {
+        setPaso(PASOS.indexOf("Qué grabamos"));
+        setErrores({ nombre: e.nombre, telefono: e.telefono, linea2: e.linea2, imagen: e.imagen, fuente: e.fuente });
+        return;
+      }
+    }
+    setErrores({});
+    setPaso(i);
+  }
+
+  // La pieza que sigue (en kits): al terminar una se sigue con la próxima sin volver atrás.
+  const siguientePieza = piezas.slice(piezas.indexOf(piezaEdit) + 1).find((pz) => activas[pz] !== false);
+  function seguirConPieza(pz: string) {
+    setVista(pz);
+    // Cada pieza nueva arranca desde el paso 1.
+    setPaso(0);
+    setErrores({});
+  }
+
   function siguiente() {
     // En "¿Qué grabamos?" no se sigue sin nombre o imagen.
     if (PASOS[paso] === "Qué grabamos" && activa) {
       const e = validarPersonalizacion(
-        { forma, material, color, ancho: final.ancho, alto: final.alto, modo, nombre, telefono: modo === "nombre" && conTelefono ? telefono : undefined, fuente, vista: vistaImagen, imagenUrl },
+        { forma, material, color, ancho: final.ancho, alto: final.alto, modo, nombre, telefono: modo === "nombre" && conTelefono ? telefono : undefined, linea2: modo === "nombre" && actual.conLinea2 ? actual.linea2 : undefined, fuente, vista: vistaImagen, imagenUrl, letraWhatsapp: actual.letraWhatsapp },
         { pedirImagen: true },
       );
-      const delPaso = { nombre: e.nombre, telefono: e.telefono, imagen: e.imagen, fuente: e.fuente };
-      if (delPaso.nombre || delPaso.telefono || delPaso.imagen || delPaso.fuente) {
+      const delPaso = { nombre: e.nombre, telefono: e.telefono, linea2: e.linea2, imagen: e.imagen, fuente: e.fuente };
+      if (delPaso.nombre || delPaso.telefono || delPaso.linea2 || delPaso.imagen || delPaso.fuente) {
         setErrores(delPaso);
         return;
       }
@@ -270,9 +376,10 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
   const final = medidaFinal(forma, anchoOk, altoOk, vistaImagen?.proporcionSilueta);
 
   function elegirModo(m: Personalizacion["modo"]) {
-    setModo(m);
-    // La silueta sale de la imagen: sin imagen, vuelve a una forma común.
-    if (m === "nombre" && forma === "silueta") setForma("redondeado");
+    if (m === modo) return;
+    // Con su imagen el parche se recorta por su contorno ("Su silueta"); al volver a nombre, vuelve la forma que tenía.
+    if (m === "imagen") cambiar({ modo: m, formaAntes: forma === "silueta" ? actual.formaAntes : forma, forma: "silueta" });
+    else cambiar({ modo: m, forma: actual.formaAntes && actual.formaAntes !== "silueta" ? actual.formaAntes : config.formas[0].id });
   }
 
   async function listo() {
@@ -297,7 +404,9 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
         modo: d.modo,
         nombre: enImagen ? "" : d.nombre.trim().replace(/\s+/g, " "),
         telefono: !enImagen && d.conTelefono ? d.telefono.trim() : undefined,
+        linea2: !enImagen && d.conLinea2 ? d.linea2.trim() : undefined,
         fuente: d.fuente,
+        letraWhatsapp: !enImagen && d.fuente === "propia" && d.letraWhatsapp ? true : undefined,
         imagenUrl: enImagen || d.fuente === "propia" ? urls[pz] ?? d.imagenUrl : undefined,
         vista: enImagen || d.fuente === "propia" ? d.vistaImagen : undefined,
       };
@@ -316,7 +425,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
           if (!d) return [];
           const c = config.piezas[pz];
           const z = zonas[pz] && recortarZona(zonas[pz], c.recorte ?? [0, 0, c.tam.ancho, c.tam.alto]);
-          const l = colocar(c, d.ancho, d.alto, posiciones[pz], z);
+          const l = colocar(c, d.ancho, d.alto, posiciones[pz], z, esRedonda(d.forma));
           return [[pz, [Math.round((l.x / c.tam.ancho) * 1000) / 1000, Math.round((l.y / c.tam.alto) * 1000) / 1000]]];
         }),
       ),
@@ -329,7 +438,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
       if (Object.keys(e).length > 0) {
         setVista(pz);
         setErrores(e);
-        setPaso(PASOS.indexOf(e.nombre || e.telefono || e.imagen ? "Qué grabamos" : e.medida ? "Medida" : "Forma y color"));
+        setPaso(PASOS.indexOf(e.nombre || e.telefono || e.linea2 || e.imagen || e.fuente ? "Qué grabamos" : e.medida ? "Medida" : "Forma y color"));
         return;
       }
     }
@@ -388,34 +497,20 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
     alto: final.alto,
     modo,
     nombre,
-    telefono: conTelefono ? telefono : "",
+    // Segunda línea: el teléfono o el texto libre.
+    telefono: conTelefono ? telefono : actual.conLinea2 ? actual.linea2 : "",
     fuente,
     vista: modo === "imagen" || fuente === "propia" ? vistaImagen : undefined,
   };
   const muestra = nombre.trim() || "Toto";
+  const linkAyuda = `https://wa.me/${sitio.whatsapp.numero}?text=${encodeURIComponent(config.mensajeAyuda)}`;
 
   // Un solo div raíz: así el space-y del padre no le pone margen al <dialog>.
   return (
     <div>
       {enCarrito ? (
         valor ? (
-          <div className="flex animate-entrada items-start gap-2.5">
-            <ParcheSolo diseno={disenoDe(valor)} className="mt-0.5 h-9 w-14 shrink-0" />
-            <div>
-              <p className="text-sm text-marron">
-                {textoPersonalizacion(valor)}
-                {textoExtraGuardado && <span className="ml-1 text-tinta/60">{textoExtraGuardado}</span>}
-              </p>
-              <div className="mt-1 flex gap-4 text-[11px] uppercase tracking-[0.12em]">
-                <button type="button" onClick={abrir} className="py-1 underline underline-offset-4">
-                  Editar
-                </button>
-                <button type="button" onClick={() => onCambio(undefined)} className="py-1 text-tinta/60 underline underline-offset-4">
-                  Quitar
-                </button>
-              </div>
-            </div>
-          </div>
+          <Resumen producto={producto} valor={valor} onCambio={onCambio} abrir={abrir} extra={textoExtraGuardado} compacto />
         ) : (
           <button
             type="button"
@@ -427,20 +522,8 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
           </button>
         )
       ) : valor ? (
-        <div className={`flex items-center gap-3 border border-tinta/20 bg-lino/50 ${grande ? "p-4" : "p-3"}`}>
-          <ParcheSolo diseno={disenoDe(valor)} className={grande ? "h-14 w-24 shrink-0" : "h-10 w-16 shrink-0"} />
-          <div className="min-w-0">
-            <p className="eyebrow">Personalizado {textoExtraGuardado && <span className="ml-1 text-tinta">{textoExtraGuardado}</span>}</p>
-            <p className={`mt-1 text-marron ${grande ? "text-[15px]" : "text-xs"}`}>{textoPersonalizacion(valor)}</p>
-            <div className={`mt-2 flex gap-4 uppercase tracking-[0.12em] ${tamTexto}`}>
-              <button type="button" onClick={abrir} className="underline underline-offset-4">
-                Editar
-              </button>
-              <button type="button" onClick={() => onCambio(undefined)} className="text-tinta/70 underline underline-offset-4">
-                Quitar
-              </button>
-            </div>
-          </div>
+        <div className={`border border-tinta/20 bg-lino/50 ${grande ? "p-4" : "p-3"}`}>
+          <Resumen producto={producto} valor={valor} onCambio={onCambio} abrir={abrir} extra={textoExtraGuardado} />
         </div>
       ) : comoLink ? (
         <button type="button" onClick={abrir} className="mx-auto block py-1 text-[15px] text-marron">
@@ -563,15 +646,23 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
             )}
 
             {/* Pasos (estilo Away): uno por pantalla, con la vista siempre arriba. */}
-            <div className="flex items-center gap-3">
-              <p className="eyebrow shrink-0">
-                Paso {paso + 1} de {PASOS.length} · <span className="text-tinta">{PASOS[paso]}</span>
-              </p>
-              <div className="flex flex-1 gap-1" aria-hidden="true">
-                {PASOS.map((p, i) => (
-                  <span key={p} className={`h-[3px] flex-1 rounded-full transition-colors duration-500 ${i <= paso ? "bg-tinta" : "bg-tinta/15"}`} />
-                ))}
-              </div>
+            {/* Los pasos se pueden tocar para ir a cualquiera (también al cambiar de pieza). */}
+            <div className="grid grid-cols-4 gap-1.5" role="tablist" aria-label="Pasos">
+              {PASOS.map((p, i) => (
+                <button
+                  key={p}
+                  type="button"
+                  role="tab"
+                  aria-selected={paso === i}
+                  onClick={() => irAPaso(i)}
+                  className="group flex flex-col gap-1.5 text-left"
+                >
+                  <span className={`h-[3px] w-full rounded-full transition-colors duration-500 ${i <= paso ? "bg-tinta" : "bg-tinta/15"}`} />
+                  <span className={`text-[9px] uppercase leading-tight tracking-[0.1em] ${paso === i ? "text-tinta" : "text-tinta/50"}`}>
+                    {i + 1} · {p === "Forma y color" ? "Forma" : p}
+                  </span>
+                </button>
+              ))}
             </div>
 
             {!activa ? (
@@ -626,27 +717,9 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                       ))}
                     </div>
                   )}
-                  {piezas.length > 1 && (
-                    <div className="mt-4">
-                      <p className="eyebrow mb-2">Piezas</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {piezas.map((pz) => (
-                          <button
-                            key={pz}
-                            type="button"
-                            onClick={() => setVista(pz)}
-                            className={`h-8 rounded-full px-3 text-[10px] uppercase tracking-[0.12em] transition-colors ${vista === pz ? "bg-tinta text-crema" : activas[pz] === false ? "border border-dashed border-tinta/25 text-tinta/40" : "border border-tinta/25 text-tinta/70"}`}
-                          >
-                            {getProducto(pz)?.nombre ?? pz}
-                            {activas[pz] === false ? " · sin parche" : ""}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                   <p className="mt-3 text-[12px] leading-relaxed text-tinta/60">
                     Tocá un lugar o arrastralo sobre la foto, donde quieras dentro de la tela.
-                    {piezas.length > 1 ? " Elegí el lugar en cada pieza con los botones de Piezas." : ""}
+                    {""}
                   </p>
                 </fieldset>
               )}
@@ -688,7 +761,16 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                       tabIndex={-1}
                       className={`flex cursor-pointer items-center gap-4 border border-dashed p-3 transition-transform active:scale-[0.99] ${errores.imagen ? "border-marron" : "border-tinta/40"}`}
                     >
-                      <input type="file" accept="image/*" className="sr-only" onChange={(e) => subirImagen(e.target.files?.[0])} />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        onChange={(e) => {
+                          subirImagen(e.target.files?.[0]);
+                          // Así se puede volver a elegir el mismo archivo (otra pieza, o después de cambiarla).
+                          e.target.value = "";
+                        }}
+                      />
                       <span className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md" style={{ background: colorElegido.color }}>
                         {vistaImagen ? (
                           <span
@@ -789,16 +871,16 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                         {config.fuentes.map((f) => {
                           const { familia: fam, peso } = familia(f.id);
                           return (
-                            <label key={f.id} className="shrink-0 cursor-pointer">
+                            <label key={f.id} className="min-w-0 shrink-0 cursor-pointer">
                               <input type="radio" name={`${id}-fuente`} value={f.id} checked={fuente === f.id} onChange={() => setFuente(f.id)} className="peer sr-only" />
-                              <span className="flex h-16 min-w-[6.5rem] flex-col items-center justify-center gap-1 border border-tinta/20 px-3 transition-colors peer-checked:border-tinta peer-checked:bg-lino peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
+                              <span className="flex h-16 w-full min-w-[6.5rem] flex-col items-center justify-center gap-1 overflow-hidden border border-tinta/20 px-2 sm:min-w-0 transition-colors peer-checked:border-tinta peer-checked:bg-lino peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
                                 {f.propia ? (
-                                  <span aria-hidden="true" className="text-xl leading-none">
-                                    ✍
+                                  <span className="block w-full max-w-[8rem] truncate text-center text-lg leading-none" style={{ fontFamily: familia("caveat").familia, fontWeight: 600 }}>
+                                    {muestra}
                                   </span>
                                 ) : (
                                   <span
-                                    className="max-w-[8rem] truncate text-lg leading-none"
+                                    className="block w-full max-w-[8rem] truncate text-center text-lg leading-none"
                                     style={{ fontFamily: fam, fontWeight: peso, letterSpacing: f.mayusculas ? "0.06em" : undefined }}
                                   >
                                     {f.mayusculas ? muestra.toUpperCase() : muestra}
@@ -813,38 +895,86 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                       {/* "Tu letra": escribe el nombre con el dedo y se graba tal cual. */}
                       {config.fuentes.find((x) => x.id === fuente)?.propia && (
                         <div className="mt-3">
-                          <PadEscritura key={piezaEdit} hayDibujo={!!vistaImagen} onListo={(archivo) => subirImagen(archivo)} />
+                          <div className="mb-3 grid grid-cols-2 gap-2">
+                            {(
+                              [
+                                [false, "Escribirla acá"],
+                                [true, "Mandarla por WhatsApp"],
+                              ] as const
+                            ).map(([v, texto]) => (
+                              <button
+                                key={texto}
+                                type="button"
+                                onClick={() => {
+                                  cambiar({ letraWhatsapp: v });
+                                  setErrores((x) => ({ ...x, fuente: undefined }));
+                                }}
+                                className={`h-11 border text-[10px] uppercase tracking-[0.12em] transition-colors ${actual.letraWhatsapp === v ? "border-tinta bg-tinta text-crema" : "border-tinta/20"}`}
+                              >
+                                {texto}
+                              </button>
+                            ))}
+                          </div>
+                          {actual.letraWhatsapp ? (
+                            <p className="animate-entrada text-[12px] leading-relaxed text-tinta/70">
+                              Escribí el nombre en un papel con birome o fibra negra, sacale una foto bien de frente y mandala por WhatsApp después del pedido, con tu número de pedido. Mientras, en la vista previa lo mostramos con una letra a mano.
+                            </p>
+                          ) : (
+                            <PadEscritura key={piezaEdit} hayDibujo={!!vistaImagen} onListo={(archivo) => subirImagen(archivo)} />
+                          )}
                           {errores.fuente && <p className="mt-1.5 text-sm text-marron">{errores.fuente}</p>}
                         </div>
                       )}
                     </fieldset>
     
                     <fieldset>
-                      <legend className="eyebrow mb-3">¿Sumamos tu teléfono?</legend>
-                      <div className="grid grid-cols-2 gap-2">
+                      <legend className="eyebrow mb-3">¿Sumamos otra línea abajo?</legend>
+                      <div className="grid grid-cols-3 gap-2">
                         {(
                           [
-                            [false, "Solo nombre"],
-                            [true, "Nombre y teléfono"],
+                            ["nada", "Solo nombre"],
+                            ["telefono", "Teléfono"],
+                            ["texto", "Otro texto"],
                           ] as const
-                        ).map(([valorTel, texto]) => (
-                          <label key={texto} className="cursor-pointer">
-                            <input
-                              type="radio"
-                              name={`${id}-tel`}
-                              checked={conTelefono === valorTel}
-                              onChange={() => {
-                                setConTelefono(valorTel);
-                                setErrores((x) => ({ ...x, telefono: undefined }));
+                        ).map(([v, texto]) => {
+                          const elegido = v === "telefono" ? conTelefono : v === "texto" ? actual.conLinea2 : !conTelefono && !actual.conLinea2;
+                          return (
+                            <button
+                              key={v}
+                              type="button"
+                              onClick={() => {
+                                cambiar({ conTelefono: v === "telefono", conLinea2: v === "texto" });
+                                setErrores((x) => ({ ...x, telefono: undefined, linea2: undefined }));
                               }}
-                              className="peer sr-only"
-                            />
-                            <span className="flex h-11 items-center justify-center border border-tinta/20 text-[11px] uppercase tracking-[0.12em] transition-colors peer-checked:border-tinta peer-checked:bg-tinta peer-checked:text-crema peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
+                              className={`flex h-11 items-center justify-center border text-[10px] uppercase tracking-[0.1em] transition-colors ${elegido ? "border-tinta bg-tinta text-crema" : "border-tinta/20"}`}
+                            >
                               {texto}
-                            </span>
-                          </label>
-                        ))}
+                            </button>
+                          );
+                        })}
                       </div>
+                      {actual.conLinea2 && (
+                        <div className="mt-4 animate-entrada">
+                          <label htmlFor={`${id}-linea2`} className="eyebrow flex justify-between">
+                            <span>Otro texto</span>
+                            <span className="tracking-normal">{actual.linea2.length}/28</span>
+                          </label>
+                          <input
+                            id={`${id}-linea2`}
+                            className="campo"
+                            maxLength={28}
+                            autoComplete="off"
+                            placeholder="Ej. Palermo, CABA · @toto.dog"
+                            value={actual.linea2}
+                            onChange={(e) => {
+                              cambiar({ linea2: e.target.value });
+                              setErrores((x) => ({ ...x, linea2: undefined }));
+                            }}
+                            aria-invalid={!!errores.linea2}
+                          />
+                          {errores.linea2 && <p className="mt-1.5 text-sm text-marron">{errores.linea2}</p>}
+                        </div>
+                      )}
                       {conTelefono && (
                         <div className="mt-4">
                           <label htmlFor={`${id}-telefono`} className="eyebrow block">
@@ -907,11 +1037,29 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                   </fieldset>
                 )}
     
+                {modo === "imagen" ? (
+                  <fieldset>
+                    <legend className="eyebrow mb-3">Forma</legend>
+                    <div className="flex items-center gap-3 border border-tinta/15 p-3">
+                      <span className="w-16 shrink-0">
+                        <MiniForma forma="silueta" color={colorElegido} vista={vistaImagen} />
+                      </span>
+                      <p className="text-[13px] leading-snug">Su silueta: recortamos el parche siguiendo el contorno de tu imagen.</p>
+                    </div>
+                    <p className="mt-3 text-[12px] leading-relaxed text-tinta/60">
+                      ¿Querés otra forma o ayuda con el diseño?{" "}
+                      <a href={linkAyuda} target="_blank" rel="noreferrer" className="text-tinta underline underline-offset-4">
+                        Escribinos por WhatsApp
+                      </a>{" "}
+                      y lo armamos con vos.
+                    </p>
+                  </fieldset>
+                ) : (
                 <fieldset>
                   <legend className="eyebrow mb-3">Forma</legend>
                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                    {config.formas.map((f, i) => {
-                      const bloqueada = f.especial === "silueta" && modo !== "imagen";
+                    {config.formas.filter((f) => f.especial !== "silueta").map((f, i) => {
+                      const bloqueada = f.especial === "silueta"; // acá estamos con nombre: la silueta es de "Tu imagen"
                       return (
                         <label key={f.id} className={bloqueada ? "cursor-not-allowed opacity-40" : "cursor-pointer"}>
                           <input
@@ -942,7 +1090,6 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                       );
                     })}
                   </div>
-                  {modo !== "imagen" && <p className="mt-2 text-[12px] text-tinta/60">"Su silueta" recorta el parche siguiendo el contorno de una imagen: está si en el paso 1 elegís "Tu imagen".</p>}
                   {forma === "otra" && (
                     <div className="mt-3 animate-entrada">
                       <label htmlFor={`${id}-formaOtra`} className="eyebrow block">
@@ -961,12 +1108,19 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                         }}
                         aria-invalid={!!errores.formaOtra}
                       />
-                      <p className="mt-1.5 text-[12px] text-tinta/60">La recortamos a medida. La vista previa la muestra redondeada.</p>
+                      <p className="mt-1.5 text-[12px] leading-relaxed text-tinta/60">
+                        La recortamos a medida (la vista previa la muestra redondeada). Si querés ayuda con el diseño u otra silueta,{" "}
+                        <a href={linkAyuda} target="_blank" rel="noreferrer" className="text-tinta underline underline-offset-4">
+                          escribinos por WhatsApp
+                        </a>{" "}
+                        y te ayudamos.
+                      </p>
                     </div>
                   )}
                   {errores.forma && <p className="mt-2 text-sm text-marron">{errores.forma}</p>}
                   {errores.formaOtra && <p className="mt-2 text-sm text-marron">{errores.formaOtra}</p>}
                 </fieldset>
+                )}
     
                 <fieldset>
                   <legend className="eyebrow mb-3">
@@ -1037,6 +1191,11 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
           </div>
 
           <div className="border-t border-tinta/10 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:col-start-2 sm:row-start-3 sm:px-6">
+            {paso === PASOS.length - 1 && siguientePieza && (
+              <button type="button" onClick={listo} disabled={guardando || procesando} className="mb-2 block w-full text-center text-[11px] uppercase tracking-[0.12em] text-tinta/70 underline underline-offset-4">
+                {guardando ? "Guardando imagen…" : `Terminar ya${extra ? ` · ${extra}` : ""}`}
+              </button>
+            )}
             <div className="flex gap-2">
               {paso > 0 && (
                 <button type="button" onClick={() => setPaso((p) => p - 1)} className="btn w-28 shrink-0 border border-tinta/30 py-4 text-tinta">
@@ -1047,6 +1206,10 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                 <button type="button" onClick={siguiente} disabled={procesando} className="btn-primario flex-1 py-4 disabled:opacity-70">
                   {/* Con "Atrás" al lado no entra el precio: va en el primer paso y en "Listo". */}
                   Siguiente{extra && paso === 0 ? ` · ${extra}` : ""}
+                </button>
+              ) : siguientePieza ? (
+                <button type="button" onClick={() => seguirConPieza(siguientePieza)} className="btn-primario flex-1 py-4">
+                  Seguir con {getProducto(siguientePieza)?.nombre ?? siguientePieza}
                 </button>
               ) : (
                 <button type="button" onClick={listo} disabled={guardando || procesando} className="btn-primario flex-1 py-4 disabled:opacity-70">

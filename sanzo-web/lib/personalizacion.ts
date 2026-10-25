@@ -20,8 +20,12 @@ export interface Personalizacion {
   nombre: string;
   /** Opcional: va grabado debajo del nombre. */
   telefono?: string;
+  /** Opcional (en lugar del teléfono): otro texto libre debajo del nombre (barrio, Instagram…). */
+  linea2?: string;
   /** id de una letra de `personalizacion.fuentes` (solo en modo nombre). */
   fuente: string;
+  /** "Tu letra" sin escribir en el celu: el nombre escrito a mano lo manda por WhatsApp. */
+  letraWhatsapp?: boolean;
   /** La imagen original ya subida (link público de Supabase Storage). Va con el pedido y se ve en el Hub. */
   imagenUrl?: string;
   /** Dónde va el parche en cada pieza: centro como parte del ancho y alto de su foto (0 a 1). Lo eligen arrastrando. */
@@ -39,11 +43,12 @@ export interface Personalizacion {
 export type DisenoPieza = Omit<Personalizacion, "piezas" | "posiciones">;
 
 export type ErroresPersonalizacion = Partial<
-  Record<"forma" | "formaOtra" | "material" | "color" | "medida" | "imagen" | "nombre" | "telefono" | "fuente", string>
+  Record<"forma" | "formaOtra" | "material" | "color" | "medida" | "imagen" | "nombre" | "telefono" | "linea2" | "fuente", string>
 >;
 
 // Letras (con tildes y ñ), números, espacios y . ' - & ♥ — lo que se puede grabar prolijo.
-const NOMBRE = /^[\p{L}\p{N} .'&♥-]+$/u;
+const NOMBRE = /^[^\p{C}<>{}\\|`~^]+$/u;
+const MAX_LINEA2 = 28;
 const TELEFONO = /^[\d +-]+$/;
 const IMAGEN_URL = /^https:\/\/[^/\s]+\/storage\/v1\/object\/public\/sanzo-pedidos\/[\w\-/.]+$/;
 
@@ -146,11 +151,18 @@ export function validarPersonalizacion(p: DisenoPieza & { piezas?: Personalizaci
   }
 
   if (!fuentePorId(p.fuente)) e.fuente = "Elegí una letra.";
-  else if (fuentePorId(p.fuente)?.propia && pedirImagen && !p.vista && !p.imagenUrl) e.fuente = "Escribí el nombre en el recuadro.";
+  else if (fuentePorId(p.fuente)?.propia && !p.letraWhatsapp && pedirImagen && !p.vista && !p.imagenUrl) e.fuente = "Escribí el nombre en el recuadro (o elegí mandarlo por WhatsApp).";
   const nombre = p.nombre.trim();
   if (!nombre) e.nombre = "Poné el nombre de tu perro.";
   else if (nombre.length > config.maxNombre) e.nombre = `Hasta ${config.maxNombre} letras.`;
-  else if (!NOMBRE.test(nombre)) e.nombre = "Usá solo letras y números.";
+  else if (!NOMBRE.test(nombre)) e.nombre = "Hay un símbolo que no se puede grabar.";
+
+  if (p.linea2 !== undefined) {
+    const l2 = p.linea2.trim();
+    if (!l2) e.linea2 = "Escribí el texto o elegí solo nombre.";
+    else if (l2.length > MAX_LINEA2) e.linea2 = `Hasta ${MAX_LINEA2} caracteres.`;
+    else if (!NOMBRE.test(l2)) e.linea2 = "Hay un símbolo que no se puede grabar.";
+  }
 
   if (p.telefono !== undefined) {
     const tel = p.telefono.trim();
@@ -241,7 +253,9 @@ function normalizarDiseno(p: unknown): DisenoPieza | null {
     modo: enImagen ? "imagen" : "nombre",
     nombre: enImagen ? "" : String(o.nombre).trim().replace(/\s+/g, " "),
     telefono: enImagen ? undefined : (o.telefono as string | undefined)?.trim().replace(/\s+/g, " ") || undefined,
+    linea2: enImagen || typeof o.linea2 !== "string" ? undefined : o.linea2.trim().replace(/\s+/g, " ").slice(0, 40) || undefined,
     fuente: typeof o.fuente === "string" && o.fuente ? o.fuente : config.fuentes[0].id,
+    letraWhatsapp: conDibujo && o.letraWhatsapp === true ? true : undefined,
     imagenUrl: enImagen || conDibujo ? imagenUrl : undefined,
     vista: enImagen || conDibujo ? vistaValida(o.vista) : undefined,
   };
@@ -257,7 +271,7 @@ export function clavePersonalizacion(p?: Personalizacion): string {
   }
   // Dos imágenes distintas = dos líneas distintas en el carrito.
   const huella = p.imagenUrl ?? (p.vista ? `${p.vista.grabado.length}-${p.vista.grabado.slice(-24)}` : "");
-  return [p.forma, p.formaOtra ?? "", p.material, p.color, p.ancho, p.alto, p.modo, p.nombre, p.telefono ?? "", p.modo === "nombre" ? p.fuente : "", huella, JSON.stringify(p.posiciones ?? {})].join("|");
+  return [p.forma, p.formaOtra ?? "", p.material, p.color, p.ancho, p.alto, p.modo, p.nombre, p.telefono ?? "", p.linea2 ?? "", p.modo === "nombre" ? p.fuente : "", huella, JSON.stringify(p.posiciones ?? {})].join("|");
 }
 
 const cm = (v: number) => String(v).replace(".", ",");
@@ -278,8 +292,16 @@ export function textoPersonalizacion(p: Personalizacion): string {
   const grabado =
     p.modo === "imagen"
       ? ["Imagen propia"]
-      : [fuente?.propia ? "Escrito a mano por el cliente" : `Letra ${fuente?.nombre ?? p.fuente}`, fuente?.mayusculas ? p.nombre.toUpperCase() : p.nombre, p.telefono];
+      : [fuente?.propia ? (p.letraWhatsapp ? "Letra a mano: la manda por WhatsApp" : "Escrito a mano por el cliente") : `Letra ${fuente?.nombre ?? p.fuente}`, fuente?.mayusculas ? p.nombre.toUpperCase() : p.nombre, p.telefono, p.linea2];
   return [forma, material, colorPorId(p.color)?.nombre, `${cm(p.ancho)} × ${cm(p.alto)} cm`, ...grabado].filter(Boolean).join(" · ");
+}
+
+/** Un renglón corto por pieza: "Hueso · Camel · 6 × 3 cm · TOTO" / "… · Su imagen" / "… · Letra a mano". */
+export function textoCorto(d: DisenoPieza) {
+  const forma = d.forma === "otra" ? "Forma a medida" : formaPorId(d.forma)?.nombre ?? d.forma;
+  const fuente = fuentePorId(d.fuente);
+  const grabado = d.modo === "imagen" ? "Su imagen" : fuente?.propia ? `Letra a mano${d.nombre ? ` (${d.nombre})` : ""}` : fuente?.mayusculas ? d.nombre.toUpperCase() : d.nombre;
+  return [forma, colorPorId(d.color)?.nombre, `${cm(d.ancho)} × ${cm(d.alto)} cm`, grabado].filter(Boolean).join(" · ");
 }
 
 /** Lo que se manda al servidor: sin la vista previa de la imagen (pesa y no hace falta). */

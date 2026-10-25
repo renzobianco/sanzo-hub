@@ -356,7 +356,7 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
   - **A más grande, más caro**: tramos Chico +$100 · Mediano +$200 · Grande +$300 (PROVISORIOS), a la vista en el paso Medida con el actual marcado.
   - Zona en verde al arrastrar: probada y descartada por Santi (volvió al blanco suave).
   - **Correa y collar**: la vista de cerca va grande arriba (2:1) y se arrastra ahí; la pieza entera queda chica abajo para ubicarse.
-  - Arnés: el lugar "Abajo" centrado en la parte de abajo (centro medido con la zona: 608, 968).
+  - Arnés: el lugar "Abajo" centrado a ojo en la parte ancha de abajo (608, 915; con 968 quedaba pegado al ribete).
 - 2026-10-25 (tarde) · **Más correcciones de Santi**:
   - Formas nuevas: **Huellita** y **Estrella**.
   - Letra **"Tu letra"**: escriben el nombre con el dedo en un recuadro (`PadEscritura`) y se graba tal cual (viaja como imagen: vista previa + subida en alta calidad; en el pedido "Escrito a mano por el cliente" y la imagen con "letra a mano").
@@ -366,3 +366,17 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
   - **Poo bag acostado**, con el cierre arriba (lugares Centro / Izquierda / Derecha).
   - "Tu imagen" con **ideas** (foto con tu perro, su carita, el escudo de tu club, su huellita, un dibujo de tus hijos, tu logo) → `personalizacion.ideasImagen`.
   - Pestaña **360° sacada** (`vista360.activo = false`): después va un 360° por cada ítem.
+- 2026-10-25 (noche) · **Correcciones de Santi (probando en local)**:
+  - "Tu letra": sin emoji (se ve el nombre en letra manuscrita) y con **"Escribirla acá" / "Mandarla por WhatsApp"** (en papel; la vista previa la muestra con letra a mano; el pedido dice "Letra a mano: la manda por WhatsApp").
+  - **"Tu imagen" = siempre su silueta**: el paso Forma con imagen solo muestra su silueta + "¿Querés otra forma o ayuda con el diseño? Escribinos por WhatsApp" (`mensajeAyuda`). Al volver a nombre, vuelve la forma que tenía. "Otra" también ofrece ayuda.
+  - **Grabado sobre negro**: el láser no blanquea; se ve apenas más oscuro y mate (`grabado: #0c0b0a`).
+  - **Mover mejor**: en formas redondeadas y la silueta se revisa la elipse de adentro (no las puntas de la caja) → llega más cerca de los bordes.
+  - **Pasos tocables** (1 · Qué grabamos, 2 · Forma, 3 · Medida, 4 · Lugar) y, al terminar una pieza del kit, **"Seguir con <próxima pieza>"** (con diseño propio arranca del paso 1; si va igual, directo a Lugar) + "Terminar ya".
+  - **Resumen por pieza** en la ficha y el carrito: el parche dibujado de cada pieza con un renglón corto y **"Quitar" de a una** ("Sin parche: …"); quitar la última saca toda la personalización.
+- 2026-10-25 (noche, 2) · **Correcciones de Santi**:
+  - **Segunda línea libre**: "¿Sumamos otra línea abajo?" Solo nombre / Teléfono / **Otro texto** (hasta 28: barrio, Instagram…) → `linea2`.
+  - **Símbolos**: el nombre (y la segunda línea) aceptan @, #, ♥, ★, !, ? y demás; solo se frenan caracteres invisibles o raros.
+  - **"Su silueta" sacada** de la grilla de formas (con "Tu imagen" ya es automática).
+  - **Letras**: en PC se pisaban; ahora cada muestra queda adentro de su recuadro.
+  - **Bug imagen por pieza**: "Diseño propio" arrancaba vacío (de nombre) en vez de copiar el actual, y por eso no se veía/no dejaba la imagen en otra pieza. Ahora arranca como copia y cada pieza conserva su imagen. El campo de imagen también acepta volver a elegir el mismo archivo.
+  - Paso Lugar: se sacaron los botones "Piezas"; "Seguir con…" vuelve al paso 1. Arnés "Abajo" subido a (608, 915).

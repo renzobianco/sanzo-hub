@@ -44,7 +44,7 @@ function libre(z: Zona, x: number, y: number) {
  * ¿Entra un parche de w × h centrado en (x, y), girado `giro` grados? Revisa una grilla de puntos del parche.
  * La zona ya viene achicada un margen, así que el borde del parche puede llegar justo hasta el de la tela.
  */
-export function cabe(z: Zona, { x, y }: Punto, w: number, h: number, giro = 0) {
+export function cabe(z: Zona, { x, y }: Punto, w: number, h: number, giro = 0, redondo = false) {
   const margen = z.celda * 1.5;
   const mw = Math.max(0, w / 2 - margen);
   const mh = Math.max(0, h / 2 - margen);
@@ -57,6 +57,8 @@ export function cabe(z: Zona, { x, y }: Punto, w: number, h: number, giro = 0) {
     for (let j = 0; j <= ny; j++) {
       const dx = -mw + (mw * 2 * i) / nx;
       const dy = -mh + (mh * 2 * j) / ny;
+      // Forma redondeada: las esquinas de la caja no son parche, no se revisan.
+      if (redondo && mw > 0 && mh > 0 && (dx * dx) / (mw * mw) + (dy * dy) / (mh * mh) > 1.02) continue;
       if (!libre(z, x + dx * c - dy * s, y + dx * s + dy * c)) return false;
     }
   }
@@ -64,8 +66,8 @@ export function cabe(z: Zona, { x, y }: Punto, w: number, h: number, giro = 0) {
 }
 
 /** El lugar más cercano a `pref` donde entra el parche, o null si no entra en ningún lado. */
-export function ubicar(z: Zona, pref: Punto, w: number, h: number, giro = 0): Punto | null {
-  if (cabe(z, pref, w, h, giro)) return pref;
+export function ubicar(z: Zona, pref: Punto, w: number, h: number, giro = 0, redondo = false): Punto | null {
+  if (cabe(z, pref, w, h, giro, redondo)) return pref;
   const candidatos: [number, Punto][] = [];
   for (let cy = 0; cy < z.filas; cy += 2) {
     for (let cx = 0; cx < z.cols; cx += 2) {
@@ -75,7 +77,7 @@ export function ubicar(z: Zona, pref: Punto, w: number, h: number, giro = 0): Pu
     }
   }
   candidatos.sort((a, b) => a[0] - b[0]);
-  for (const [, p] of candidatos) if (cabe(z, p, w, h, giro)) return p;
+  for (const [, p] of candidatos) if (cabe(z, p, w, h, giro, redondo)) return p;
   return null;
 }
 
@@ -83,17 +85,17 @@ export function ubicar(z: Zona, pref: Punto, w: number, h: number, giro = 0): Pu
  * Arrastrar: va hacia `destino` sin salirse de la zona. Si no entra ahí, se desliza por el borde
  * (prueba solo en x, solo en y) y si no, avanza lo más que puede en línea recta.
  */
-export function mover(z: Zona, desde: Punto, destino: Punto, w: number, h: number, giro = 0): Punto {
-  if (cabe(z, destino, w, h, giro)) return destino;
+export function mover(z: Zona, desde: Punto, destino: Punto, w: number, h: number, giro = 0, redondo = false): Punto {
+  if (cabe(z, destino, w, h, giro, redondo)) return destino;
   const soloX = { x: destino.x, y: desde.y };
   const soloY = { x: desde.x, y: destino.y };
-  if (cabe(z, soloX, w, h, giro)) return soloX;
-  if (cabe(z, soloY, w, h, giro)) return soloY;
+  if (cabe(z, soloX, w, h, giro, redondo)) return soloX;
+  if (cabe(z, soloY, w, h, giro, redondo)) return soloY;
   let a = 0;
   let b = 1;
   for (let k = 0; k < 8; k++) {
     const m = (a + b) / 2;
-    if (cabe(z, { x: desde.x + (destino.x - desde.x) * m, y: desde.y + (destino.y - desde.y) * m }, w, h, giro)) a = m;
+    if (cabe(z, { x: desde.x + (destino.x - desde.x) * m, y: desde.y + (destino.y - desde.y) * m }, w, h, giro, redondo)) a = m;
     else b = m;
   }
   return { x: desde.x + (destino.x - desde.x) * a, y: desde.y + (destino.y - desde.y) * a };
@@ -125,6 +127,7 @@ export function colocar(
   alto: number,
   pref: Punto | undefined,
   z: Zona | undefined,
+  redondo = false,
 ): Punto & { k: number; w: number; h: number } {
   let k = Math.min(1, pieza.cm.ancho / ancho, pieza.cm.alto / alto);
   const inicio = pref ?? pieza.inicial;
@@ -132,7 +135,7 @@ export function colocar(
     const w = ancho * k * pieza.pxCm;
     const h = alto * k * pieza.pxCm;
     if (!z) return { ...inicio, k, w, h };
-    const p = ubicar(z, inicio, w, h, pieza.giro);
+    const p = ubicar(z, inicio, w, h, pieza.giro, redondo);
     if (p) return { ...p, k, w, h };
     k *= 0.88;
   }
@@ -152,3 +155,6 @@ export function recortarZona(z: Zona, [vx, vy, vw, vh]: number[]): Zona {
   }
   return { ...z, ok };
 }
+
+/** Formas que no llenan su caja (círculo, corazón, silueta…): para ver si entran se usa la elipse de adentro. */
+export const esRedonda = (forma: string) => !["rectangulo", "redondeado", "capsula", "banderin", "otra"].includes(forma);

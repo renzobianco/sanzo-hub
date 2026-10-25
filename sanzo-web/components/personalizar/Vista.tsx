@@ -6,7 +6,7 @@ import { defForma, medidaFinal } from "@/lib/formas";
 import { familia } from "@/lib/fuentes";
 import type { Grabado } from "@/lib/laser";
 import { colorPorId, fuentePorId } from "@/lib/personalizacion";
-import { colocar, mover, recortarZona, type Zona } from "@/lib/zonas";
+import { colocar, esRedonda, mover, recortarZona, type Zona } from "@/lib/zonas";
 
 /** Lo que define cómo se ve el parche (lo mismo que se elige en el editor). */
 export interface DisenoParche {
@@ -366,7 +366,8 @@ export function VistaPieza({
   const [movio, setMovio] = useState(false);
   const { ancho, alto } = medidaFinal(diseno.forma, diseno.ancho, diseno.alto, diseno.vista?.proporcionSilueta);
   const zonaVisible = useMemo(() => (zona ? recortarZona(zona, vista) : undefined), [zona, vista.join()]); // eslint-disable-line react-hooks/exhaustive-deps
-  const lugar = colocar(pieza, ancho, alto, posicion, zonaVisible);
+  const redondo = esRedonda(diseno.forma);
+  const lugar = colocar(pieza, ancho, alto, posicion, zonaVisible, redondo);
 
   // Si al cambiar forma o medida el parche tuvo que correrse para entrar, queda guardado ahí.
   useEffect(() => {
@@ -419,7 +420,7 @@ export function VistaPieza({
     // En la lupa el encuadre se mueve con el parche: las coordenadas salen del encuadre de cuando empezó.
     const destino = { x: (e.clientX - r.left) / a.s + a.ox + a.dx, y: (e.clientY - r.top) / a.s + a.oy + a.dy };
     const nuevo = zonaVisible
-      ? mover(zonaVisible, a.desde, destino, lugar.w, lugar.h, giro)
+      ? mover(zonaVisible, a.desde, destino, lugar.w, lugar.h, giro, redondo)
       : { x: Math.min(Math.max(destino.x, vista[0]), vista[0] + vista[2]), y: Math.min(Math.max(destino.y, vista[1]), vista[1] + vista[3]) };
     a.desde = nuevo;
     pintar(nuevo);

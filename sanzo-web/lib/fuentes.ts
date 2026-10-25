@@ -25,5 +25,7 @@ export const FAMILIAS: Record<string, { familia: string; peso: number }> = {
 };
 
 export function familia(id: string) {
+  // "Tu letra" (a mano): mientras no la escriben, se muestra con una letra manuscrita.
+  if (id === "propia") return FAMILIAS.caveat;
   return FAMILIAS[id] ?? FAMILIAS.jost;
 }
