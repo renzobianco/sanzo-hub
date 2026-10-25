@@ -13,10 +13,12 @@ import {
   medidaMaxima,
   piezasPersonalizables,
   precioPersonalizacion,
+  precioPieza,
   textoPersonalizacion,
   tramoTamano,
   validarPersonalizacion,
   type ErroresPersonalizacion,
+  type DisenoPieza,
   type Personalizacion,
 } from "@/lib/personalizacion";
 import { IconoCerrar } from "../Iconos";
@@ -37,6 +39,63 @@ interface Props {
 type EstadoSubida = "nada" | "subiendo" | "ok" | "error";
 
 const cm = (v: number) => String(Math.round(v * 10) / 10).replace(".", ",");
+
+/** El diseño de una pieza mientras se edita (con lo que hace falta para el formulario). */
+interface Diseno {
+  forma: string;
+  formaOtra: string;
+  material: string;
+  color: string;
+  ancho: number;
+  alto: number;
+  modo: Personalizacion["modo"];
+  nombre: string;
+  conTelefono: boolean;
+  telefono: string;
+  fuente: string;
+  vistaImagen?: Grabado;
+  imagenUrl?: string;
+  subida: EstadoSubida;
+}
+
+/** Diseño para editar a partir de uno guardado (o el de entrada). */
+function disenoDesde(p?: DisenoPieza | null): Diseno {
+  const { inicial } = config.medidas;
+  return {
+    forma: p?.forma ?? config.formas[0].id,
+    formaOtra: p?.formaOtra ?? "",
+    material: p?.material ?? materialInicial(),
+    color: p?.color ?? config.colores[0].id,
+    ancho: p?.ancho ?? inicial.ancho,
+    alto: p?.alto ?? inicial.alto,
+    modo: p?.modo ?? "nombre",
+    nombre: p?.nombre ?? "",
+    conTelefono: !!p?.telefono,
+    telefono: p?.telefono ?? "",
+    fuente: p?.fuente ?? config.fuentes[0].id,
+    vistaImagen: p?.vista,
+    imagenUrl: p?.imagenUrl,
+    subida: p?.imagenUrl ? "ok" : "nada",
+  };
+}
+
+/** El diseño de cada pieza al abrir: el suyo si tenía uno propio, si no el general. */
+function disenosIniciales(piezas: string[], valor?: Personalizacion) {
+  return Object.fromEntries(piezas.map((pz) => [pz, disenoDesde(valor?.piezas?.[pz] ?? valor)]));
+}
+
+/** Qué piezas van personalizadas (con un diseño por pieza se puede dejar alguna sin personalizar). */
+function activasIniciales(piezas: string[], valor?: Personalizacion) {
+  return Object.fromEntries(piezas.map((pz) => [pz, valor?.piezas ? valor.piezas[pz] !== null : true]));
+}
+
+/** La medida final de un diseño: dentro de lo que entra y con la proporción de su forma. */
+function medidaDe(d: Diseno, max: { ancho: number; alto: number }) {
+  const { minCm } = config.medidas;
+  const proporcion = d.forma === "silueta" ? d.vistaImagen?.proporcionSilueta ?? null : proporcionForma(d.forma);
+  const anchoMax = Math.max(minCm, Math.floor((proporcion ? Math.min(max.ancho, max.alto * proporcion) : max.ancho) * 2) / 2);
+  return medidaFinal(d.forma, Math.min(Math.max(d.ancho, minCm), anchoMax), Math.min(Math.max(d.alto, minCm), max.alto), d.vistaImagen?.proporcionSilueta);
+}
 
 /** Posiciones guardadas (parte del ancho y alto de la foto) → píxeles de la foto de cada pieza. */
 function aPixeles(pos?: Personalizacion["posiciones"]) {
@@ -82,7 +141,7 @@ function Medida({ etiqueta, valor, min, max, onCambio }: { etiqueta: string; val
  * Botón "Personalizar" + editor del parche: material → forma → color → medida → qué grabamos (nombre con su letra,
  * o su imagen, que se sube en alta calidad para grabarla). Arriba, la vista previa sobre cada pieza.
  */
-const PASOS = ["Lugar", "Qué grabamos", "Forma y color", "Medida"];
+const PASOS = ["Qué grabamos", "Forma y color", "Medida", "Lugar"];
 
 export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCarrito }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -91,21 +150,12 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
   const max = medidaMaxima(piezas);
   const { minCm, inicial } = config.medidas;
 
-  const [forma, setForma] = useState(valor?.forma ?? config.formas[0].id);
-  const [formaOtra, setFormaOtra] = useState(valor?.formaOtra ?? "");
-  const [material, setMaterial] = useState(valor?.material ?? materialInicial());
-  const [color, setColor] = useState(valor?.color ?? config.colores[0].id);
-  const [ancho, setAncho] = useState(valor?.ancho ?? inicial.ancho);
-  const [alto, setAlto] = useState(valor?.alto ?? inicial.alto);
-  const [modo, setModo] = useState<Personalizacion["modo"]>(valor?.modo ?? "nombre");
-  const [nombre, setNombre] = useState(valor?.nombre ?? "");
-  const [conTelefono, setConTelefono] = useState(!!valor?.telefono);
-  const [telefono, setTelefono] = useState(valor?.telefono ?? "");
-  const [fuente, setFuente] = useState(valor?.fuente ?? config.fuentes[0].id);
-  const [vistaImagen, setVistaImagen] = useState<Grabado | undefined>(valor?.vista);
-  const [imagenUrl, setImagenUrl] = useState(valor?.imagenUrl);
-  const [subida, setSubida] = useState<EstadoSubida>(valor?.imagenUrl ? "ok" : "nada");
-  const subiendo = useRef<Promise<string | undefined> | null>(null);
+  // Un diseño por pieza. Con "mismo diseño" (de entrada) cada cambio va a todas; si no, solo a la pieza que se ve.
+  const [disenos, setDisenos] = useState<Record<string, Diseno>>(() => disenosIniciales(piezas, valor));
+  const [mismo, setMismo] = useState(!valor?.piezas);
+  const [activas, setActivas] = useState<Record<string, boolean>>(() => activasIniciales(piezas, valor));
+  // La subida de la imagen de cada pieza (para esperarla al tocar Listo).
+  const subiendo = useRef<Record<string, Promise<string | undefined>>>({});
   const [procesando, setProcesando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [errores, setErrores] = useState<ErroresPersonalizacion>({});
@@ -120,26 +170,47 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
     ...(vista360.activo && piezas.includes("arnes") ? [{ id: "360", texto: vista360.pestana360 }] : []),
   ];
   const [vista, setVista] = useState(vistas[0]?.id);
+  // La pieza que se edita: la de la pestaña (si es el 360°, la primera).
+  const piezaEdit = vista && piezas.includes(vista) ? vista : piezas[0];
+  const actual = disenos[piezaEdit] ?? disenoDesde(valor);
+  const { forma, formaOtra, material, color, ancho, alto, modo, nombre, conTelefono, telefono, fuente, vistaImagen, imagenUrl, subida } = actual;
+  const activa = mismo || activas[piezaEdit] !== false;
+
+  /** Cambia el diseño: en todas las piezas (mismo diseño) o solo en una. */
+  function cambiar(cambio: Partial<Diseno>, pz = piezaEdit) {
+    setDisenos((ds) => {
+      const out = { ...ds };
+      for (const k of mismo ? piezas : [pz]) out[k] = { ...(out[k] ?? actual), ...cambio };
+      return out;
+    });
+  }
+  const setForma = (v: string) => cambiar({ forma: v });
+  const setFormaOtra = (v: string) => cambiar({ formaOtra: v });
+  const setMaterial = (v: string) => cambiar({ material: v });
+  const setColor = (v: string) => cambiar({ color: v });
+  const setAncho = (v: number) => cambiar({ ancho: v });
+  const setAlto = (v: number) => cambiar({ alto: v });
+  const setModo = (v: Personalizacion["modo"]) => cambiar({ modo: v });
+  const setNombre = (v: string) => cambiar({ nombre: v });
+  const setConTelefono = (v: boolean) => cambiar({ conTelefono: v });
+  const setTelefono = (v: string) => cambiar({ telefono: v });
+  const setFuente = (v: string) => cambiar({ fuente: v });
+
+  /** Mismo diseño en todas ↔ uno distinto por pieza. Al volver a "mismo", todas toman el de la pieza que se ve. */
+  function elegirMismo(si: boolean) {
+    setMismo(si);
+    if (si) setDisenos(() => Object.fromEntries(piezas.map((pz) => [pz, { ...actual }])));
+  }
+
   // Proporción de lo que se ve de la pieza: el ancho se ajusta para que el alto no pase de un tercio de pantalla.
   const piezaVista = vista ? config.piezas[vista] : undefined;
   const marco = piezaVista ? piezaVista.recorte ?? [0, 0, piezaVista.tam.ancho, piezaVista.tam.alto] : [0, 0, 1, 1];
   const proporcionVista = marco[2] / marco[3];
 
   function abrir() {
-    setForma(valor?.forma ?? config.formas[0].id);
-    setFormaOtra(valor?.formaOtra ?? "");
-    setMaterial(valor?.material ?? materialInicial());
-    setColor(valor?.color ?? config.colores[0].id);
-    setAncho(valor?.ancho ?? inicial.ancho);
-    setAlto(valor?.alto ?? inicial.alto);
-    setModo(valor?.modo ?? "nombre");
-    setNombre(valor?.nombre ?? "");
-    setConTelefono(!!valor?.telefono);
-    setTelefono(valor?.telefono ?? "");
-    setFuente(valor?.fuente ?? config.fuentes[0].id);
-    setVistaImagen(valor?.vista);
-    setImagenUrl(valor?.imagenUrl);
-    setSubida(valor?.imagenUrl ? "ok" : "nada");
+    setDisenos(disenosIniciales(piezas, valor));
+    setMismo(!valor?.piezas);
+    setActivas(activasIniciales(piezas, valor));
     setErrores({});
     setVista(vistas[0]?.id);
     setPaso(0);
@@ -157,7 +228,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
 
   function siguiente() {
     // En "¿Qué grabamos?" no se sigue sin nombre o imagen.
-    if (paso === 1) {
+    if (PASOS[paso] === "Qué grabamos" && activa) {
       const e = validarPersonalizacion(
         { forma, material, color, ancho: final.ancho, alto: final.alto, modo, nombre, telefono: modo === "nombre" && conTelefono ? telefono : undefined, fuente, vista: vistaImagen, imagenUrl },
         { pedirImagen: true },
@@ -187,43 +258,66 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
   }
 
   async function listo() {
-    const enImagen = modo === "imagen";
-    let url = imagenUrl;
-    // Si la imagen todavía se está subiendo, la esperamos (el botón dice "Guardando imagen…").
-    if (enImagen && subida === "subiendo" && subiendo.current) {
+    // Si alguna imagen todavía se está subiendo, la esperamos (el botón dice "Guardando imagen…").
+    let urls: Record<string, string | undefined> = {};
+    if (Object.values(subiendo.current).length) {
       setGuardando(true);
-      url = await subiendo.current;
+      urls = Object.fromEntries(await Promise.all(Object.entries(subiendo.current).map(async ([pz, pr]) => [pz, await pr] as const)));
       setGuardando(false);
     }
+    const aDiseno = (pz: string): DisenoPieza => {
+      const d = disenos[pz] ?? actual;
+      const enImagen = d.modo === "imagen";
+      const m = medidaDe(d, max);
+      return {
+        forma: d.forma,
+        formaOtra: d.forma === "otra" ? d.formaOtra.trim().replace(/\s+/g, " ") : undefined,
+        material: d.material,
+        color: d.color,
+        ancho: m.ancho,
+        alto: m.alto,
+        modo: d.modo,
+        nombre: enImagen ? "" : d.nombre.trim().replace(/\s+/g, " "),
+        telefono: !enImagen && d.conTelefono ? d.telefono.trim() : undefined,
+        fuente: d.fuente,
+        imagenUrl: enImagen ? urls[pz] ?? d.imagenUrl : undefined,
+        vista: enImagen ? d.vistaImagen : undefined,
+      };
+    };
+    const porPieza = Object.fromEntries(piezas.map((pz) => [pz, mismo || activas[pz] !== false ? aDiseno(pz) : null])) as Record<string, DisenoPieza | null>;
+    const base = porPieza[piezaEdit] ?? Object.values(porPieza).find(Boolean) ?? aDiseno(piezaEdit);
     const p: Personalizacion = {
-      forma,
-      formaOtra: forma === "otra" ? formaOtra.trim().replace(/\s+/g, " ") : undefined,
-      material,
-      color,
-      ancho: final.ancho,
-      alto: final.alto,
-      modo,
-      nombre: enImagen ? "" : nombre.trim().replace(/\s+/g, " "),
-      telefono: !enImagen && conTelefono ? telefono.trim() : undefined,
-      fuente,
-      imagenUrl: enImagen ? url : undefined,
-      vista: enImagen ? vistaImagen : undefined,
+      ...base,
+      piezas: mismo ? undefined : porPieza,
       // Las piezas que no miró también quedan ubicadas (donde arranca o lo más cerca que entre).
       posiciones: Object.fromEntries(
-        piezas.map((pz) => {
+        piezas.flatMap((pz) => {
+          const d = porPieza[pz];
+          if (!d) return [];
           const c = config.piezas[pz];
           const z = zonas[pz] && recortarZona(zonas[pz], c.recorte ?? [0, 0, c.tam.ancho, c.tam.alto]);
-          const l = colocar(c, final.ancho, final.alto, posiciones[pz], z);
-          return [pz, [Math.round((l.x / c.tam.ancho) * 1000) / 1000, Math.round((l.y / c.tam.alto) * 1000) / 1000]];
+          const l = colocar(c, d.ancho, d.alto, posiciones[pz], z);
+          return [[pz, [Math.round((l.x / c.tam.ancho) * 1000) / 1000, Math.round((l.y / c.tam.alto) * 1000) / 1000]]];
         }),
       ),
     };
-    const e = validarPersonalizacion(p, { pedirImagen: true });
-    setErrores(e);
-    if (Object.keys(e).length > 0) {
-      document.getElementById(`${id}-${Object.keys(e)[0]}`)?.focus();
+    // Valida pieza por pieza: si una tiene un error, la muestra.
+    for (const pz of piezas) {
+      const d = porPieza[pz];
+      if (!d) continue;
+      const e = validarPersonalizacion(d, { pedirImagen: true });
+      if (Object.keys(e).length > 0) {
+        setVista(pz);
+        setErrores(e);
+        setPaso(PASOS.indexOf(e.nombre || e.telefono || e.imagen ? "Qué grabamos" : e.medida ? "Medida" : "Forma y color"));
+        return;
+      }
+    }
+    if (!Object.values(porPieza).some(Boolean)) {
+      setErrores({ forma: "Personalizá al menos una pieza." });
       return;
     }
+    setErrores({});
     onCambio(p);
     ref.current?.close();
   }
@@ -232,36 +326,35 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
   // la original se sube en alta calidad para grabarla.
   async function subirImagen(archivo?: File) {
     if (!archivo) return;
+    const pz = piezaEdit;
     setProcesando(true);
-    setImagenUrl(undefined);
-    setSubida("subiendo");
-    subiendo.current = (async () => {
+    cambiar({ imagenUrl: undefined, subida: "subiendo" }, pz);
+    subiendo.current[pz] = (async () => {
       try {
         const datos = new FormData();
         datos.append("imagen", await imagenParaSubir(archivo));
         const res = await fetch("/api/imagen", { method: "POST", body: datos });
         const json = (await res.json()) as { ok: boolean; url?: string };
         if (!json.ok || !json.url) throw new Error("Sin link");
-        setImagenUrl(json.url);
-        setSubida("ok");
+        cambiar({ imagenUrl: json.url, subida: "ok" }, pz);
         return json.url;
       } catch {
-        setSubida("error");
+        cambiar({ subida: "error" }, pz);
         return undefined;
       }
     })();
     try {
-      setVistaImagen(await aGrabadoLaser(archivo));
+      cambiar({ vistaImagen: await aGrabadoLaser(archivo) }, pz);
       setErrores((x) => ({ ...x, imagen: undefined, forma: undefined }));
     } catch {
-      setSubida("nada");
+      cambiar({ subida: "nada" }, pz);
       setErrores((x) => ({ ...x, imagen: "No pudimos leer esa imagen. Probá con otra (JPG o PNG)." }));
     } finally {
       setProcesando(false);
     }
   }
 
-  const precio = precioPersonalizacion(producto, { material, ancho: final.ancho, alto: final.alto, modo });
+  const precio = piezas.reduce((t, pz) => (mismo || activas[pz] !== false ? t + precioPieza({ ...(disenos[pz] ?? actual), ...medidaDe(disenos[pz] ?? actual, max) }) : t), 0);
   const extra = precio > 0 ? `+ ${formatearPrecio(precio)}` : "";
   const extraGuardado = valor ? precioPersonalizacion(producto, valor) : 0;
   const textoExtraGuardado = extraGuardado > 0 ? `+ ${formatearPrecio(extraGuardado)}` : "";
@@ -391,6 +484,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
               ) : vista && config.piezas[vista] ? (
                 <VistaPieza
                   key={vista}
+                  oculto={!activa}
                   pieza={config.piezas[vista]}
                   nombrePieza={getProducto(vista)?.nombre ?? vista}
                   diseno={diseno}
@@ -406,6 +500,47 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
           </div>
 
           <div className="relative flex-1 space-y-7 overflow-y-auto px-4 py-6 sm:col-start-2 sm:row-start-2 sm:px-6">
+            {/* Kits y combos: el mismo parche en todas las piezas, o uno distinto en cada una (y alguna sin parche). */}
+            {piezas.length > 1 && (
+              <div className="space-y-3">
+                <div className="relative grid grid-cols-2 rounded-full bg-lino p-1">
+                  <span
+                    aria-hidden="true"
+                    className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-tinta transition-transform duration-500 ease-suave ${mismo ? "" : "translate-x-full"}`}
+                  />
+                  {(
+                    [
+                      [true, "Mismo en todas"],
+                      [false, "Uno por pieza"],
+                    ] as const
+                  ).map(([v, texto]) => (
+                    <button
+                      key={texto}
+                      type="button"
+                      onClick={() => elegirMismo(v)}
+                      className={`relative h-10 text-[11px] uppercase tracking-[0.12em] transition-colors duration-500 ${mismo === v ? "text-crema" : "text-tinta/70"}`}
+                    >
+                      {texto}
+                    </button>
+                  ))}
+                </div>
+                {!mismo && (
+                  <label className="flex animate-entrada cursor-pointer items-center justify-between gap-3 border border-tinta/20 px-3 py-2.5">
+                    <span className="text-[13px]">
+                      Personalizar <span className="font-normal">{getProducto(piezaEdit)?.nombre ?? piezaEdit}</span>
+                      <span className="block text-[11px] text-tinta/60">Cambiá de pieza con las pestañas de arriba.</span>
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={activa}
+                      onChange={(e) => setActivas((a) => ({ ...a, [piezaEdit]: e.target.checked }))}
+                      className="h-5 w-5 accent-[rgb(var(--tinta))]"
+                    />
+                  </label>
+                )}
+              </div>
+            )}
+
             {/* Pasos (estilo Away): uno por pantalla, con la vista siempre arriba. */}
             <div className="flex items-center gap-3">
               <p className="eyebrow shrink-0">
@@ -418,8 +553,11 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
               </div>
             </div>
 
+            {!activa ? (
+              <p className="animate-entrada text-[13px] text-tinta/70">Esta pieza va sin personalizar. Tocá otra pestaña para seguir con las demás.</p>
+            ) : (
             <div key={paso} className="animate-entrada space-y-7">
-              {paso === 0 && (
+              {PASOS[paso] === "Lugar" && (
                 <fieldset>
                   <legend className="eyebrow mb-3">¿Dónde lo ponemos?{piezas.length > 1 && vista && vista !== "360" ? ` · ${getProducto(vista)?.nombre ?? vista}` : ""}</legend>
                   {lugaresVista.length > 0 ? (
@@ -450,7 +588,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                   </p>
                 </fieldset>
               )}
-              {paso === 1 && (
+              {PASOS[paso] === "Qué grabamos" && (
                 <>
                 <fieldset>
                   <legend className="eyebrow mb-3">¿Qué grabamos?</legend>
@@ -646,7 +784,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                 )}
                 </>
               )}
-              {paso === 2 && (
+              {PASOS[paso] === "Forma y color" && (
                 <>
                 {config.materiales.filter((m) => !m.proximamente).length > 1 && (
                   <fieldset>
@@ -769,7 +907,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                 </fieldset>
                 </>
               )}
-              {paso === 3 && (
+              {PASOS[paso] === "Medida" && (
                 <>
                 <fieldset>
                   <legend className="eyebrow mb-3">
@@ -787,10 +925,26 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                     {proporcion !== null ? `Esta forma mantiene su proporción: ${cm(final.ancho)} × ${cm(final.alto)} cm. ` : ""}
                     {piezas.length > 1 ? "En las piezas más chicas se ajusta a lo que entra." : ""}
                   </p>
+                  {/* A más grande, más caro: los tramos a la vista, con el actual marcado. */}
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    {config.tamanos.map((t) => {
+                      const es = tramo?.nombre === t.nombre;
+                      return (
+                        <div
+                          key={t.nombre}
+                          className={`flex h-14 flex-col items-center justify-center border text-[11px] uppercase tracking-[0.12em] transition-colors duration-300 ${es ? "border-tinta bg-tinta text-crema" : "border-tinta/15 text-tinta/60"}`}
+                        >
+                          {t.nombre}
+                          <span className="mt-0.5 text-[10px] normal-case tracking-normal opacity-80">+ {formatearPrecio(t.precioExtra)}{piezas.length > 1 ? " c/u" : ""}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </fieldset>
                 </>
               )}
             </div>
+            )}
           </div>
 
           <div className="border-t border-tinta/10 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:col-start-2 sm:row-start-3 sm:px-6">

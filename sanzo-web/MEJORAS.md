@@ -350,3 +350,10 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - **Lugares fijos** por pieza (`piezas[x].lugares`), con un toque el parche viaja suave; "A mano" si lo arrastran:
   - Arnés: Bajo el logo · Abajo. Correa: Cerca de la manija · Al medio · Cerca del mosquetón. Collar: Junto al logo · Antes de la hebilla. Poo bag: Centro · Arriba. Bandana: Centro · Arriba.
 - Escalas (`pxCm`) medidas con el ancho de las tiras (correa 2 cm, collar 2,5 cm) y la etiqueta del arnés: confirmar con medidas reales.
+- 2026-10-25 · **Correcciones de Santi**:
+  - **Kit/combos: diseño distinto por pieza** ("Mismo en todas" / "Uno por pieza"). Con "uno por pieza" cada pestaña tiene su propio parche y se puede dejar alguna **sin personalizar**. El precio suma solo las piezas personalizadas, cada una con su tamaño. En el pedido, el mail y el Hub sale el detalle por pieza ("Arnés: … / Collar: sin personalizar") y todas las imágenes a grabar con su pieza (`Personalizacion.piezas`).
+  - **Pasos** (orden final de Santi): 1 Qué grabamos → 2 Forma y color → 3 Medida → 4 Lugar.
+  - **A más grande, más caro**: tramos Chico +$100 · Mediano +$200 · Grande +$300 (PROVISORIOS), a la vista en el paso Medida con el actual marcado.
+  - Zona en verde al arrastrar: probada y descartada por Santi (volvió al blanco suave).
+  - **Correa y collar**: la vista de cerca va grande arriba (2:1) y se arrastra ahí; la pieza entera queda chica abajo para ubicarse.
+  - Arnés: el lugar "Abajo" centrado en la parte de abajo (centro medido con la zona: 608, 968).

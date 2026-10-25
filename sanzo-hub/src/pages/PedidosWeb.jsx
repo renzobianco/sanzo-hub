@@ -205,16 +205,16 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete }) {
                   ))}
                 </div>
               )}
-              {/* Imagen que subió para grabar: tocándola se abre la original en alta calidad (para descargarla). */}
-              {it.imagen ? (
-                <a href={it.imagen} target="_blank" rel="noreferrer" className="small" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                  <img src={it.imagen} alt="Imagen para grabar" style={{ width: 56, height: 56, objectFit: 'contain', borderRadius: 6, background: '#f4ede3', border: '1px solid rgba(0,0,0,.08)' }} />
-                  <span style={{ textDecoration: 'underline' }}>Ver / descargar imagen para grabar</span>
-                </a>
-              ) : (
-                it.personalizacion?.includes('Imagen propia') && (
-                  <div className="small" style={{ marginTop: 4, color: '#a0522d' }}>Falta la imagen: la manda por WhatsApp</div>
-                )
+              {/* Imágenes que subió para grabar (una por pieza si eligió diseños distintos): tocándola se abre la original. */}
+              {(it.imagenes || (it.imagen ? [{ pieza: '', url: it.imagen }] : [])).map((m, j) =>
+                m.url ? (
+                  <a key={j} href={m.url} target="_blank" rel="noreferrer" className="small" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                    <img src={m.url} alt="Imagen para grabar" style={{ width: 56, height: 56, objectFit: 'contain', borderRadius: 6, background: '#f4ede3', border: '1px solid rgba(0,0,0,.08)' }} />
+                    <span style={{ textDecoration: 'underline' }}>Ver / descargar imagen para grabar{m.pieza ? ` (${m.pieza})` : ''}</span>
+                  </a>
+                ) : (
+                  <div key={j} className="small" style={{ marginTop: 4, color: '#a0522d' }}>Falta la imagen{m.pieza ? ` (${m.pieza})` : ''}: la manda por WhatsApp</div>
+                ),
               )}
             </span>
             <span className="v">{fmtARS(it.subtotal)}</span>

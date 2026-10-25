@@ -1,4 +1,4 @@
-import { personalizacion as config, type Producto } from "@/data/products";
+import { getProducto, personalizacion as config, type Producto } from "@/data/products";
 import { medidaFinal } from "./formas";
 import type { Grabado } from "./laser";
 
@@ -28,7 +28,15 @@ export interface Personalizacion {
   posiciones?: Record<string, [number, number]>;
   /** Vista previa del grabado de su imagen. Solo vive en el navegador (carrito y editor): no viaja al servidor. */
   vista?: Grabado;
+  /**
+   * Kits y combos con un diseño distinto por pieza: el diseño de cada pieza, o null si esa pieza va sin personalizar.
+   * Sin esto, el diseño de arriba va igual en todas las piezas.
+   */
+  piezas?: Record<string, DisenoPieza | null>;
 }
+
+/** El diseño de una pieza (lo mismo que una personalización, sin posiciones ni diseños por pieza). */
+export type DisenoPieza = Omit<Personalizacion, "piezas" | "posiciones">;
 
 export type ErroresPersonalizacion = Partial<
   Record<"forma" | "formaOtra" | "material" | "color" | "medida" | "imagen" | "nombre" | "telefono" | "fuente", string>
@@ -81,19 +89,42 @@ export function tramoTamano(ancho: number, alto: number) {
   return config.tamanos.find((t) => area <= t.hastaCm2) ?? config.tamanos[config.tamanos.length - 1];
 }
 
-/** Lo que suma la personalización a una unidad: (base + material + tamaño + imagen propia) × piezas personalizadas. */
-export function precioPersonalizacion(producto: Producto, p?: Partial<Pick<Personalizacion, "material" | "ancho" | "alto" | "modo">>) {
-  const { ancho, alto } = { ...config.medidas.inicial, ...p };
-  const porPieza =
+/** Lo que suma personalizar UNA pieza: base + material + tamaño (a más grande, más caro) + imagen propia. */
+export function precioPieza(d?: Partial<Pick<Personalizacion, "material" | "ancho" | "alto" | "modo">>) {
+  const { ancho, alto } = { ...config.medidas.inicial, ...d };
+  return (
     config.precioExtra +
-    (materialPorId(p?.material ?? materialInicial())?.precioExtra ?? 0) +
+    (materialPorId(d?.material ?? materialInicial())?.precioExtra ?? 0) +
     (tramoTamano(ancho!, alto!)?.precioExtra ?? 0) +
-    (p?.modo === "imagen" ? config.precioImagen : 0);
-  return porPieza * piezasPersonalizables(producto).length;
+    (d?.modo === "imagen" ? config.precioImagen : 0)
+  );
+}
+
+/** El diseño de cada pieza personalizada del producto (las que van sin personalizar no aparecen). */
+export function disenosPorPieza(producto: Producto, p: Personalizacion): [string, DisenoPieza][] {
+  return piezasPersonalizables(producto).flatMap((pz) => {
+    const d = p.piezas ? p.piezas[pz] : p;
+    return d ? [[pz, d] as [string, DisenoPieza]] : [];
+  });
+}
+
+/** Lo que suma la personalización a una unidad: la suma de cada pieza personalizada. */
+export function precioPersonalizacion(producto: Producto, p?: Partial<Pick<Personalizacion, "material" | "ancho" | "alto" | "modo">> & { piezas?: Personalizacion["piezas"] }) {
+  if (p?.piezas) return disenosPorPieza(producto, p as Personalizacion).reduce((s, [, d]) => s + precioPieza(d), 0);
+  return precioPieza(p) * piezasPersonalizables(producto).length;
 }
 
 /** pedirImagen: en el editor exige haber elegido una imagen; en el carrito y el servidor no. */
-export function validarPersonalizacion(p: Personalizacion, { pedirImagen = false } = {}): ErroresPersonalizacion {
+export function validarPersonalizacion(p: DisenoPieza & { piezas?: Personalizacion["piezas"] }, { pedirImagen = false } = {}): ErroresPersonalizacion {
+  if (p.piezas) {
+    const disenos = Object.values(p.piezas).filter((d): d is DisenoPieza => !!d);
+    if (!disenos.length) return { forma: "Personalizá al menos una pieza." };
+    for (const d of disenos) {
+      const e = validarPersonalizacion(d, { pedirImagen });
+      if (Object.keys(e).length) return e;
+    }
+    return {};
+  }
   const e: ErroresPersonalizacion = {};
   const forma = formaPorId(p.forma);
   if (!forma) e.forma = "Elegí una forma.";
@@ -160,6 +191,30 @@ function vistaValida(v: unknown): Grabado | undefined {
  */
 export function normalizarPersonalizacion(producto: Producto, p: unknown): Personalizacion | null {
   if (!esPersonalizable(producto) || !p || typeof p !== "object") return null;
+  const base = normalizarDiseno(p);
+  if (!base) return null;
+  const o = p as Record<string, unknown>;
+  const limpio: Personalizacion = { ...base, posiciones: posicionesValidas(o.posiciones) };
+  if (o.piezas && typeof o.piezas === "object") {
+    const piezas: Record<string, DisenoPieza | null> = {};
+    for (const pz of piezasPersonalizables(producto)) {
+      const d = (o.piezas as Record<string, unknown>)[pz];
+      if (d === null) piezas[pz] = null;
+      else {
+        const n = d ? normalizarDiseno(d) : null;
+        if (!n) return null;
+        piezas[pz] = n;
+      }
+    }
+    if (!Object.values(piezas).some(Boolean)) return null;
+    limpio.piezas = piezas;
+  }
+  return limpio;
+}
+
+/** Un diseño válido a partir de datos de afuera (localStorage o la red), o null. */
+function normalizarDiseno(p: unknown): DisenoPieza | null {
+  if (!p || typeof p !== "object") return null;
   const o = p as Record<string, unknown>;
   const enImagen = o.modo === "imagen";
   if (!enImagen && typeof o.nombre !== "string") return null;
@@ -173,7 +228,7 @@ export function normalizarPersonalizacion(producto: Producto, p: unknown): Perso
     alto = medidaFinal(forma, ancho, ancho / 2).alto;
   }
   const imagenUrl = typeof o.imagenUrl === "string" && IMAGEN_URL.test(o.imagenUrl) ? o.imagenUrl : undefined;
-  const limpio: Personalizacion = {
+  const limpio: DisenoPieza = {
     forma,
     formaOtra: forma === "otra" && typeof o.formaOtra === "string" ? o.formaOtra.trim().replace(/\s+/g, " ").slice(0, 120) : undefined,
     material: typeof o.material === "string" && o.material ? o.material : materialInicial(),
@@ -186,14 +241,17 @@ export function normalizarPersonalizacion(producto: Producto, p: unknown): Perso
     fuente: typeof o.fuente === "string" && o.fuente ? o.fuente : config.fuentes[0].id,
     imagenUrl: enImagen ? imagenUrl : undefined,
     vista: enImagen ? vistaValida(o.vista) : undefined,
-    posiciones: posicionesValidas(o.posiciones),
   };
   if (Object.keys(validarPersonalizacion(limpio)).length > 0) return null;
   return limpio;
 }
 
-export function clavePersonalizacion(p?: Personalizacion) {
+export function clavePersonalizacion(p?: Personalizacion): string {
   if (!p) return "";
+  if (p.piezas) {
+    const partes = Object.entries(p.piezas).map(([pz, d]) => `${pz}:${d ? clavePersonalizacion(d) : "-"}`);
+    return [...partes, JSON.stringify(p.posiciones ?? {})].join("||");
+  }
   // Dos imágenes distintas = dos líneas distintas en el carrito.
   const huella = p.imagenUrl ?? (p.vista ? `${p.vista.grabado.length}-${p.vista.grabado.slice(-24)}` : "");
   return [p.forma, p.formaOtra ?? "", p.material, p.color, p.ancho, p.alto, p.modo, p.nombre, p.telefono ?? "", p.modo === "nombre" ? p.fuente : "", huella, JSON.stringify(p.posiciones ?? {})].join("|");
@@ -201,8 +259,16 @@ export function clavePersonalizacion(p?: Personalizacion) {
 
 const cm = (v: number) => String(v).replace(".", ",");
 
-/** "Hueso · Tabaco envejecido · 6 × 2,6 cm · Letra Clásica · Toto · 11 2345 6789"  /  "… · Imagen propia" */
-export function textoPersonalizacion(p: Personalizacion) {
+/**
+ * "Hueso · Tabaco envejecido · 6 × 2,6 cm · Letra Clásica · Toto · 11 2345 6789"  /  "… · Imagen propia".
+ * Con un diseño por pieza: "Arnés: … / Correa: … / Collar: sin personalizar".
+ */
+export function textoPersonalizacion(p: Personalizacion): string {
+  if (p.piezas) {
+    return Object.entries(p.piezas)
+      .map(([pz, d]) => `${getProducto(pz)?.nombre ?? pz}: ${d ? textoPersonalizacion(d) : "sin personalizar"}`)
+      .join(" / ");
+  }
   const forma = p.forma === "otra" ? `Forma a medida: "${p.formaOtra ?? ""}"` : formaPorId(p.forma)?.nombre ?? p.forma;
   const material = config.materiales.filter((m) => !m.proximamente).length > 1 ? materialPorId(p.material)?.nombre : "";
   const fuente = fuentePorId(p.fuente);
@@ -216,6 +282,15 @@ export function textoPersonalizacion(p: Personalizacion) {
 /** Lo que se manda al servidor: sin la vista previa de la imagen (pesa y no hace falta). */
 export function sinImagen(p?: Personalizacion): Personalizacion | undefined {
   if (!p) return undefined;
-  const { vista: _vista, ...resto } = p;
-  return resto;
+  const { vista: _vista, piezas, ...resto } = p;
+  if (!piezas) return resto;
+  return { ...resto, piezas: Object.fromEntries(Object.entries(piezas).map(([pz, d]) => [pz, d ? (({ vista: _v, ...r }) => r)(d) : null])) };
+}
+
+/** Las imágenes para grabar del pedido, con la pieza en la que van ("" = en todas). */
+export function imagenesPersonalizacion(p: Personalizacion): { pieza: string; url?: string }[] {
+  if (p.piezas) {
+    return Object.entries(p.piezas).flatMap(([pz, d]) => (d?.modo === "imagen" ? [{ pieza: getProducto(pz)?.nombre ?? pz, url: d.imagenUrl }] : []));
+  }
+  return p.modo === "imagen" ? [{ pieza: "", url: p.imagenUrl }] : [];
 }

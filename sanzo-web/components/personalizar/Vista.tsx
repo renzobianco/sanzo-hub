@@ -256,6 +256,7 @@ function Escena({
   arrastrando,
   capaParche,
   capaFoto,
+  oculto,
 }: {
   pieza: PiezaPersonalizable;
   diseno: DisenoParche;
@@ -266,6 +267,7 @@ function Escena({
   arrastrando: boolean;
   capaParche: React.Ref<HTMLDivElement>;
   capaFoto?: React.Ref<HTMLDivElement>;
+  oculto?: boolean;
 }) {
   const { imagen, tam, sinFondo, pxCm, giro = 0, zona } = pieza;
   const pw = lugar.w * s;
@@ -294,7 +296,7 @@ function Escena({
       </div>
       <div
         ref={capaParche}
-        className="pointer-events-none absolute left-0 top-0 will-change-transform"
+        className={`pointer-events-none absolute left-0 top-0 will-change-transform ${oculto ? "hidden" : ""}`}
         style={{
           width: pw,
           height: ph,
@@ -339,10 +341,13 @@ export function VistaPieza({
   zona,
   posicion,
   onMover,
+  oculto,
 }: {
   pieza: PiezaPersonalizable;
   nombrePieza: string;
   diseno: DisenoParche;
+  /** Pieza sin personalizar (kits con un diseño por pieza): se ve sin parche y no se arrastra. */
+  oculto?: boolean;
   zona?: Zona;
   /** Dónde lo dejaron (centro, en píxeles de la foto). */
   posicion?: Punto;
@@ -369,8 +374,8 @@ export function VistaPieza({
 
   const s = anchoMarco ? anchoMarco / vista[2] : 0;
   // Lupa: recuadro 3:1 alrededor del parche, sin salirse de la pieza.
-  const lw = Math.min(vista[2], Math.max(lugar.w * 3.2, 320));
-  const lh = lw / 3;
+  const lw = Math.min(vista[2], Math.max(lugar.w * 2.6, 260));
+  const lh = lw / 2;
   const encuadreLupa = (p: Punto) => ({
     x: Math.min(Math.max(p.x - lw / 2, vista[0]), vista[0] + vista[2] - lw),
     y: Math.min(Math.max(p.y - lh / 2, vista[1] - lh / 3), vista[1] + vista[3] - lh + lh / 3),
@@ -393,7 +398,7 @@ export function VistaPieza({
   }
 
   function empezar(e: React.PointerEvent<HTMLDivElement>, escala: number, ox: number, oy: number) {
-    if (!escala) return;
+    if (!escala || oculto) return;
     const r = e.currentTarget.getBoundingClientRect();
     const p = { x: (e.clientX - r.left) / escala + ox, y: (e.clientY - r.top) / escala + oy };
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -433,27 +438,28 @@ export function VistaPieza({
 
   return (
     <div role="img" aria-label={`Vista previa: ${nombrePieza}. Arrastrá el parche para moverlo.`} className="relative w-full">
+      {/* Correa y collar: arriba, grande, la vista de cerca para mover el parche cómodo; abajo la pieza entera para ubicarse. */}
+      {lupa && (
+        <div
+          ref={marcoLupa}
+          className={`relative mb-3 w-full touch-none select-none overflow-hidden rounded-xl bg-crema/60 ring-1 ring-tinta/10 ${cursor}`}
+          style={{ aspectRatio: "2 / 1" }}
+          {...eventos(sl, l0.x, l0.y)}
+        >
+          {sl > 0 && (
+            <Escena pieza={pieza} diseno={diseno} lugar={lugar} s={sl} ox={l0.x} oy={l0.y} arrastrando={arrastrando} capaParche={capaParcheLupa} capaFoto={capaFotoLupa} oculto={oculto} />
+          )}
+          <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-crema/90 px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] text-tinta/60">De cerca · arrastralo acá</span>
+        </div>
+      )}
       <div
         ref={marco}
         className={`relative w-full touch-none select-none overflow-hidden ${cursor}`}
         style={{ aspectRatio: `${vista[2]} / ${vista[3]}` }}
         {...eventos(s, vista[0], vista[1])}
       >
-        {s > 0 && <Escena pieza={pieza} diseno={diseno} lugar={lugar} s={s} ox={vista[0]} oy={vista[1]} arrastrando={arrastrando} capaParche={capaParche} />}
+        {s > 0 && <Escena pieza={pieza} diseno={diseno} lugar={lugar} s={s} ox={vista[0]} oy={vista[1]} arrastrando={arrastrando} capaParche={capaParche} oculto={oculto} />}
       </div>
-      {lupa && (
-        <div
-          ref={marcoLupa}
-          className={`relative mt-4 w-full touch-none select-none overflow-hidden rounded-xl bg-crema/60 ring-1 ring-tinta/10 ${cursor}`}
-          style={{ aspectRatio: "3 / 1" }}
-          {...eventos(sl, l0.x, l0.y)}
-        >
-          {sl > 0 && (
-            <Escena pieza={pieza} diseno={diseno} lugar={lugar} s={sl} ox={l0.x} oy={l0.y} arrastrando={arrastrando} capaParche={capaParcheLupa} capaFoto={capaFotoLupa} />
-          )}
-          <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-crema/90 px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] text-tinta/60">De cerca</span>
-        </div>
-      )}
       {lugar.k < 0.99 && (
         <p className="pointer-events-none mt-3 text-center text-[10px] uppercase tracking-[0.12em] text-tinta/60">
           Acá va a {String(Math.round(ancho * lugar.k * 10) / 10).replace(".", ",")} cm: lo máximo que entra

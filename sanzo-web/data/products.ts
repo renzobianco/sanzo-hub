@@ -292,8 +292,8 @@ export const personalizacion: {
   /** Tramos de precio por tamaño (área = ancho × alto en cm²), del más chico al más grande. PROVISORIOS. */
   tamanos: [
     { nombre: "Chico", hastaCm2: 10, precioExtra: 100 },
-    { nombre: "Mediano", hastaCm2: 20, precioExtra: 100 },
-    { nombre: "Grande", hastaCm2: Infinity, precioExtra: 100 },
+    { nombre: "Mediano", hastaCm2: 20, precioExtra: 200 },
+    { nombre: "Grande", hastaCm2: Infinity, precioExtra: 300 },
   ],
   /**
    * Vista previa de cada pieza: la foto real sin fondo (public/productos/personalizar/). El parche se mueve
@@ -308,7 +308,7 @@ export const personalizacion: {
     arnes: {
       imagen: "/productos/personalizar/arnes.webp", zona: "/productos/personalizar/arnes-zona.webp", tam: { ancho: 1222, alto: 1204 }, sinFondo: true,
       pxCm: 42, inicial: { x: 605, y: 400 }, cm: { ancho: 10, alto: 7 },
-      lugares: [{ id: "pecho", nombre: "Bajo el logo", x: 605, y: 400 }, { id: "abajo", nombre: "Abajo", x: 605, y: 1000 }],
+      lugares: [{ id: "pecho", nombre: "Bajo el logo", x: 605, y: 400 }, { id: "abajo", nombre: "Abajo", x: 608, y: 968 }],
     },
     correa: {
       imagen: "/productos/personalizar/correa.webp", zona: "/productos/personalizar/correa-zona.webp", tam: { ancho: 1564, alto: 380 }, sinFondo: true, lupa: true,

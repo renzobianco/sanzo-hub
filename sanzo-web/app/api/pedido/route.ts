@@ -4,7 +4,7 @@ import { formatearPrecio, textoEnvio } from "@/lib/formato";
 import { crearPreferencia, pagoOnlineActivo, sePuedeCobrar } from "@/lib/mercadopago";
 import type { PedidoEntrada, PedidoRespuesta } from "@/lib/pedido";
 import { esImagenNuestra, guardarPedidoEnHub } from "@/lib/hub";
-import { textoPersonalizacion, type Personalizacion } from "@/lib/personalizacion";
+import { imagenesPersonalizacion, textoPersonalizacion, type DisenoPieza, type Personalizacion } from "@/lib/personalizacion";
 import { textoOpcion } from "@/lib/combos";
 import { validarCheckout, type DatosCheckout } from "@/lib/validacion";
 
@@ -25,6 +25,23 @@ function str(v: unknown, max = 300) {
 
 /** Solo recorta y tipa; la validación real la hace resolverLineas (descarta la línea si no es válida). */
 function limpiarPersonalizacion(p: unknown): Personalizacion | undefined {
+  const base = limpiarDiseno(p);
+  if (!base) return undefined;
+  const o = p as Record<string, unknown>;
+  // Un diseño por pieza (kits y combos): cada uno se limpia igual; null = esa pieza va sin personalizar.
+  const piezas =
+    o.piezas && typeof o.piezas === "object"
+      ? Object.fromEntries(Object.entries(o.piezas as Record<string, unknown>).slice(0, 10).map(([pz, d]) => [str(pz, 30), d === null ? null : limpiarDiseno(d) ?? null]))
+      : undefined;
+  return {
+    ...base,
+    // Dónde va el parche en cada pieza (lo valida normalizarPersonalizacion).
+    posiciones: o.posiciones && typeof o.posiciones === "object" ? (o.posiciones as Personalizacion["posiciones"]) : undefined,
+    piezas,
+  };
+}
+
+function limpiarDiseno(p: unknown): DisenoPieza | undefined {
   if (!p || typeof p !== "object") return undefined;
   const o = p as Record<string, unknown>;
   const imagenUrl = str(o.imagenUrl, 400);
@@ -39,8 +56,6 @@ function limpiarPersonalizacion(p: unknown): Personalizacion | undefined {
     nombre: str(o.nombre, 40),
     telefono: typeof o.telefono === "string" ? str(o.telefono, 30) : undefined,
     fuente: str(o.fuente, 30),
-    // Dónde va el parche en cada pieza (lo valida normalizarPersonalizacion).
-    posiciones: o.posiciones && typeof o.posiciones === "object" ? (o.posiciones as Personalizacion["posiciones"]) : undefined,
     // Solo links de imágenes que subimos nosotros.
     imagenUrl: imagenUrl && esImagenNuestra(imagenUrl) ? imagenUrl : undefined,
   };
@@ -96,7 +111,9 @@ function armarMail(numero: string, c: DatosCheckout, t: Totales, pago: string) {
       l.producto.nombre +
       (l.opcion ? ` (${textoOpcion(l.producto, l.opcion)})` : "") +
       (l.personalizacion ? ` — PERSONALIZADO: ${textoPersonalizacion(l.personalizacion)}` : ""),
-    imagen: l.personalizacion?.modo === "imagen" ? l.personalizacion.imagenUrl ?? "FALTA LA IMAGEN: la manda por WhatsApp" : "",
+    imagenes: l.personalizacion
+      ? imagenesPersonalizacion(l.personalizacion).map((i) => ({ pieza: i.pieza, url: i.url ?? "FALTA LA IMAGEN: la manda por WhatsApp" }))
+      : [],
     cantidad: l.cantidad,
     unitario: formatearPrecio(l.unitario),
     subtotal: formatearPrecio(l.subtotal),
@@ -115,7 +132,7 @@ function armarMail(numero: string, c: DatosCheckout, t: Totales, pago: string) {
         .map(
           (i) =>
             `<tr><td ${td}>${esc(i.nombre)}${
-              i.imagen.startsWith("https://") ? `<br><a href="${esc(i.imagen)}">Ver imagen para grabar</a>` : i.imagen ? `<br><b>${esc(i.imagen)}</b>` : ""
+              i.imagenes.map((m) => (m.url.startsWith("https://") ? `<br><a href="${esc(m.url)}">Ver imagen para grabar${m.pieza ? ` (${esc(m.pieza)})` : ""}</a>` : `<br><b>${esc(m.url)}${m.pieza ? ` (${esc(m.pieza)})` : ""}</b>`)).join("")
             }</td><td align="center" ${td}>${i.cantidad}</td><td align="right" ${td}>${i.unitario}</td><td align="right" ${td}>${i.subtotal}</td></tr>`,
         )
         .join("")}
@@ -133,7 +150,7 @@ function armarMail(numero: string, c: DatosCheckout, t: Totales, pago: string) {
     "",
     ...filas.map(([k, v]) => `${k}: ${v}`),
     "",
-    ...items.map((i) => `${i.cantidad} x ${i.nombre} — ${i.subtotal}${i.imagen ? `\n   Imagen para grabar: ${i.imagen}` : ""}`),
+    ...items.map((i) => `${i.cantidad} x ${i.nombre} — ${i.subtotal}${i.imagenes.map((m) => `\n   Imagen para grabar${m.pieza ? ` (${m.pieza})` : ""}: ${m.url}`).join("")}`),
     `Subtotal: ${formatearPrecio(t.subtotal)}`,
     ...t.descuentos.map((d) => `Armó el ${d.texto}: − ${formatearPrecio(d.monto)}`),
     `Envío: ${envio}`,
