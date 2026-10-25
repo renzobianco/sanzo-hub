@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useApp } from '../context/AppContext.jsx'
-import { PageHeader, ConfirmDialog, EmptyState, Segmented } from '../components/ui/Primitives.jsx'
-import { IconCheck, IconX, IconPhone, IconRefresh, IconTrash } from '../components/ui/Icons.jsx'
+import { PageHeader, ConfirmDialog, EmptyState, Segmented, Modal, Field } from '../components/ui/Primitives.jsx'
+import { IconCheck, IconX, IconPhone, IconRefresh, IconTrash, IconShip, IconDownload, IconAlert } from '../components/ui/Icons.jsx'
+import { bajarPdf, llamarCorreo } from '../lib/correo.js'
 import { fmtARS, fmtNum } from '../utils/format.js'
 
 // Pedidos que entran por la tienda (sanzo-web). Los pagados con Mercado Pago se pasan solos a
@@ -34,6 +35,7 @@ export default function PedidosWeb() {
   const [confirming, setConfirming] = useState(null)
   const [canceling, setCanceling] = useState(null)
   const [deleting, setDeleting] = useState(null)
+  const [enviando, setEnviando] = useState(null)
 
   // Ventas que salieron de este pedido (las crea la base con webOrderId al confirmarlo).
   const ventasDe = (o) => state.sales.filter((s) => s.webOrderId === o.id)
@@ -88,7 +90,7 @@ export default function PedidosWeb() {
         ) : (
           <div className="grid grid-2" style={{ marginTop: 14 }}>
             {filtered.map((o) => (
-              <OrderCard key={o.id} order={o} onConfirm={() => setConfirming(o)} onCancel={() => setCanceling(o)} onReopen={() => setWebOrderStatus(o.id, 'a_coordinar')} onDelete={() => setDeleting(o)} />
+              <OrderCard key={o.id} order={o} onConfirm={() => setConfirming(o)} onCancel={() => setCanceling(o)} onReopen={() => setWebOrderStatus(o.id, 'a_coordinar')} onDelete={() => setDeleting(o)} onGenerarEnvio={() => setEnviando(o)} />
             ))}
           </div>
         )}
@@ -122,7 +124,175 @@ export default function PedidosWeb() {
             : 'Se borra el pedido. No tiene ventas cargadas.'
         }
       />
+      {enviando && <GenerarEnvio key={enviando.id} order={enviando} onClose={() => setEnviando(null)} />}
     </div>
+  )
+}
+
+/** Envío por Correo Argentino del pedido: número de seguimiento, etiqueta y anular; o el botón para generarlo. */
+function EnvioCorreo({ order: o, onGenerar }) {
+  const { notify } = useApp()
+  const [ocupado, setOcupado] = useState('')
+  const envio = o.envioCorreo && !o.envioCorreo.anulado ? o.envioCorreo : null
+
+  const etiqueta = async () => {
+    setOcupado('etiqueta')
+    try {
+      const r = await llamarCorreo('etiqueta', { pedidoId: o.id })
+      bajarPdf(r.archivo, r.nombre)
+    } catch (e) {
+      notify(e.message, 'error')
+    } finally {
+      setOcupado('')
+    }
+  }
+
+  const anular = async () => {
+    if (!window.confirm(`¿Anular el envío ${envio.tracking}? Solo se puede si todavía no lo despachaste.`)) return
+    setOcupado('anular')
+    try {
+      await llamarCorreo('anular', { pedidoId: o.id })
+      notify('Envío anulado. Lo podés generar de nuevo.')
+    } catch (e) {
+      notify(e.message, 'error')
+    } finally {
+      setOcupado('')
+    }
+  }
+
+  return (
+    <div className="card beige" style={{ padding: 12 }}>
+      {envio ? (
+        <div className="row between" style={{ gap: 8 }}>
+          <div className="small">
+            <div className="strong">Correo Argentino{envio.test ? ' · prueba' : ''}</div>
+            <div className="muted">
+              Seguimiento <span className="tabular">{envio.tracking}</span>
+            </div>
+          </div>
+          <div className="row" style={{ gap: 6 }}>
+            <button className="btn btn-ghost btn-sm" onClick={anular} disabled={!!ocupado}>
+              <IconX /> {ocupado === 'anular' ? 'Anulando…' : 'Anular'}
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={etiqueta} disabled={!!ocupado}>
+              <IconDownload /> {ocupado === 'etiqueta' ? 'Bajando…' : 'Etiqueta'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="row between" style={{ gap: 8 }}>
+          <span className="small muted">{o.envioCorreo?.anulado ? `Envío ${o.envioCorreo.tracking} anulado.` : 'Todavía sin envío.'}</span>
+          <button className="btn btn-ghost btn-sm" onClick={onGenerar}>
+            <IconShip /> Generar envío
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Ventana para dar de alta el envío en Correo Argentino: medidas del paquete y, si retira, la sucursal. */
+function GenerarEnvio({ order: o, onClose }) {
+  const { state, notify } = useApp()
+  const c = o.cliente || {}
+  const porSucursal = c.entrega === 'sucursal'
+  const [paquete, setPaquete] = useState(() => ({ alto: '', ancho: '', largo: '', peso: '', ...(state.settings.correo?.paquete || {}) }))
+  const [sucursales, setSucursales] = useState(null) // null = cargando
+  const [agencyId, setAgencyId] = useState('')
+  const [error, setError] = useState('')
+  const [creando, setCreando] = useState(false)
+
+  // Si retira en sucursal, traemos las de su provincia (primero las de su localidad).
+  useEffect(() => {
+    if (!porSucursal) return
+    llamarCorreo('sucursales', { provincia: c.provincia })
+      .then((r) => {
+        const loc = String(c.localidad || '').toLowerCase()
+        const lista = [...r.sucursales].sort((a, b) => Number(b.localidad.toLowerCase() === loc) - Number(a.localidad.toLowerCase() === loc) || a.localidad.localeCompare(b.localidad))
+        setSucursales(lista)
+      })
+      .catch((e) => {
+        setSucursales([])
+        setError(e.message)
+      })
+  }, [porSucursal, c.provincia, c.localidad])
+
+  const crear = async () => {
+    setError('')
+    setCreando(true)
+    try {
+      const r = await llamarCorreo('crear', { pedidoId: o.id, paquete, agencyId: porSucursal ? agencyId : undefined })
+      notify(`Envío creado: ${r.envio.tracking}. Ya podés bajar la etiqueta.`)
+      onClose()
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setCreando(false)
+    }
+  }
+
+  const p = (k) => ({ value: paquete[k], onChange: (e) => setPaquete({ ...paquete, [k]: e.target.value }), type: 'number', inputMode: 'numeric', min: 0, className: 'input' })
+
+  return (
+    <Modal open onClose={onClose} title={`Envío del pedido ${o.numero}`} subtitle="Se da de alta en Correo Argentino con los datos del cliente. Después bajás la etiqueta y lo despachás.">
+      <div className="stack" style={{ gap: 14 }}>
+        <div className="small">
+          <div className="strong">{c.nombre}</div>
+          <div className="muted">
+            {porSucursal ? 'Retira en sucursal' : [`${c.calle || ''} ${c.altura || ''}`.trim(), c.pisoDepto].filter(Boolean).join(', ')} ·{' '}
+            {[c.localidad, c.provincia, c.codigoPostal].filter(Boolean).join(' · ')}
+          </div>
+        </div>
+
+        {porSucursal && (
+          <Field label="Sucursal donde retira" full>
+            {sucursales === null ? (
+              <p className="muted small">Cargando sucursales…</p>
+            ) : (
+              <select className="select" value={agencyId} onChange={(e) => setAgencyId(e.target.value)}>
+                <option value="">Elegí la sucursal</option>
+                {sucursales.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.localidad} · {s.nombre} · {s.direccion}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Field>
+        )}
+
+        <div className="form-grid">
+          <Field label="Alto (cm)">
+            <input {...p('alto')} />
+          </Field>
+          <Field label="Ancho (cm)">
+            <input {...p('ancho')} />
+          </Field>
+          <Field label="Largo (cm)">
+            <input {...p('largo')} />
+          </Field>
+          <Field label="Peso (gramos)">
+            <input {...p('peso')} />
+          </Field>
+        </div>
+
+        {error && (
+          <div className="banner warn">
+            <IconAlert />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <div className="form-actions">
+          <button className="btn btn-ghost" onClick={onClose}>
+            Cancelar
+          </button>
+          <button className="btn btn-primary" onClick={crear} disabled={creando || (porSucursal && !agencyId)}>
+            <IconShip /> {creando ? 'Creando…' : 'Crear envío'}
+          </button>
+        </div>
+      </div>
+    </Modal>
   )
 }
 
@@ -138,7 +308,7 @@ function Stat({ label, value, sub }) {
   )
 }
 
-function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete }) {
+function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenerarEnvio }) {
   const c = o.cliente || {}
   const est = ESTADOS[o.estado] || ESTADOS.a_coordinar
   const wa = linkWhatsapp(c.celular)
@@ -233,6 +403,8 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete }) {
       </div>
 
       {c.notas && <p className="muted small">“{c.notas}”</p>}
+
+      {o.estado !== 'cancelado' && o.estado !== 'rechazado' && <EnvioCorreo order={o} onGenerar={onGenerarEnvio} />}
 
       <div className="row between" style={{ marginTop: 'auto' }}>
         <div className="small muted">

@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useApp } from '../context/AppContext.jsx'
 import { PageHeader, Field } from '../components/ui/Primitives.jsx'
 import { ExchangeRateFields } from '../components/ui/ExchangeRate.jsx'
 import { IconEye, IconEyeOff, IconCheck, IconAlert, IconRefresh, IconTrash, IconInfo, IconCoins } from '../components/ui/Icons.jsx'
 import { NETWORKS } from '../data/defaults.js'
+import { llamarCorreo, PROVINCIAS } from '../lib/correo.js'
 import { getBufferKey, setBufferKey, getStoredChannels, setStoredChannels, testBufferConnection } from '../lib/buffer.js'
 
 export default function Ajustes() {
@@ -59,6 +60,8 @@ export default function Ajustes() {
         </div>
         <ExchangeRateFields />
       </div>
+
+      <CorreoAjustes />
 
       <div className="card">
         <div className="card-head">
@@ -140,6 +143,140 @@ export default function Ajustes() {
               Última conexión probada: {savedChannels.length} {savedChannels.length === 1 ? 'canal encontrado' : 'canales encontrados'}. Volvé a probar si conectaste o desconectaste algo en Buffer.
             </p>
           )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const REMITENTE_VACIO = { nombre: 'sanzo', calle: '', altura: '', piso: '', depto: '', localidad: '', provincia: 'Ciudad Autónoma de Buenos Aires', cp: '', celular: '', email: '' }
+const PAQUETE_VACIO = { alto: '', ancho: '', largo: '', peso: '' }
+
+/**
+ * Correo Argentino (API PAQ.AR): estado de la conexión, remitente y paquete por defecto.
+ * Las credenciales NO van acá: son variables de entorno en Vercel (ver api/correo.js).
+ */
+function CorreoAjustes() {
+  const { state, updateSettings, notify } = useApp()
+  const guardado = state.settings.correo || {}
+  const [remitente, setRemitente] = useState(() => ({ ...REMITENTE_VACIO, ...(guardado.remitente || {}) }))
+  const [paquete, setPaquete] = useState(() => ({ ...PAQUETE_VACIO, ...(guardado.paquete || {}) }))
+  const [estado, setEstado] = useState(null) // null | { configurado, conectado, test, error }
+  const [probando, setProbando] = useState(false)
+
+  const probar = async () => {
+    setProbando(true)
+    try {
+      setEstado(await llamarCorreo('estado'))
+    } catch (e) {
+      setEstado({ error: e.message })
+    } finally {
+      setProbando(false)
+    }
+  }
+
+  useEffect(() => {
+    probar()
+  }, [])
+
+  const guardar = () => {
+    updateSettings({ correo: { remitente, paquete } })
+    notify('Datos del Correo guardados')
+  }
+
+  const r = (k) => ({ value: remitente[k], onChange: (e) => setRemitente({ ...remitente, [k]: e.target.value }) })
+  const p = (k) => ({ value: paquete[k], onChange: (e) => setPaquete({ ...paquete, [k]: e.target.value }), type: 'number', inputMode: 'numeric', min: 0 })
+
+  return (
+    <div className="card mb-16">
+      <div className="card-head">
+        <div>
+          <div className="card-title">Correo Argentino</div>
+          <div className="card-sub">Para generar el envío y la etiqueta de cada pedido web desde Pedidos web.</div>
+        </div>
+      </div>
+
+      <div className="stack" style={{ gap: 14 }}>
+        {probando ? (
+          <p className="muted small">Revisando la conexión…</p>
+        ) : estado?.conectado ? (
+          <div className="row" style={{ gap: 6 }}>
+            <IconCheck style={{ width: 15, height: 15, color: 'var(--green)' }} />
+            <span className="strong small">Conectado{estado.test ? ' (ambiente de prueba)' : ''}</span>
+          </div>
+        ) : (
+          <div className="banner warn">
+            <IconAlert />
+            <span>
+              {estado?.configurado === false
+                ? 'Faltan las credenciales: el número de acuerdo y la API-Key que da el área Comercial de Correo Argentino. Se cargan en Vercel (proyecto sanzo-hub) como CORREO_AGREEMENT y CORREO_API_KEY.'
+                : estado?.error || 'No se pudo revisar la conexión.'}
+            </span>
+          </div>
+        )}
+
+        <div className="card-sub strong">Remitente (desde donde despachan)</div>
+        <div className="form-grid">
+          <Field label="Nombre">
+            <input className="input" {...r('nombre')} />
+          </Field>
+          <Field label="Celular">
+            <input className="input" inputMode="tel" {...r('celular')} />
+          </Field>
+          <Field label="Calle">
+            <input className="input" {...r('calle')} />
+          </Field>
+          <Field label="Altura">
+            <input className="input" inputMode="numeric" {...r('altura')} />
+          </Field>
+          <Field label="Piso (opcional)">
+            <input className="input" {...r('piso')} />
+          </Field>
+          <Field label="Depto (opcional)">
+            <input className="input" {...r('depto')} />
+          </Field>
+          <Field label="Localidad">
+            <input className="input" {...r('localidad')} />
+          </Field>
+          <Field label="Código postal">
+            <input className="input" {...r('cp')} />
+          </Field>
+          <Field label="Provincia">
+            <select className="select" {...r('provincia')}>
+              {PROVINCIAS.map((x) => (
+                <option key={x}>{x}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Email">
+            <input className="input" type="email" {...r('email')} />
+          </Field>
+        </div>
+
+        <div className="card-sub strong">Paquete por defecto</div>
+        <div className="form-grid">
+          <Field label="Alto (cm)">
+            <input className="input" {...p('alto')} />
+          </Field>
+          <Field label="Ancho (cm)">
+            <input className="input" {...p('ancho')} />
+          </Field>
+          <Field label="Largo (cm)">
+            <input className="input" {...p('largo')} />
+          </Field>
+          <Field label="Peso (gramos)" hint="Con la caja y el relleno.">
+            <input className="input" {...p('peso')} />
+          </Field>
+        </div>
+        <p className="muted small">Se usa para cada envío; si un pedido es más grande, lo cambiás al generarlo.</p>
+
+        <div className="row" style={{ gap: 10 }}>
+          <button className="btn btn-primary" onClick={guardar}>
+            <IconCheck /> Guardar
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={probar} disabled={probando}>
+            <IconRefresh className={probando ? 'spin' : ''} /> Probar conexión
+          </button>
         </div>
       </div>
     </div>

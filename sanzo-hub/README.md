@@ -84,3 +84,12 @@ Se usa la **ganancia bruta acumulada**: por cada venta, precio cobrado menos el 
 ## Stack
 
 React 19 + Vite, Recharts para los gráficos, CSS propio con la paleta de la marca (`src/index.css`). Supabase como base compartida (`src/lib/supabase.js`, `supabase/schema.sql`), sin backend propio salvo el proxy serverless de Buffer (`api/buffer.js`).
+
+## Correo Argentino (envíos de Pedidos web)
+
+En cada pedido web, **Generar envío** lo da de alta en Correo Argentino (API PAQ.AR v1, manual "Plataforma de Integración – Api 2.0") con los datos del cliente, guarda el número de seguimiento en el pedido (`envioCorreo`) y deja bajar la **etiqueta 10x15 en PDF**. Si retira en sucursal, se elige la sucursal de una lista que trae la API. **Anular** cancela el envío mientras no se haya despachado.
+
+- Todo pasa por la función serverless `api/correo.js` (en `npm run dev` no existe: usar `vercel dev`). Los datos del envío los lee del pedido en Supabase, no del navegador.
+- **Credenciales** (las da el área Comercial de Correo Argentino), en Vercel → proyecto sanzo-hub → Environment Variables: `CORREO_AGREEMENT` (número de acuerdo) y `CORREO_API_KEY`. Opcionales: `CORREO_SERVICIO` (tipo de servicio, default `CP`) y `CORREO_TEST=1` para usar el ambiente de prueba. Después, Redeploy.
+- **Remitente y paquete por defecto** (medidas en cm, peso en gramos): Ajustes → Correo Argentino. Ahí también se ve si la conexión anda.
+- La API no cotiza precios: el precio del envío que paga el cliente sale de `sanzo-web/data/envios.ts`.
