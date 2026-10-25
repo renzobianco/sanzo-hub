@@ -6,7 +6,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PROVINCIAS } from "@/data/envios";
 import { formatearPrecio, textoEnvio } from "@/lib/formato";
 import { CLAVE_ULTIMO_PEDIDO, type PedidoEntrada, type PedidoRespuesta } from "@/lib/pedido";
-import { sinImagen, textoPersonalizacion } from "@/lib/personalizacion";
+import { esPersonalizable, sinImagen, textoPersonalizacion } from "@/lib/personalizacion";
+import { Personalizar } from "../personalizar/Personalizar";
 import { datosVacios, validarCheckout, type DatosCheckout } from "@/lib/validacion";
 import { chapitaConFoto, fotoDeLinea } from "@/lib/chapita";
 import { useCarrito } from "../carrito/CarritoProvider";
@@ -32,7 +33,7 @@ const ORDEN: Campo[] = [
 /** `pagoOnline`: hay credenciales de Mercado Pago cargadas → se paga en el momento. */
 export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
   const router = useRouter();
-  const { totales, listo, ubicacion, setUbicacion, vaciar } = useCarrito();
+  const { totales, listo, ubicacion, setUbicacion, vaciar, personalizar } = useCarrito();
   const [d, setD] = useState<DatosCheckout>(datosVacios);
   const [tocados, setTocados] = useState<Partial<Record<Campo, boolean>>>({});
   const [intentado, setIntentado] = useState(false);
@@ -386,8 +387,13 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
                   {l.opcion ? `${textoOpcion(l.producto, l.opcion)} · ` : ""}
                   {l.cantidad} u.
                 </p>
-                {l.personalizacion && (
-                  <p className="text-sm text-marron">{textoPersonalizacion(l.personalizacion)}</p>
+                {/* Personalizar también acá: si entraron directo al pedido, que no se lo pierdan. */}
+                {esPersonalizable(l.producto) ? (
+                  <div className="mt-1.5">
+                    <Personalizar producto={l.producto} valor={l.personalizacion} onCambio={(p) => personalizar(l.key, p)} enCarrito />
+                  </div>
+                ) : (
+                  l.personalizacion && <p className="text-sm text-marron">{textoPersonalizacion(l.personalizacion)}</p>
                 )}
               </div>
               <p className="text-[15px]">{formatearPrecio(l.subtotal)}</p>

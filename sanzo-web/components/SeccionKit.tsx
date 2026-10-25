@@ -1,5 +1,5 @@
 import { Rollito } from "./Rollito";
-import Image from "next/image";
+import { PiezaCirculo } from "./PiezaCirculo";
 import { Palabras } from "./Palabras";
 import { contadorKits, getProducto, kit, sitio } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
@@ -59,9 +59,7 @@ export function SeccionKit() {
           <ul className="mt-6 flex gap-2" aria-label={`Incluye ${kit.incluye.length} piezas`}>
             {piezas.map((p) => (
               <li key={p.id} className="relative aspect-square flex-1">
-                <span className="absolute inset-0 overflow-hidden rounded-full bg-crema">
-                  {p.miniatura && <Image src={p.miniatura} alt={p.nombre} fill sizes="64px" className="object-contain p-1 mix-blend-multiply" />}
-                </span>
+                <PiezaCirculo pieza={p} sizes="64px" className="absolute inset-0" />
                 {p?.incluyeExtra && <Rollito texto={p.incluyeExtra} foto={p.incluyeExtraFoto} className="absolute -right-1 -top-1 z-10" />}
               </li>
             ))}

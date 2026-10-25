@@ -1,7 +1,7 @@
 import { Rollito } from "./Rollito";
-import Image from "next/image";
 import { getProducto } from "@/data/products";
 import { ImagenProducto } from "./ImagenProducto";
+import { PiezaCirculo } from "./PiezaCirculo";
 
 /**
  * Miniaturas de las piezas que incluye un kit/combo. Ids → foto del artículo solo (`miniatura`) o,
@@ -18,14 +18,12 @@ export function MiniPiezas({ incluye, columnas = "grid-cols-3" }: { incluye: str
             <span className="relative mx-auto block w-full max-w-[76px]">
             {/* Lo que trae adentro (ej. "+ rollito"): etiqueta chiquita sobre el círculo. */}
             {p?.incluyeExtra && <Rollito texto={p.incluyeExtra} foto={p.incluyeExtraFoto} className="absolute -right-1 -top-1 z-10" />}
-            {p?.miniatura ? (
-              // Artículo sobre fondo claro: el multiply funde el fondo de la foto con el lino.
-              <span className="relative block aspect-square w-full overflow-hidden rounded-full bg-lino ring-1 ring-tinta/5">
-                <Image src={p.miniatura} alt={nombre} fill sizes="96px" className="object-contain p-1.5 mix-blend-multiply" />
-              </span>
+            {p ? (
+              // Foto de la pieza; manteniéndola apretada se ve en grande con sus detalles.
+              <PiezaCirculo pieza={p} sizes="96px" className="relative aspect-square w-full ring-1 ring-tinta/5" />
             ) : (
               <ImagenProducto
-                src={p?.imagenes[0]}
+                src={undefined}
                 nombre={nombre}
                 sizes="96px"
                 aspecto="aspect-square"

@@ -469,7 +469,7 @@ export const combos: Producto[] = [
 export const individuales: Producto[] = [
   {
     id: "arnes",
-    miniatura: "/productos/piezas/arnes.png",
+    miniatura: "/productos/solo/arnes/1.jpg",
     nombre: "Arnés",
     tipo: "individual",
     descripcion: "Terracota, liviano y a su medida.",
@@ -489,7 +489,7 @@ export const individuales: Producto[] = [
   },
   {
     id: "correa",
-    miniatura: "/productos/piezas/correa.jpg",
+    miniatura: "/productos/solo/correa/1.jpg",
     nombre: "Correa",
     tipo: "individual",
     descripcion: "La que combina con todo lo demás.",
@@ -503,7 +503,7 @@ export const individuales: Producto[] = [
   },
   {
     id: "collar",
-    miniatura: "/productos/piezas/collar.jpg",
+    miniatura: "/productos/solo/collar/1.jpg",
     nombre: "Collar",
     tipo: "individual",
     descripcion: "Simple, prolijo, a su medida.",
@@ -519,7 +519,7 @@ export const individuales: Producto[] = [
   },
   {
     id: "mono",
-    miniatura: "/productos/piezas/mono.jpg",
+    miniatura: "/productos/solo/mono/1.jpg",
     nombre: "Moño",
     tipo: "individual",
     descripcion: "El detalle que le cambia la cara al paseo.",
@@ -533,7 +533,7 @@ export const individuales: Producto[] = [
   },
   {
     id: "bandana",
-    miniatura: "/productos/piezas/bandana.jpg",
+    miniatura: "/productos/solo/bandana/1.jpg",
     nombre: "Bandana",
     tipo: "individual",
     descripcion: "Al cuello, sobre el pecho. Como tiene que ir.",
@@ -547,7 +547,7 @@ export const individuales: Producto[] = [
   },
   {
     id: "poo-bag",
-    miniatura: "/productos/piezas/poo-bag.jpg",
+    miniatura: "/productos/solo/poo-bag/1.jpg",
     nombre: "Poo bag",
     tipo: "individual",
     descripcion: "Porta bolsitas con un rollito adentro. Siempre a mano, en la correa.",
