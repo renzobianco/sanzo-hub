@@ -59,6 +59,8 @@ export interface Producto {
   guiaTalle?: string;
   /** Lo que trae adentro, dicho corto (ej. "+ rollito"). Se ve como etiqueta chiquita sobre el círculo de la pieza en combos, ficha y kit. */
   incluyeExtra?: string;
+  /** Foto chiquita de lo que trae adentro (ej. el rollito de bolsitas), va dentro de la etiqueta de incluyeExtra. */
+  incluyeExtraFoto?: string;
   /** Cartelito arriba de la foto, ej. "Más vendido". Vacío → no aparece. */
   etiqueta?: string;
   /**
@@ -550,6 +552,7 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Porta bolsitas con un rollito adentro. Siempre a mano, en la correa.",
     incluyeExtra: "+ rollito",
+    incluyeExtraFoto: "/productos/rollito.jpg",
     incluye: [],
     precio: 10499,
     imagenes: ["/productos/solo/poo-bag/1.jpg", "/productos/solo/poo-bag/2.jpg", "/productos/solo/poo-bag/3.jpg"],

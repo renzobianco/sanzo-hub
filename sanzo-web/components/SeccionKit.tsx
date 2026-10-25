@@ -62,7 +62,7 @@ export function SeccionKit() {
                 <span className="absolute inset-0 overflow-hidden rounded-full bg-crema">
                   {p.miniatura && <Image src={p.miniatura} alt={p.nombre} fill sizes="64px" className="object-contain p-1 mix-blend-multiply" />}
                 </span>
-                {p?.incluyeExtra && <Rollito texto={p.incluyeExtra} className="absolute -right-1 -top-1 z-10" />}
+                {p?.incluyeExtra && <Rollito texto={p.incluyeExtra} foto={p.incluyeExtraFoto} className="absolute -right-1 -top-1 z-10" />}
               </li>
             ))}
           </ul>

@@ -17,7 +17,7 @@ export function MiniPiezas({ incluye, columnas = "grid-cols-3" }: { incluye: str
           <li key={pieza} className="pieza text-center" style={{ transitionDelay: `${250 + i * 80}ms` }}>
             <span className="relative mx-auto block w-full max-w-[76px]">
             {/* Lo que trae adentro (ej. "+ rollito"): etiqueta chiquita sobre el círculo. */}
-            {p?.incluyeExtra && <Rollito texto={p.incluyeExtra} className="absolute -right-1 -top-1 z-10" />}
+            {p?.incluyeExtra && <Rollito texto={p.incluyeExtra} foto={p.incluyeExtraFoto} className="absolute -right-1 -top-1 z-10" />}
             {p?.miniatura ? (
               // Artículo sobre fondo claro: el multiply funde el fondo de la foto con el lino.
               <span className="relative block aspect-square w-full overflow-hidden rounded-full bg-lino ring-1 ring-tinta/5">

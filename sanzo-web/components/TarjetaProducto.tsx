@@ -38,7 +38,7 @@ export function TarjetaProducto({ producto, desfase = 0 }: { producto: Producto;
               {producto.etiqueta}
             </span>
           )}
-          {producto.incluyeExtra && <Rollito texto={producto.incluyeExtra} className="absolute right-2.5 top-2.5" />}
+          {producto.incluyeExtra && <Rollito texto={producto.incluyeExtra} foto={producto.incluyeExtraFoto} className="absolute right-2.5 top-2.5" />}
           <span
             aria-hidden="true"
             className="absolute bottom-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-crema/85 text-tinta shadow-sm backdrop-blur-sm transition-transform duration-300 group-active/ficha:rotate-90"

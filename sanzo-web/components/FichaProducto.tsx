@@ -160,7 +160,7 @@ export function FichaProducto({
             >
               <div className="flex items-center gap-3">
                 <h2 className="text-2xl font-light uppercase tracking-marca">{producto.nombre}</h2>
-                {producto.incluyeExtra && <Rollito texto={producto.incluyeExtra} />}
+                {producto.incluyeExtra && <Rollito texto={producto.incluyeExtra} foto={producto.incluyeExtraFoto} />}
               </div>
               {producto.precio !== null && <p className="mt-1.5 text-xl font-light tracking-wide">{formatearPrecio(producto.precio)}</p>}
               {producto.descripcion && <p className="mt-3 text-[15px] text-tinta/75">{producto.descripcion}</p>}
