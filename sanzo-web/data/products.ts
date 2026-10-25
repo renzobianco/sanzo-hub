@@ -552,7 +552,6 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "Porta bolsitas con un rollito adentro. Siempre a mano, en la correa.",
     incluyeExtra: "+ rollito",
-    incluyeExtraFoto: "/productos/rollito.jpg",
     incluye: [],
     precio: 10499,
     imagenes: ["/productos/solo/poo-bag/1.jpg", "/productos/solo/poo-bag/2.jpg", "/productos/solo/poo-bag/3.jpg"],
