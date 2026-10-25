@@ -357,3 +357,12 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
   - Zona en verde al arrastrar: probada y descartada por Santi (volvió al blanco suave).
   - **Correa y collar**: la vista de cerca va grande arriba (2:1) y se arrastra ahí; la pieza entera queda chica abajo para ubicarse.
   - Arnés: el lugar "Abajo" centrado en la parte de abajo (centro medido con la zona: 608, 968).
+- 2026-10-25 (tarde) · **Más correcciones de Santi**:
+  - Formas nuevas: **Huellita** y **Estrella**.
+  - Letra **"Tu letra"**: escriben el nombre con el dedo en un recuadro (`PadEscritura`) y se graba tal cual (viaja como imagen: vista previa + subida en alta calidad; en el pedido "Escrito a mano por el cliente" y la imagen con "letra a mano").
+  - **"Su silueta"** ya no borra lo escrito: con nombre queda deshabilitada y avisa que es para "Tu imagen".
+  - **Kit sin perder nada**: un diseño común + por pieza "Lleva parche" e "Igual al resto / Diseño propio". Pasar a "igual" no borra el diseño propio (queda guardado). Se sacó "Mismo en todas / Uno por pieza".
+  - Paso **Lugar**: botones de cada pieza (ir una por una sin volver atrás) y **flechas** para mover fino además del dedo.
+  - **Poo bag acostado**, con el cierre arriba (lugares Centro / Izquierda / Derecha).
+  - "Tu imagen" con **ideas** (foto con tu perro, su carita, el escudo de tu club, su huellita, un dibujo de tus hijos, tu logo) → `personalizacion.ideasImagen`.
+  - Pestaña **360° sacada** (`vista360.activo = false`): después va un 360° por cada ítem.

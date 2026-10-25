@@ -8,6 +8,7 @@ import { familia } from "@/lib/fuentes";
 import { aGrabadoLaser, imagenParaSubir, type Grabado } from "@/lib/laser";
 import { cargarZonas, colocar, recortarZona, type Zona } from "@/lib/zonas";
 import {
+  clavePersonalizacion,
   colorPorId,
   materialInicial,
   medidaMaxima,
@@ -23,6 +24,7 @@ import {
 } from "@/lib/personalizacion";
 import { IconoCerrar } from "../Iconos";
 import { MiniForma, Parche, ParcheSolo, precargarPiezas, VistaPieza, type DisenoParche } from "./Vista";
+import { PadEscritura } from "./PadEscritura";
 import { Visor360 } from "./Visor360";
 
 interface Props {
@@ -84,7 +86,13 @@ function disenosIniciales(piezas: string[], valor?: Personalizacion) {
   return Object.fromEntries(piezas.map((pz) => [pz, disenoDesde(valor?.piezas?.[pz] ?? valor)]));
 }
 
-/** Qué piezas van personalizadas (con un diseño por pieza se puede dejar alguna sin personalizar). */
+/** Qué piezas tienen diseño propio al abrir: las que guardaron uno distinto del común. */
+function propiosIniciales(piezas: string[], valor?: Personalizacion) {
+  const comun = valor ? clavePersonalizacion({ ...valor, piezas: undefined, posiciones: undefined }) : "";
+  return Object.fromEntries(piezas.map((pz) => [pz, !!valor?.piezas?.[pz] && clavePersonalizacion(valor.piezas[pz]!) !== comun]));
+}
+
+/** Qué piezas van personalizadas (cualquiera se puede dejar sin parche). */
 function activasIniciales(piezas: string[], valor?: Personalizacion) {
   return Object.fromEntries(piezas.map((pz) => [pz, valor?.piezas ? valor.piezas[pz] !== null : true]));
 }
@@ -150,9 +158,11 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
   const max = medidaMaxima(piezas);
   const { minCm, inicial } = config.medidas;
 
-  // Un diseño por pieza. Con "mismo diseño" (de entrada) cada cambio va a todas; si no, solo a la pieza que se ve.
+  // Un diseño común (el de todas las piezas) y, si alguna pieza lo pide, su diseño propio. Pasar una pieza a
+  // "igual al resto" no borra su diseño propio: queda guardado por si vuelve. Cada pieza puede ir sin parche.
+  const [comun, setComun] = useState<Diseno>(() => disenoDesde(valor));
   const [disenos, setDisenos] = useState<Record<string, Diseno>>(() => disenosIniciales(piezas, valor));
-  const [mismo, setMismo] = useState(!valor?.piezas);
+  const [propios, setPropios] = useState<Record<string, boolean>>(() => propiosIniciales(piezas, valor));
   const [activas, setActivas] = useState<Record<string, boolean>>(() => activasIniciales(piezas, valor));
   // La subida de la imagen de cada pieza (para esperarla al tocar Listo).
   const subiendo = useRef<Record<string, Promise<string | undefined>>>({});
@@ -172,17 +182,16 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
   const [vista, setVista] = useState(vistas[0]?.id);
   // La pieza que se edita: la de la pestaña (si es el 360°, la primera).
   const piezaEdit = vista && piezas.includes(vista) ? vista : piezas[0];
-  const actual = disenos[piezaEdit] ?? disenoDesde(valor);
+  const efectivo = (pz: string) => (propios[pz] && disenos[pz] ? disenos[pz] : comun);
+  const actual = efectivo(piezaEdit);
+  const propio = !!propios[piezaEdit];
   const { forma, formaOtra, material, color, ancho, alto, modo, nombre, conTelefono, telefono, fuente, vistaImagen, imagenUrl, subida } = actual;
-  const activa = mismo || activas[piezaEdit] !== false;
+  const activa = activas[piezaEdit] !== false;
 
-  /** Cambia el diseño: en todas las piezas (mismo diseño) o solo en una. */
+  /** Cambia el diseño de la pieza: el común (si va igual al resto) o el suyo propio. */
   function cambiar(cambio: Partial<Diseno>, pz = piezaEdit) {
-    setDisenos((ds) => {
-      const out = { ...ds };
-      for (const k of mismo ? piezas : [pz]) out[k] = { ...(out[k] ?? actual), ...cambio };
-      return out;
-    });
+    if (propios[pz]) setDisenos((ds) => ({ ...ds, [pz]: { ...(ds[pz] ?? comun), ...cambio } }));
+    else setComun((c) => ({ ...c, ...cambio }));
   }
   const setForma = (v: string) => cambiar({ forma: v });
   const setFormaOtra = (v: string) => cambiar({ formaOtra: v });
@@ -196,10 +205,10 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
   const setTelefono = (v: string) => cambiar({ telefono: v });
   const setFuente = (v: string) => cambiar({ fuente: v });
 
-  /** Mismo diseño en todas ↔ uno distinto por pieza. Al volver a "mismo", todas toman el de la pieza que se ve. */
-  function elegirMismo(si: boolean) {
-    setMismo(si);
-    if (si) setDisenos(() => Object.fromEntries(piezas.map((pz) => [pz, { ...actual }])));
+  /** Diseño propio para esta pieza (arranca como el común) o igual al resto (el propio queda guardado). */
+  function elegirPropio(si: boolean) {
+    if (si && !disenos[piezaEdit]) setDisenos((ds) => ({ ...ds, [piezaEdit]: { ...comun } }));
+    setPropios((p) => ({ ...p, [piezaEdit]: si }));
   }
 
   // Proporción de lo que se ve de la pieza: el ancho se ajusta para que el alto no pase de un tercio de pantalla.
@@ -208,8 +217,9 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
   const proporcionVista = marco[2] / marco[3];
 
   function abrir() {
+    setComun(disenoDesde(valor));
     setDisenos(disenosIniciales(piezas, valor));
-    setMismo(!valor?.piezas);
+    setPropios(propiosIniciales(piezas, valor));
     setActivas(activasIniciales(piezas, valor));
     setErrores({});
     setVista(vistas[0]?.id);
@@ -226,6 +236,14 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
   const posVista = vista ? posiciones[vista] : undefined;
   const lugarElegido = posVista ? lugaresVista.find((l) => Math.hypot(l.x - posVista.x, l.y - posVista.y) < 25)?.id : lugaresVista[0]?.id;
 
+  /** Flechas: corre el parche un poquito (el arrastre y la zona lo vuelven a ajustar para que entre). */
+  function moverFino(dx: number, dy: number) {
+    if (!vista || !posVista) return;
+    const c = config.piezas[vista];
+    const paso = Math.max(c.tam.ancho, c.tam.alto) / 60;
+    setPosiciones((x) => ({ ...x, [vista]: { x: posVista.x + dx * paso, y: posVista.y + dy * paso } }));
+  }
+
   function siguiente() {
     // En "¿Qué grabamos?" no se sigue sin nombre o imagen.
     if (PASOS[paso] === "Qué grabamos" && activa) {
@@ -233,8 +251,8 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
         { forma, material, color, ancho: final.ancho, alto: final.alto, modo, nombre, telefono: modo === "nombre" && conTelefono ? telefono : undefined, fuente, vista: vistaImagen, imagenUrl },
         { pedirImagen: true },
       );
-      const delPaso = { nombre: e.nombre, telefono: e.telefono, imagen: e.imagen };
-      if (delPaso.nombre || delPaso.telefono || delPaso.imagen) {
+      const delPaso = { nombre: e.nombre, telefono: e.telefono, imagen: e.imagen, fuente: e.fuente };
+      if (delPaso.nombre || delPaso.telefono || delPaso.imagen || delPaso.fuente) {
         setErrores(delPaso);
         return;
       }
@@ -266,7 +284,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
       setGuardando(false);
     }
     const aDiseno = (pz: string): DisenoPieza => {
-      const d = disenos[pz] ?? actual;
+      const d = efectivo(pz);
       const enImagen = d.modo === "imagen";
       const m = medidaDe(d, max);
       return {
@@ -280,11 +298,13 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
         nombre: enImagen ? "" : d.nombre.trim().replace(/\s+/g, " "),
         telefono: !enImagen && d.conTelefono ? d.telefono.trim() : undefined,
         fuente: d.fuente,
-        imagenUrl: enImagen ? urls[pz] ?? d.imagenUrl : undefined,
-        vista: enImagen ? d.vistaImagen : undefined,
+        imagenUrl: enImagen || d.fuente === "propia" ? urls[pz] ?? d.imagenUrl : undefined,
+        vista: enImagen || d.fuente === "propia" ? d.vistaImagen : undefined,
       };
     };
-    const porPieza = Object.fromEntries(piezas.map((pz) => [pz, mismo || activas[pz] !== false ? aDiseno(pz) : null])) as Record<string, DisenoPieza | null>;
+    const porPieza = Object.fromEntries(piezas.map((pz) => [pz, activas[pz] !== false ? aDiseno(pz) : null])) as Record<string, DisenoPieza | null>;
+    // Todas con parche y ninguna con diseño propio = el mismo en todas (más simple para el pedido).
+    const mismo = piezas.every((pz) => activas[pz] !== false && !propios[pz]);
     const base = porPieza[piezaEdit] ?? Object.values(porPieza).find(Boolean) ?? aDiseno(piezaEdit);
     const p: Personalizacion = {
       ...base,
@@ -354,7 +374,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
     }
   }
 
-  const precio = piezas.reduce((t, pz) => (mismo || activas[pz] !== false ? t + precioPieza({ ...(disenos[pz] ?? actual), ...medidaDe(disenos[pz] ?? actual, max) }) : t), 0);
+  const precio = piezas.reduce((t, pz) => (activas[pz] !== false ? t + precioPieza({ ...efectivo(pz), ...medidaDe(efectivo(pz), max) }) : t), 0);
   const extra = precio > 0 ? `+ ${formatearPrecio(precio)}` : "";
   const extraGuardado = valor ? precioPersonalizacion(producto, valor) : 0;
   const textoExtraGuardado = extraGuardado > 0 ? `+ ${formatearPrecio(extraGuardado)}` : "";
@@ -370,7 +390,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
     nombre,
     telefono: conTelefono ? telefono : "",
     fuente,
-    vista: modo === "imagen" ? vistaImagen : undefined,
+    vista: modo === "imagen" || fuente === "propia" ? vistaImagen : undefined,
   };
   const muestra = nombre.trim() || "Toto";
 
@@ -500,43 +520,44 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
           </div>
 
           <div className="relative flex-1 space-y-7 overflow-y-auto px-4 py-6 sm:col-start-2 sm:row-start-2 sm:px-6">
-            {/* Kits y combos: el mismo parche en todas las piezas, o uno distinto en cada una (y alguna sin parche). */}
+            {/* Kits y combos: cada pieza con parche o sin, y con el diseño de todas o uno propio. Nada se borra. */}
             {piezas.length > 1 && (
-              <div className="space-y-3">
-                <div className="relative grid grid-cols-2 rounded-full bg-lino p-1">
-                  <span
-                    aria-hidden="true"
-                    className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-tinta transition-transform duration-500 ease-suave ${mismo ? "" : "translate-x-full"}`}
+              <div className="space-y-2 border border-tinta/15 p-3">
+                <p className="text-[13px]">
+                  Estás en <span className="font-normal">{getProducto(piezaEdit)?.nombre ?? piezaEdit}</span>
+                  <span className="ml-1 text-[11px] text-tinta/60">· cambiá de pieza arriba</span>
+                </p>
+                <label className="flex cursor-pointer items-center justify-between gap-3 text-[12px] uppercase tracking-[0.1em]">
+                  Lleva parche
+                  <input
+                    type="checkbox"
+                    checked={activa}
+                    onChange={(e) => setActivas((a) => ({ ...a, [piezaEdit]: e.target.checked }))}
+                    className="h-5 w-5 accent-[rgb(var(--tinta))]"
                   />
-                  {(
-                    [
-                      [true, "Mismo en todas"],
-                      [false, "Uno por pieza"],
-                    ] as const
-                  ).map(([v, texto]) => (
-                    <button
-                      key={texto}
-                      type="button"
-                      onClick={() => elegirMismo(v)}
-                      className={`relative h-10 text-[11px] uppercase tracking-[0.12em] transition-colors duration-500 ${mismo === v ? "text-crema" : "text-tinta/70"}`}
-                    >
-                      {texto}
-                    </button>
-                  ))}
-                </div>
-                {!mismo && (
-                  <label className="flex animate-entrada cursor-pointer items-center justify-between gap-3 border border-tinta/20 px-3 py-2.5">
-                    <span className="text-[13px]">
-                      Personalizar <span className="font-normal">{getProducto(piezaEdit)?.nombre ?? piezaEdit}</span>
-                      <span className="block text-[11px] text-tinta/60">Cambiá de pieza con las pestañas de arriba.</span>
-                    </span>
-                    <input
-                      type="checkbox"
-                      checked={activa}
-                      onChange={(e) => setActivas((a) => ({ ...a, [piezaEdit]: e.target.checked }))}
-                      className="h-5 w-5 accent-[rgb(var(--tinta))]"
+                </label>
+                {activa && (
+                  <div className="relative grid grid-cols-2 rounded-full bg-lino p-1">
+                    <span
+                      aria-hidden="true"
+                      className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-tinta transition-transform duration-500 ease-suave ${propio ? "translate-x-full" : ""}`}
                     />
-                  </label>
+                    {(
+                      [
+                        [false, "Igual al resto"],
+                        [true, "Diseño propio"],
+                      ] as const
+                    ).map(([v, texto]) => (
+                      <button
+                        key={texto}
+                        type="button"
+                        onClick={() => elegirPropio(v)}
+                        className={`relative h-9 text-[10px] uppercase tracking-[0.12em] transition-colors duration-500 ${propio === v ? "text-crema" : "text-tinta/70"}`}
+                      >
+                        {texto}
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
             )}
@@ -582,9 +603,50 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                   ) : (
                     <p className="text-[13px] text-tinta/70">Arrastralo sobre la pieza hasta donde lo quieras.</p>
                   )}
+                  {/* Mover fino con flechas (además de arrastrar con el dedo). */}
+                  {vista && posVista && (
+                    <div className="mt-3 flex items-center justify-center gap-2">
+                      {(
+                        [
+                          ["←", -1, 0, "Mover a la izquierda"],
+                          ["↑", 0, -1, "Mover arriba"],
+                          ["↓", 0, 1, "Mover abajo"],
+                          ["→", 1, 0, "Mover a la derecha"],
+                        ] as const
+                      ).map(([flecha, dx, dy, etiqueta]) => (
+                        <button
+                          key={flecha}
+                          type="button"
+                          aria-label={etiqueta}
+                          onClick={() => moverFino(dx, dy)}
+                          className="flex h-11 w-11 items-center justify-center rounded-full border border-tinta/25 text-lg transition-transform active:scale-90"
+                        >
+                          {flecha}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {piezas.length > 1 && (
+                    <div className="mt-4">
+                      <p className="eyebrow mb-2">Piezas</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {piezas.map((pz) => (
+                          <button
+                            key={pz}
+                            type="button"
+                            onClick={() => setVista(pz)}
+                            className={`h-8 rounded-full px-3 text-[10px] uppercase tracking-[0.12em] transition-colors ${vista === pz ? "bg-tinta text-crema" : activas[pz] === false ? "border border-dashed border-tinta/25 text-tinta/40" : "border border-tinta/25 text-tinta/70"}`}
+                          >
+                            {getProducto(pz)?.nombre ?? pz}
+                            {activas[pz] === false ? " · sin parche" : ""}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <p className="mt-3 text-[12px] leading-relaxed text-tinta/60">
                     Tocá un lugar o arrastralo sobre la foto, donde quieras dentro de la tela.
-                    {piezas.length > 1 ? " Va en todas las piezas: elegí el lugar en cada una desde las pestañas de arriba." : ""}
+                    {piezas.length > 1 ? " Elegí el lugar en cada pieza con los botones de Piezas." : ""}
                   </p>
                 </fieldset>
               )}
@@ -659,6 +721,19 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                       </span>
                     </label>
                     {errores.imagen && <p className="mt-1.5 text-sm text-marron">{errores.imagen}</p>}
+                    {/* Ideas para que se animen: lo que imaginen se puede grabar. */}
+                    {!vistaImagen && (
+                      <div className="mt-3">
+                        <p className="text-[12px] text-tinta/60">Ideas: lo que imagines se graba.</p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {config.ideasImagen.map((idea) => (
+                            <span key={idea} className="rounded-full bg-lino px-3 py-1.5 text-[11px] text-tinta/80">
+                              {idea}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     {vistaImagen && (
                       <p className="mt-3 flex items-center gap-2 text-[12px] leading-relaxed text-tinta/70" aria-live="polite">
                         {subida === "subiendo" && (
@@ -704,7 +779,8 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                       {errores.nombre && <p className="mt-1.5 text-sm text-marron">{errores.nombre}</p>}
                     </div>
     
-                    <fieldset>
+                    {/* min-w-0: el fieldset no se estira con el recuadro de "Tu letra". */}
+                    <fieldset className="min-w-0">
                       <legend id={`${id}-fuente`} tabIndex={-1} className="eyebrow mb-3">
                         Letra
                       </legend>
@@ -716,18 +792,31 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                             <label key={f.id} className="shrink-0 cursor-pointer">
                               <input type="radio" name={`${id}-fuente`} value={f.id} checked={fuente === f.id} onChange={() => setFuente(f.id)} className="peer sr-only" />
                               <span className="flex h-16 min-w-[6.5rem] flex-col items-center justify-center gap-1 border border-tinta/20 px-3 transition-colors peer-checked:border-tinta peer-checked:bg-lino peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
-                                <span
-                                  className="max-w-[8rem] truncate text-lg leading-none"
-                                  style={{ fontFamily: fam, fontWeight: peso, letterSpacing: f.mayusculas ? "0.06em" : undefined }}
-                                >
-                                  {f.mayusculas ? muestra.toUpperCase() : muestra}
-                                </span>
+                                {f.propia ? (
+                                  <span aria-hidden="true" className="text-xl leading-none">
+                                    ✍
+                                  </span>
+                                ) : (
+                                  <span
+                                    className="max-w-[8rem] truncate text-lg leading-none"
+                                    style={{ fontFamily: fam, fontWeight: peso, letterSpacing: f.mayusculas ? "0.06em" : undefined }}
+                                  >
+                                    {f.mayusculas ? muestra.toUpperCase() : muestra}
+                                  </span>
+                                )}
                                 <span className="text-[9px] uppercase tracking-[0.14em] text-tinta/60">{f.nombre}</span>
                               </span>
                             </label>
                           );
                         })}
                       </div>
+                      {/* "Tu letra": escribe el nombre con el dedo y se graba tal cual. */}
+                      {config.fuentes.find((x) => x.id === fuente)?.propia && (
+                        <div className="mt-3">
+                          <PadEscritura key={piezaEdit} hayDibujo={!!vistaImagen} onListo={(archivo) => subirImagen(archivo)} />
+                          {errores.fuente && <p className="mt-1.5 text-sm text-marron">{errores.fuente}</p>}
+                        </div>
+                      )}
                     </fieldset>
     
                     <fieldset>
@@ -824,17 +913,17 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                     {config.formas.map((f, i) => {
                       const bloqueada = f.especial === "silueta" && modo !== "imagen";
                       return (
-                        <label key={f.id} className={bloqueada ? "cursor-pointer opacity-50" : "cursor-pointer"}>
+                        <label key={f.id} className={bloqueada ? "cursor-not-allowed opacity-40" : "cursor-pointer"}>
                           <input
                             id={i === 0 ? `${id}-forma` : undefined}
                             type="radio"
                             name={`${id}-forma`}
                             value={f.id}
                             checked={forma === f.id}
+                            // La silueta sale de una imagen: con nombre no se elige (antes cambiaba a imagen y borraba lo escrito).
+                            disabled={bloqueada}
                             onChange={() => {
                               setForma(f.id);
-                              // La silueta necesita una imagen: lo pasa directo a "Tu imagen".
-                              if (f.especial === "silueta") setModo("imagen");
                               setErrores((x) => ({ ...x, forma: undefined, formaOtra: undefined }));
                             }}
                             className="peer sr-only"
@@ -853,7 +942,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                       );
                     })}
                   </div>
-                  {forma === "silueta" && !vistaImagen && <p className="mt-2 text-[12px] text-tinta/60">Subí tu imagen abajo y recortamos el parche siguiendo su contorno.</p>}
+                  {modo !== "imagen" && <p className="mt-2 text-[12px] text-tinta/60">"Su silueta" recorta el parche siguiendo el contorno de una imagen: está si en el paso 1 elegís "Tu imagen".</p>}
                   {forma === "otra" && (
                     <div className="mt-3 animate-entrada">
                       <label htmlFor={`${id}-formaOtra`} className="eyebrow block">
@@ -956,7 +1045,8 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
               )}
               {paso < PASOS.length - 1 ? (
                 <button type="button" onClick={siguiente} disabled={procesando} className="btn-primario flex-1 py-4 disabled:opacity-70">
-                  Siguiente{extra ? ` · ${extra}` : ""}
+                  {/* Con "Atrás" al lado no entra el precio: va en el primer paso y en "Listo". */}
+                  Siguiente{extra && paso === 0 ? ` · ${extra}` : ""}
                 </button>
               ) : (
                 <button type="button" onClick={listo} disabled={guardando || procesando} className="btn-primario flex-1 py-4 disabled:opacity-70">

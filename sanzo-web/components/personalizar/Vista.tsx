@@ -132,7 +132,8 @@ export function Parche({ forma, w, h, color, pxCm, contenido }: { forma: string;
   const escalaCara = Math.max(0.5, 1 - (canto * 2) / Math.min(w, h));
 
   let grabado: React.ReactNode = null;
-  if (contenido?.modo === "imagen" && contenido.vista) {
+  // Su imagen, o el nombre escrito a mano ("Tu letra"): se graba la imagen.
+  if ((contenido?.modo === "imagen" || contenido?.fuente === "propia") && contenido.vista) {
     const v = contenido.vista;
     // En la silueta el grabado ocupa todo menos el margen; en las demás, entra en la zona de la forma.
     let gw: number, gh: number, gy = 0;
@@ -401,7 +402,11 @@ export function VistaPieza({
     if (!escala || oculto) return;
     const r = e.currentTarget.getBoundingClientRect();
     const p = { x: (e.clientX - r.left) / escala + ox, y: (e.clientY - r.top) / escala + oy };
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Sin captura igual se arrastra.
+    }
     // Se arrastra desde donde toques: el parche sigue al dedo sin saltar.
     arrastre.current = { dx: lugar.x - p.x, dy: lugar.y - p.y, desde: { x: lugar.x, y: lugar.y }, s: escala, ox, oy };
     setArrastrando(true);

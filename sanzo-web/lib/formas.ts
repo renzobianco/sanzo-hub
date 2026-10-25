@@ -78,6 +78,41 @@ const FORMAS: Record<string, DefForma> = {
     texto: { ancho: 0.66, alto: 0.6 },
     imagen: { ancho: 0.62, alto: 0.74 },
   },
+  huella: {
+    proporcion: 1,
+    // Almohadilla grande abajo + cuatro deditos arriba (se pintan como una sola forma).
+    trazo: (w, h) => {
+      const ov = (cx: number, cy: number, rx: number, ry: number, g = 0) => {
+        const r = (g * Math.PI) / 180;
+        const c = Math.cos(r), s = Math.sin(r);
+        const p = (a: number) => [cx + rx * Math.cos(a) * c - ry * Math.sin(a) * s, cy + rx * Math.cos(a) * s + ry * Math.sin(a) * c].map(n).join(",");
+        return `M${p(0)}A${n(rx)},${n(ry)} ${g} 1 1 ${p(Math.PI)}A${n(rx)},${n(ry)} ${g} 1 1 ${p(0)}Z`;
+      };
+      return [
+        ov(0, h * 0.2, w * 0.27, h * 0.24),
+        ov(-w * 0.36, -h * 0.07, w * 0.12, h * 0.15, -20),
+        ov(-w * 0.14, -h * 0.3, w * 0.12, h * 0.16, -6),
+        ov(w * 0.14, -h * 0.3, w * 0.12, h * 0.16, 6),
+        ov(w * 0.36, -h * 0.07, w * 0.12, h * 0.15, 20),
+      ].join("");
+    },
+    texto: { ancho: 0.42, alto: 0.2, dy: 0.2 },
+    imagen: { ancho: 0.4, alto: 0.36, dy: 0.2 },
+  },
+  estrella: {
+    proporcion: 1.05,
+    trazo: (w, h) => {
+      const pts: string[] = [];
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + (i * Math.PI) / 5;
+        const r = i % 2 === 0 ? 1 : 0.48;
+        pts.push(`${n((Math.cos(a) * r * w) / 2)},${n((Math.sin(a) * r * h) / 2 + h * 0.06)}`);
+      }
+      return `M${pts.join("L")}Z`;
+    },
+    texto: { ancho: 0.42, alto: 0.2, dy: 0.06 },
+    imagen: { ancho: 0.4, alto: 0.38, dy: 0.06 },
+  },
 };
 // "Otra": se ve como redondeado mientras la describen. "Su silueta": se dibuja con su imagen (Vista.tsx).
 FORMAS.otra = FORMAS.redondeado;

@@ -134,6 +134,8 @@ export interface FuenteGrabado {
   nombre: string;
   /** true → se graba en mayúsculas (letras que solo quedan bien así). */
   mayusculas?: boolean;
+  /** true → "Tu letra": el cliente escribe el nombre con el dedo y se graba eso. */
+  propia?: boolean;
 }
 
 /** Precio según el tamaño: el primer tramo cuyo `hastaCm2` alcanza el área del parche (ancho × alto). */
@@ -227,6 +229,8 @@ export const personalizacion: {
   avisoImagen: string;
   /** Si la imagen no se pudo subir (sin internet, Hub sin configurar): cómo nos la manda. */
   avisoImagenSinSubir: string;
+  /** Ejemplos que se muestran en "Tu imagen" para que se animen. */
+  ideasImagen: string[];
   maxNombre: number;
   formas: FormaParche[];
   colores: ColorParche[];
@@ -246,6 +250,7 @@ export const personalizacion: {
   /** Por grabar su propia imagen, por pieza. PROVISORIO. */
   precioImagen: 100,
   avisoImagen: "Es una vista previa: la grabamos con tu imagen original, en alta calidad.",
+  ideasImagen: ["Una foto tuya con tu perro", "Su carita", "El escudo de tu club", "Su huellita", "Un dibujo de tus hijos", "Tu logo"],
   avisoImagenSinSubir: "No pudimos guardar la imagen original. Después del pedido mandala por WhatsApp con tu número de pedido.",
   /** Máximo de letras del nombre. */
   maxNombre: 14,
@@ -260,6 +265,8 @@ export const personalizacion: {
     { id: "corazon", nombre: "Corazón" },
     { id: "escudo", nombre: "Escudo" },
     { id: "banderin", nombre: "Banderín" },
+    { id: "huella", nombre: "Huellita" },
+    { id: "estrella", nombre: "Estrella" },
     { id: "silueta", nombre: "Su silueta", especial: "silueta" },
     { id: "otra", nombre: "Otra", especial: "otra" },
   ],
@@ -282,6 +289,7 @@ export const personalizacion: {
     { id: "greatvibes", nombre: "Cursiva" },
     { id: "pacifico", nombre: "Divertida" },
     { id: "caveat", nombre: "A mano" },
+    { id: "propia", nombre: "Tu letra", propia: true },
   ],
   /** Materiales del parche, en orden. El primero disponible queda elegido de entrada. */
   materiales: [
@@ -330,9 +338,14 @@ export const personalizacion: {
       lugares: [{ id: "centro", nombre: "Centro", x: 808, y: 470 }, { id: "arriba", nombre: "Arriba", x: 808, y: 320 }],
     },
     "poo-bag": {
-      imagen: "/productos/personalizar/poo-bag.webp", zona: "/productos/personalizar/poo-bag-zona.webp", tam: { ancho: 1104, alto: 1616 }, sinFondo: true,
-      pxCm: 64, inicial: { x: 560, y: 980 }, cm: { ancho: 6, alto: 6 },
-      lugares: [{ id: "centro", nombre: "Centro", x: 560, y: 980 }, { id: "arriba", nombre: "Arriba", x: 560, y: 720 }],
+      // Acostado, con el cierre arriba (como lo pidió Santi).
+      imagen: "/productos/personalizar/poo-bag.webp", zona: "/productos/personalizar/poo-bag-zona.webp", tam: { ancho: 1531, alto: 881 }, sinFondo: true,
+      pxCm: 80, inicial: { x: 560, y: 590 }, cm: { ancho: 7, alto: 4.5 },
+      lugares: [
+        { id: "centro", nombre: "Centro", x: 560, y: 590 },
+        { id: "izquierda", nombre: "Izquierda", x: 330, y: 590 },
+        { id: "derecha", nombre: "Derecha", x: 790, y: 590 },
+      ],
     },
     gorra: { imagen: "/productos/solo/gorra/1.jpg", tam: { ancho: 1080, alto: 1350 }, recorte: [240, 280, 680, 680], pxCm: 32, inicial: { x: 560, y: 560 }, giro: -12, cm: { ancho: 6, alto: 4 } },
     piluso: { imagen: "/productos/solo/piluso/1.jpg", tam: { ancho: 1080, alto: 1350 }, recorte: [260, 400, 560, 560], pxCm: 28, inicial: { x: 540, y: 845 }, cm: { ancho: 6, alto: 4 } },
@@ -674,7 +687,7 @@ export const clientes = {
 // activo: false → no aparece la pestaña.
 // -----------------------------------------------------------------------------
 export const vista360 = {
-  activo: true,
+  activo: false, // Santi (2026-10-25): sacarlo por ahora; después va un 360° por cada ítem.
   pestana360: "360°",
   frente: "/productos/360/frente.jpg",
   espalda: "/productos/360/espalda.jpg",

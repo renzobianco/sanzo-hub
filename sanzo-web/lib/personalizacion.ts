@@ -146,6 +146,7 @@ export function validarPersonalizacion(p: DisenoPieza & { piezas?: Personalizaci
   }
 
   if (!fuentePorId(p.fuente)) e.fuente = "Elegí una letra.";
+  else if (fuentePorId(p.fuente)?.propia && pedirImagen && !p.vista && !p.imagenUrl) e.fuente = "Escribí el nombre en el recuadro.";
   const nombre = p.nombre.trim();
   if (!nombre) e.nombre = "Poné el nombre de tu perro.";
   else if (nombre.length > config.maxNombre) e.nombre = `Hasta ${config.maxNombre} letras.`;
@@ -228,6 +229,8 @@ function normalizarDiseno(p: unknown): DisenoPieza | null {
     alto = medidaFinal(forma, ancho, ancho / 2).alto;
   }
   const imagenUrl = typeof o.imagenUrl === "string" && IMAGEN_URL.test(o.imagenUrl) ? o.imagenUrl : undefined;
+  // "Tu letra": el nombre escrito a mano viaja como imagen (igual que "Tu imagen").
+  const conDibujo = !enImagen && o.fuente === "propia";
   const limpio: DisenoPieza = {
     forma,
     formaOtra: forma === "otra" && typeof o.formaOtra === "string" ? o.formaOtra.trim().replace(/\s+/g, " ").slice(0, 120) : undefined,
@@ -239,8 +242,8 @@ function normalizarDiseno(p: unknown): DisenoPieza | null {
     nombre: enImagen ? "" : String(o.nombre).trim().replace(/\s+/g, " "),
     telefono: enImagen ? undefined : (o.telefono as string | undefined)?.trim().replace(/\s+/g, " ") || undefined,
     fuente: typeof o.fuente === "string" && o.fuente ? o.fuente : config.fuentes[0].id,
-    imagenUrl: enImagen ? imagenUrl : undefined,
-    vista: enImagen ? vistaValida(o.vista) : undefined,
+    imagenUrl: enImagen || conDibujo ? imagenUrl : undefined,
+    vista: enImagen || conDibujo ? vistaValida(o.vista) : undefined,
   };
   if (Object.keys(validarPersonalizacion(limpio)).length > 0) return null;
   return limpio;
@@ -275,7 +278,7 @@ export function textoPersonalizacion(p: Personalizacion): string {
   const grabado =
     p.modo === "imagen"
       ? ["Imagen propia"]
-      : [`Letra ${fuente?.nombre ?? p.fuente}`, fuente?.mayusculas ? p.nombre.toUpperCase() : p.nombre, p.telefono];
+      : [fuente?.propia ? "Escrito a mano por el cliente" : `Letra ${fuente?.nombre ?? p.fuente}`, fuente?.mayusculas ? p.nombre.toUpperCase() : p.nombre, p.telefono];
   return [forma, material, colorPorId(p.color)?.nombre, `${cm(p.ancho)} × ${cm(p.alto)} cm`, ...grabado].filter(Boolean).join(" · ");
 }
 
@@ -290,7 +293,12 @@ export function sinImagen(p?: Personalizacion): Personalizacion | undefined {
 /** Las imágenes para grabar del pedido, con la pieza en la que van ("" = en todas). */
 export function imagenesPersonalizacion(p: Personalizacion): { pieza: string; url?: string }[] {
   if (p.piezas) {
-    return Object.entries(p.piezas).flatMap(([pz, d]) => (d?.modo === "imagen" ? [{ pieza: getProducto(pz)?.nombre ?? pz, url: d.imagenUrl }] : []));
+    return Object.entries(p.piezas).flatMap(([pz, d]) => (d && conImagen(d) ? [{ pieza: (getProducto(pz)?.nombre ?? pz) + (d.modo === "imagen" ? "" : ", letra a mano"), url: d.imagenUrl }] : []));
   }
-  return p.modo === "imagen" ? [{ pieza: "", url: p.imagenUrl }] : [];
+  return conImagen(p) ? [{ pieza: p.modo === "imagen" ? "" : "letra a mano", url: p.imagenUrl }] : [];
+}
+
+/** ¿Lleva una imagen para grabar? (su imagen, o el nombre escrito a mano) */
+function conImagen(d: DisenoPieza) {
+  return d.modo === "imagen" || !!fuentePorId(d.fuente)?.propia;
 }
