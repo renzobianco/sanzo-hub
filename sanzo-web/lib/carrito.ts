@@ -172,9 +172,9 @@ function combosQueEntran(lineas: LineaCarrito[], destino: Producto) {
 /**
  * Junta lo del carrito en combos:
  * - piezas sueltas que completan un combo (o el kit) → una sola línea del combo
- *   ("Combo Aventura", no "Arnés + Correa");
+ *   ("Combo Aventura", no "Arnés + Correa + Poo bag");
  * - un combo + las piezas que le faltan para uno más grande → el más grande
- *   (Combo Aventura + collar, moño, bandana y poo bag → Kit completo).
+ *   (Combo Aventura + collar, moño y bandana → Kit completo).
  * Talle y colores salen de lo que se junta. No lo arma si no se puede juntar en uno
  * (talles o personalizaciones distintas): ahí quedan sueltas con el descuento igual.
  * Devuelve las líneas nuevas y los ids de los combos que armó.
