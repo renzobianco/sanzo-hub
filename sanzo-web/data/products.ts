@@ -25,7 +25,7 @@ export interface Producto {
    * Vacío → usa la primera de `imagenes`. Se reemplaza por la foto definitiva cuando esté.
    */
   miniatura?: string;
-  /** Foto para los círculos de "qué incluye" en el kit y los combos: la pieza recortada sobre fondo crema. */
+  /** Foto para los círculos de "qué incluye" en el kit y los combos: la pieza recortada, centrada y entera sobre fondo crema. */
   circulo?: string;
   envioGratis: boolean;
   linkPago: string;
@@ -472,7 +472,7 @@ export const individuales: Producto[] = [
   {
     id: "arnes",
     miniatura: "/productos/solo/arnes/1.jpg",
-    circulo: "/productos/piezas-fondo/arnes-crema.jpg",
+    circulo: "/productos/piezas-fondo/arnes-circ.jpg",
     nombre: "Arnés",
     tipo: "individual",
     descripcion: "Terracota, liviano y a su medida.",
@@ -493,7 +493,7 @@ export const individuales: Producto[] = [
   {
     id: "correa",
     miniatura: "/productos/solo/correa/1.jpg",
-    circulo: "/productos/piezas-fondo/correa-crema.jpg",
+    circulo: "/productos/piezas-fondo/correa-circ.jpg",
     nombre: "Correa",
     tipo: "individual",
     descripcion: "La que combina con todo lo demás.",
@@ -508,7 +508,7 @@ export const individuales: Producto[] = [
   {
     id: "collar",
     miniatura: "/productos/solo/collar/1.jpg",
-    circulo: "/productos/piezas-fondo/collar-crema.jpg",
+    circulo: "/productos/piezas-fondo/collar-circ.jpg",
     nombre: "Collar",
     tipo: "individual",
     descripcion: "Simple, prolijo, a su medida.",
@@ -525,7 +525,7 @@ export const individuales: Producto[] = [
   {
     id: "mono",
     miniatura: "/productos/solo/mono/1.jpg",
-    circulo: "/productos/piezas-fondo/mono-crema.jpg",
+    circulo: "/productos/piezas-fondo/mono-circ.jpg",
     nombre: "Moño",
     tipo: "individual",
     descripcion: "El detalle que le cambia la cara al paseo.",
@@ -540,7 +540,7 @@ export const individuales: Producto[] = [
   {
     id: "bandana",
     miniatura: "/productos/solo/bandana/1.jpg",
-    circulo: "/productos/piezas-fondo/bandana-crema.jpg",
+    circulo: "/productos/piezas-fondo/bandana-circ.jpg",
     nombre: "Bandana",
     tipo: "individual",
     descripcion: "Al cuello, sobre el pecho. Como tiene que ir.",
@@ -555,7 +555,7 @@ export const individuales: Producto[] = [
   {
     id: "poo-bag",
     miniatura: "/productos/solo/poo-bag/1.jpg",
-    circulo: "/productos/piezas-fondo/poo-bag-crema.jpg",
+    circulo: "/productos/piezas-fondo/poo-bag-circ.jpg",
     nombre: "Poo bag",
     tipo: "individual",
     descripcion: "Porta bolsitas con un rollito adentro. Siempre a mano, en la correa.",
@@ -570,7 +570,7 @@ export const individuales: Producto[] = [
   },
   {
     id: "gorra",
-    circulo: "/productos/piezas-fondo/gorra-crema.jpg",
+    circulo: "/productos/piezas-fondo/gorra-circ.jpg",
     nombre: "Gorra",
     tipo: "individual",
     descripcion: "Para vos. Que combine con el paseo.",
@@ -594,7 +594,7 @@ export const individuales: Producto[] = [
   },
   {
     id: "piluso",
-    circulo: "/productos/piezas-fondo/piluso-crema.jpg",
+    circulo: "/productos/piezas-fondo/piluso-circ.jpg",
     nombre: "Piluso",
     tipo: "individual",
     descripcion: "Para el sol de la plaza.",
@@ -775,7 +775,7 @@ export const chapita: Producto = {
   incluye: [],
   precio: 8000,
   miniatura: "/productos/piezas/chapita.jpg",
-  circulo: "/productos/piezas-fondo/chapita-crema.jpg",
+  circulo: "/productos/piezas-fondo/chapita-circ.jpg",
   imagenes: ["/productos/piezas/chapita.jpg"],
   envioGratis: false,
   linkPago: "",
