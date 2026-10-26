@@ -412,7 +412,7 @@ export const combos: Producto[] = [
     descripcion: "Para que salga con onda. Y se note.",
     incluye: ["collar", "mono", "bandana"],
     precio: 24499,
-    imagenes: ["/productos/combo-estilo/articulo.jpg", "/productos/combo-estilo/banco.jpg"],
+    imagenes: ["/productos/combo-estilo/articulo.jpg", "/productos/combo-estilo/banco.jpg", "/productos/combo-estilo/playa.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,
