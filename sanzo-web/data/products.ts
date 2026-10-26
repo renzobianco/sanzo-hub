@@ -417,9 +417,9 @@ export const combos: Producto[] = [
     imagenes: ["/productos/combo-estilo/articulo.jpg", "/productos/combo-estilo/banco.jpg", "/productos/combo-estilo/playa.jpg"],
     // Prueba: piezas recortadas sobre fondo liso (si gusta, se pasa a todos los combos y al kit).
     miniaturas: {
-      collar: "/productos/piezas-fondo/collar.jpg",
-      mono: "/productos/piezas-fondo/mono.jpg",
-      bandana: "/productos/piezas-fondo/bandana.jpg",
+      collar: "/productos/piezas-fondo/collar-arena.jpg",
+      mono: "/productos/piezas-fondo/mono-arena.jpg",
+      bandana: "/productos/piezas-fondo/bandana-arena.jpg",
     },
     envioGratis: false,
     linkPago: "",
