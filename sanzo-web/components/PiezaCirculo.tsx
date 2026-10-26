@@ -13,11 +13,22 @@ const ESPERA = 420;
  * Círculo con la foto de una pieza del kit o combo. Manteniéndolo apretado se abre en grande, con los
  * detalles señalados (las mismas flechas que en la ficha del individual). Soltar o tocar afuera lo cierra.
  */
-export function PiezaCirculo({ pieza, sizes, className = "relative" }: { pieza: Producto; sizes: string; className?: string }) {
+export function PiezaCirculo({
+  pieza,
+  sizes,
+  className = "relative",
+  foto: fotoPropia,
+}: {
+  pieza: Producto;
+  sizes: string;
+  className?: string;
+  /** Otra foto para el círculo (la del combo); si no, la miniatura de la pieza. */
+  foto?: string;
+}) {
   const [grande, setGrande] = useState(false);
   const [montado, setMontado] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const foto = pieza.miniatura ?? pieza.imagenes[0];
+  const foto = fotoPropia ?? pieza.miniatura ?? pieza.imagenes[0];
   const fotoGrande = pieza.imagenes[0] ?? foto;
 
   useEffect(() => setMontado(true), []);

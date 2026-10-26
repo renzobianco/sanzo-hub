@@ -25,6 +25,8 @@ export interface Producto {
    * Vacío → usa la primera de `imagenes`. Se reemplaza por la foto definitiva cuando esté.
    */
   miniatura?: string;
+  /** Kits y combos: fotos propias para los círculos de sus piezas (id de pieza → foto), en vez de la `miniatura` de cada una. */
+  miniaturas?: Record<string, string>;
   envioGratis: boolean;
   linkPago: string;
   disponible: boolean;
@@ -413,6 +415,12 @@ export const combos: Producto[] = [
     incluye: ["collar", "mono", "bandana"],
     precio: 24499,
     imagenes: ["/productos/combo-estilo/articulo.jpg", "/productos/combo-estilo/banco.jpg", "/productos/combo-estilo/playa.jpg"],
+    // Prueba: piezas recortadas sobre fondo liso (si gusta, se pasa a todos los combos y al kit).
+    miniaturas: {
+      collar: "/productos/piezas-fondo/collar.jpg",
+      mono: "/productos/piezas-fondo/mono.jpg",
+      bandana: "/productos/piezas-fondo/bandana.jpg",
+    },
     envioGratis: false,
     linkPago: "",
     disponible: true,

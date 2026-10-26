@@ -7,7 +7,16 @@ import { PiezaCirculo } from "./PiezaCirculo";
  * Miniaturas de las piezas que incluye un kit/combo. Ids → foto del artículo solo (`miniatura`) o,
  * si no hay, la del individual; texto libre → texto.
  */
-export function MiniPiezas({ incluye, columnas = "grid-cols-3" }: { incluye: string[]; columnas?: string }) {
+export function MiniPiezas({
+  incluye,
+  columnas = "grid-cols-3",
+  miniaturas,
+}: {
+  incluye: string[];
+  columnas?: string;
+  /** Fotos propias del combo para algunas piezas (ver `Producto.miniaturas`). */
+  miniaturas?: Record<string, string>;
+}) {
   return (
     <ul className={`grid gap-3 ${columnas}`}>
       {incluye.map((pieza, i) => {
@@ -20,7 +29,7 @@ export function MiniPiezas({ incluye, columnas = "grid-cols-3" }: { incluye: str
             {p?.incluyeExtra && <Rollito texto={p.incluyeExtra} foto={p.incluyeExtraFoto} className="absolute -right-1 -top-1 z-10" />}
             {p ? (
               // Foto de la pieza; manteniéndola apretada se ve en grande con sus detalles.
-              <PiezaCirculo pieza={p} sizes="96px" className="relative aspect-square w-full ring-1 ring-tinta/5" />
+              <PiezaCirculo pieza={p} foto={miniaturas?.[pieza]} sizes="96px" className="relative aspect-square w-full ring-1 ring-tinta/5" />
             ) : (
               <ImagenProducto
                 src={undefined}
