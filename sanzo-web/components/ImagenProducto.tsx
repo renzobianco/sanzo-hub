@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Props {
   src?: string;
-  /** Varias fotos: van cambiando solas con un fundido (solo mientras se ven en pantalla). */
+  /** Varias fotos: se ve la primera (o la `fija`); el resto, en la ficha o la galería. */
   srcs?: string[];
   nombre: string;
   sizes: string;
@@ -17,17 +17,13 @@ interface Props {
   tamTexto?: string;
   /** Fondo del placeholder (para que no se pierda sobre secciones lino). */
   fondo?: string;
-  /** Cada cuánto cambia la foto (ms). */
-  intervalo?: number;
-  /** Corrimiento para que las tarjetas vecinas no cambien todas a la vez (ms). */
-  desfase?: number;
-  /** Fija una foto (ej. la del color elegido) y deja de rotar. */
+  /** Muestra otra foto en vez de la primera (ej. la del color elegido). */
   fija?: number;
 }
 
 /**
  * Foto del producto con next/image: aparece con un fundido suave al cargar, dentro de un <Reveal>
- * se "destapa" al entrar en pantalla y, si tiene varias fotos, las va rotando con un zoom lento.
+ * se "destapa" al entrar en pantalla. Con varias fotos no cambian solas: solo con `fija`.
  * Sin foto (o si falla), placeholder con el nombre.
  */
 export function ImagenProducto({
@@ -40,46 +36,19 @@ export function ImagenProducto({
   className = "",
   tamTexto = "text-sm md:text-base",
   fondo = "bg-lino",
-  intervalo = 3800,
-  desfase = 0,
   fija,
 }: Props) {
   const fotos = (srcs && srcs.length > 0 ? srcs : src ? [src] : []).filter(Boolean);
   const [activa, setActiva] = useState(0);
   const [cargadas, setCargadas] = useState<Record<number, boolean>>({});
-  const cargadasRef = useRef(cargadas);
-  cargadasRef.current = cargadas;
   const [fallo, setFallo] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = ref.current;
-    if (fija !== undefined) {
-      setActiva(Math.min(fija, fotos.length - 1));
-      return;
-    }
-    if (!el || fotos.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let timer: ReturnType<typeof setInterval> | undefined;
-    let arranque: ReturnType<typeof setTimeout> | undefined;
-    const io = new IntersectionObserver(([e]) => {
-      clearInterval(timer);
-      clearTimeout(arranque);
-      if (!e.isIntersecting) return;
-      arranque = setTimeout(() => {
-        // Solo pasa a la siguiente si ya cargó: nunca queda un cuadro vacío.
-        timer = setInterval(() => setActiva((a) => (cargadasRef.current[(a + 1) % fotos.length] ? (a + 1) % fotos.length : a)), intervalo);
-      }, desfase);
-    });
-    io.observe(el);
-    return () => {
-      io.disconnect();
-      clearInterval(timer);
-      clearTimeout(arranque);
-    };
-  }, [fotos.length, intervalo, desfase, fija]);
+    setActiva(fija === undefined ? 0 : Math.min(fija, fotos.length - 1));
+  }, [fija, fotos.length]);
 
   return (
-    <div ref={ref} className={`img-revelar relative overflow-hidden ${fondo} ${aspecto} ${className}`}>
+    <div className={`img-revelar relative overflow-hidden ${fondo} ${aspecto} ${className}`}>
       {fotos.length > 0 && !fallo ? (
         fotos.map((f, i) => {
           // Solo se pide la foto actual y la siguiente: el resto se baja cuando le toca.

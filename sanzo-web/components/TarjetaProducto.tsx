@@ -12,7 +12,7 @@ import { ImagenProducto } from "./ImagenProducto";
  * Tarjeta de producto suelto. Si la opción es de color, al elegirlo se muestra la foto de ese color.
  * Tocando la foto o el nombre sube la ficha completa (`FichaProducto`).
  */
-export function TarjetaProducto({ producto, desfase = 0 }: { producto: Producto; desfase?: number }) {
+export function TarjetaProducto({ producto }: { producto: Producto }) {
   const [valor, setValor] = useState("");
   const [ficha, setFicha] = useState(false);
   const fija = valor ? producto.opcion?.fotos?.[valor] : undefined;
@@ -28,7 +28,6 @@ export function TarjetaProducto({ producto, desfase = 0 }: { producto: Producto;
         >
           <ImagenProducto
             srcs={producto.imagenes}
-            desfase={desfase}
             fija={fija}
             nombre={valor ? `${producto.nombre} ${valor}` : producto.nombre}
             sizes="(min-width: 768px) 25vw, 50vw"

@@ -163,7 +163,6 @@ export function SeccionCombos() {
                           srcs={combo.imagenes}
                           nombre={combo.nombre}
                           aspecto="aspect-[4/3]"
-                          desfase={i * 900}
                           sizes="(min-width: 768px) 28rem, 85vw"
                         />
                       </ConZoom>

@@ -18,7 +18,7 @@ export function SeccionProductos() {
           {individuales.map((p, i) => (
             <li key={p.id}>
               <Reveal delay={(i % 4) * 80} className="group flex h-full flex-col">
-                <TarjetaProducto producto={p} desfase={(i % 4) * 900} />
+                <TarjetaProducto producto={p} />
               </Reveal>
             </li>
           ))}
