@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PROVINCIAS } from "@/data/envios";
-import { formatearPrecio, textoEnvio } from "@/lib/formato";
+import { detalleEnvio, formatearPrecio, textoEnvio } from "@/lib/formato";
 import { CLAVE_ULTIMO_PEDIDO, type PedidoEntrada, type PedidoRespuesta } from "@/lib/pedido";
 import { esPersonalizable, sinImagen, textoPersonalizacion } from "@/lib/personalizacion";
 import { Personalizar } from "../personalizar/Personalizar";
@@ -13,6 +13,7 @@ import { chapitaConFoto, fotoDeLinea } from "@/lib/chapita";
 import { useCarrito } from "../carrito/CarritoProvider";
 import { ImagenProducto } from "../ImagenProducto";
 import { textoOpcion } from "@/lib/combos";
+import { zonaDeUbicacion } from "@/lib/carrito";
 
 type Campo = keyof DatosCheckout;
 
@@ -25,7 +26,6 @@ const ORDEN: Campo[] = [
   "calle",
   "altura",
   "provincia",
-  "gba",
   "localidad",
   "codigoPostal",
 ];
@@ -42,17 +42,11 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
   const [empresa, setEmpresa] = useState("");
   const inicializado = useRef(false);
 
-  // Traer la provincia elegida en el carrito (si ya la habían elegido ahí).
+  // Traer lo que ya eligieron en el carrito (provincia, código postal, domicilio o sucursal).
   useEffect(() => {
     if (!listo || inicializado.current) return;
     inicializado.current = true;
-    if (ubicacion.provincia) {
-      setD((prev) => ({
-        ...prev,
-        provincia: ubicacion.provincia,
-        gba: ubicacion.enGBA === null ? "" : ubicacion.enGBA ? "si" : "no",
-      }));
-    }
+    setD((prev) => ({ ...prev, provincia: ubicacion.provincia, codigoPostal: ubicacion.cp, entrega: ubicacion.entrega }));
   }, [listo, ubicacion]);
 
   const errores = useMemo(() => validarCheckout(d), [d]);
@@ -60,13 +54,9 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
 
   function set<C extends Campo>(c: C, v: DatosCheckout[C]) {
     const next = { ...d, [c]: v };
-    if (c === "provincia") next.gba = "";
     setD(next);
-    if (c === "provincia" || c === "gba") {
-      setUbicacion({
-        provincia: next.provincia,
-        enGBA: next.provincia === "Buenos Aires" && next.gba ? next.gba === "si" : null,
-      });
+    if (c === "provincia" || c === "codigoPostal" || c === "entrega") {
+      setUbicacion({ provincia: next.provincia, cp: next.codigoPostal, entrega: next.entrega });
     }
   }
 
@@ -142,6 +132,7 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
   }
 
   const { lineas, subtotal, descuentos, envio, total } = totales;
+  const zona = zonaDeUbicacion(ubicacion);
   // Con envío "a cotizar" no hay total cerrado: el pedido se confirma y le escribimos con el link.
   const pagaAhora = pagoOnline && envio.tipo !== "cotizar";
 
@@ -231,7 +222,8 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
                       d.entrega === valor ? "bg-tinta shadow-[inset_0_0_0_3px_rgb(var(--crema))]" : ""
                     }`}
                   />
-                  {texto}
+                  <span className="flex-1">{texto}</span>
+                  {zona?.precio[valor] != null && envio.tipo !== "gratis" && <span className="text-tinta/70">{formatearPrecio(zona.precio[valor]!)}</span>}
                 </span>
               </label>
             ))}
@@ -305,24 +297,6 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
               ))}
             </select>
           </Campo>
-
-          {d.provincia === "Buenos Aires" && (
-            <Campo id="gba" label="¿Estás en el GBA?" error={mostrar("gba")}>
-              <select
-                id="f-gba"
-                className="campo cursor-pointer"
-                value={d.gba}
-                onChange={(e) => set("gba", e.target.value)}
-                onBlur={tocar("gba")}
-                aria-invalid={!!mostrar("gba")}
-                aria-describedby={mostrar("gba") ? "e-gba" : undefined}
-              >
-                <option value="">Elegí una opción</option>
-                <option value="si">Sí</option>
-                <option value="no">No</option>
-              </select>
-            </Campo>
-          )}
 
           <Campo id="localidad" label="Localidad" error={mostrar("localidad")}>
             <input
@@ -415,7 +389,7 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
             <dt>
               Envío
               {(envio.tipo === "precio" || envio.tipo === "cotizar") && (
-                <span className="block text-xs text-tinta/70">{envio.zona.nombre}</span>
+                <span className="block text-xs text-tinta/70">{detalleEnvio(envio)}</span>
               )}
               {envio.tipo === "gratis" && <span className="block text-xs text-tinta/70">{totales.contieneKit ? "Incluido con el kit completo" : "Por el monto de tu pedido"}</span>}
             </dt>

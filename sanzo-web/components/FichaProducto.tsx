@@ -7,6 +7,7 @@ import type { Producto } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
 import { useCarrito } from "./carrito/CarritoProvider";
+import { SelectorZona } from "./carrito/SelectorZona";
 import { ConZoom } from "./ConZoom";
 import { Detalles } from "./Detalles";
 import { IconoCerrar } from "./Iconos";
@@ -225,6 +226,10 @@ export function FichaProducto({
 
               <div className="mt-6">
                 <AgregarAlCarrito producto={producto} grande />
+              </div>
+
+              <div className="mt-6 border-t border-tinta/10 pt-5">
+                {producto.envioGratis ? <p className="text-[14px] text-marron">Envío gratis a todo el país.</p> : <SelectorZona elegir={false} />}
               </div>
             </div>
           </div>

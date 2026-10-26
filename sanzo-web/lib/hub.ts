@@ -1,7 +1,7 @@
 import { getProducto, personalizacion, type Producto } from "@/data/products";
 import type { Totales } from "./carrito";
 import { textoOpcion } from "./combos";
-import { textoEnvio } from "./formato";
+import { detalleEnvio, textoEnvio } from "./formato";
 import { imagenesPersonalizacion, textoPersonalizacion } from "./personalizacion";
 import type { DatosCheckout } from "./validacion";
 
@@ -130,7 +130,7 @@ export function esImagenNuestra(url: string) {
 /** Guarda el pedido en "Pedidos web" del Hub. Si falla, solo queda en los logs: el pedido ya salió por mail. */
 export async function guardarPedidoEnHub(numero: string, c: DatosCheckout, t: Totales, linkPago?: string) {
   if (!hubActivo()) return;
-  const zona = t.envio.tipo === "precio" || t.envio.tipo === "cotizar" ? ` (${t.envio.zona.nombre})` : "";
+  const zona = t.envio.tipo === "precio" || t.envio.tipo === "cotizar" ? ` (${detalleEnvio(t.envio)})` : "";
   const payload = {
     numero,
     createdAt: new Date().toISOString(),

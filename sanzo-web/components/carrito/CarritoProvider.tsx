@@ -53,7 +53,7 @@ interface CarritoContexto {
 
 const Ctx = createContext<CarritoContexto | null>(null);
 
-const ubicacionVacia: Ubicacion = { provincia: "", enGBA: null };
+const ubicacionVacia: Ubicacion = { provincia: "", cp: "", entrega: "domicilio" };
 
 export function CarritoProvider({ children }: { children: React.ReactNode }) {
   const [lineas, setLineas] = useState<LineaCarrito[]>([]);
@@ -73,7 +73,12 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
       if (raw) {
         const data = JSON.parse(raw);
         if (Array.isArray(data?.lineas)) setLineas(data.lineas);
-        if (data?.ubicacion && typeof data.ubicacion.provincia === "string") setUbicacion(data.ubicacion);
+        if (data?.ubicacion && typeof data.ubicacion.provincia === "string")
+          setUbicacion({
+            provincia: data.ubicacion.provincia,
+            cp: typeof data.ubicacion.cp === "string" ? data.ubicacion.cp : "",
+            entrega: data.ubicacion.entrega === "sucursal" ? "sucursal" : "domicilio",
+          });
       }
     } catch {
       // localStorage bloqueado o datos viejos: arrancamos vacío.

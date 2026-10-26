@@ -10,7 +10,7 @@ import { Personalizar } from "../personalizar/Personalizar";
 import { esPersonalizable } from "@/lib/personalizacion";
 import { ImagenProducto } from "../ImagenProducto";
 import { IconoCerrar, IconoMas, IconoMenos } from "../Iconos";
-import { formatearPrecio, textoEnvio } from "@/lib/formato";
+import { detalleEnvio, formatearPrecio, textoEnvio } from "@/lib/formato";
 import { MAX_CANTIDAD } from "@/lib/carrito";
 import { textoOpcion } from "@/lib/combos";
 import { fotoDeLinea } from "@/lib/chapita";
@@ -187,7 +187,7 @@ export function CarritoDrawer() {
                       <span className="text-tinta/70"> · {contieneKit ? "con el kit completo" : "por monto"}</span>
                     )}
                     {(envio.tipo === "precio" || envio.tipo === "cotizar") && (
-                      <span className="text-tinta/70"> · {envio.zona.nombre}</span>
+                      <span className="text-tinta/70"> · {detalleEnvio(envio)}</span>
                     )}
                   </dt>
                   <dd className={envio.tipo === "gratis" ? "text-marron" : ""}>{textoEnvio(envio)}</dd>

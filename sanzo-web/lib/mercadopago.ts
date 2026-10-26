@@ -2,6 +2,7 @@ import type { Totales } from "./carrito";
 import { textoPersonalizacion } from "./personalizacion";
 import { textoOpcion } from "./combos";
 import type { DatosCheckout } from "./validacion";
+import { detalleEnvio } from "./formato";
 
 /** true si hay credenciales de Mercado Pago cargadas (variable MP_ACCESS_TOKEN en Vercel). */
 export function pagoOnlineActivo() {
@@ -46,7 +47,7 @@ export async function crearPreferencia(numero: string, c: DatosCheckout, t: Tota
         ]
       : porLinea;
   if (t.envio.tipo === "precio" && t.envio.monto > 0) {
-    items.push({ id: "envio", title: `Envío (${t.envio.zona.nombre})`, quantity: 1, unit_price: t.envio.monto, currency_id: "ARS" });
+    items.push({ id: "envio", title: `Envío (${detalleEnvio(t.envio)})`, quantity: 1, unit_price: t.envio.monto, currency_id: "ARS" });
   }
 
   const [nombre, ...apellido] = c.nombre.trim().split(/\s+/);

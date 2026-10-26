@@ -1,6 +1,6 @@
 import { getProducto, ofertaChapita, type Producto } from "@/data/products";
 import { esChapita, llevaChapita, normalizarOpcionChapita, normalizarOpcionComboChapita } from "./chapita";
-import { envioInfo, zonaPorProvincia, type ZonaEnvio } from "@/data/envios";
+import { envioInfo, zonaPorCP, zonaPorProvincia, type TipoEntrega, type ZonaEnvio } from "@/data/envios";
 import { clavePersonalizacion, normalizarPersonalizacion, precioPersonalizacion, type Personalizacion } from "./personalizacion";
 import { armables, calcularPromos, type DescuentoAplicado, type Sugerencia } from "./promos";
 import { armarOpcion, opcionesValidas, piezasConColor } from "./combos";
@@ -15,17 +15,22 @@ export interface LineaCarrito {
   cantidad: number;
 }
 
+/** Para calcular el envío: la provincia manda; si no hay, el código postal. */
 export interface Ubicacion {
   provincia: string;
-  /** Solo importa si la provincia es Buenos Aires. */
-  enGBA: boolean | null;
+  cp: string;
+  entrega: TipoEntrega;
+}
+
+export function zonaDeUbicacion(u: Ubicacion) {
+  return u.provincia ? zonaPorProvincia(u.provincia) : zonaPorCP(u.cp);
 }
 
 export type EstadoEnvio =
   | { tipo: "gratis" }
   | { tipo: "sin-zona" }
-  | { tipo: "cotizar"; zona: ZonaEnvio }
-  | { tipo: "precio"; zona: ZonaEnvio; monto: number };
+  | { tipo: "cotizar"; zona: ZonaEnvio; entrega: TipoEntrega }
+  | { tipo: "precio"; zona: ZonaEnvio; entrega: TipoEntrega; monto: number };
 
 export interface LineaResuelta extends LineaCarrito {
   producto: Producto;
@@ -127,10 +132,12 @@ export function calcularTotales(lineas: LineaCarrito[], ubicacion: Ubicacion): T
   if (contieneKit || llegaAlMonto) {
     envio = { tipo: "gratis" };
   } else {
-    const zona = zonaPorProvincia(ubicacion.provincia, ubicacion.enGBA);
+    const zona = zonaDeUbicacion(ubicacion);
+    const { entrega } = ubicacion;
+    const monto = zona?.precio[entrega];
     if (!zona) envio = { tipo: "sin-zona" };
-    else if (zona.precio === null) envio = { tipo: "cotizar", zona };
-    else envio = { tipo: "precio", zona, monto: zona.precio };
+    else if (monto == null) envio = { tipo: "cotizar", zona, entrega };
+    else envio = { tipo: "precio", zona, entrega, monto };
   }
 
   const total = productos + (envio.tipo === "precio" ? envio.monto : 0);

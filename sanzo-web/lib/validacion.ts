@@ -1,6 +1,6 @@
-import { PROVINCIAS } from "@/data/envios";
+import { PROVINCIAS, type TipoEntrega } from "@/data/envios";
 
-export type TipoEntrega = "domicilio" | "sucursal";
+export type { TipoEntrega };
 
 export interface DatosCheckout {
   nombre: string;
@@ -13,8 +13,6 @@ export interface DatosCheckout {
   pisoDepto: string;
   referencia: string;
   provincia: string;
-  /** "si" | "no" | "" — solo si la provincia es Buenos Aires. */
-  gba: string;
   localidad: string;
   codigoPostal: string;
   notas: string;
@@ -31,7 +29,6 @@ export const datosVacios: DatosCheckout = {
   pisoDepto: "",
   referencia: "",
   provincia: "",
-  gba: "",
   localidad: "",
   codigoPostal: "",
   notas: "",
@@ -68,7 +65,6 @@ export function validarCheckout(d: DatosCheckout): ErroresCheckout {
 
   if (!d.provincia) e.provincia = "Elegí tu provincia.";
   else if (!(PROVINCIAS as readonly string[]).includes(d.provincia)) e.provincia = "Elegí una provincia de la lista.";
-  if (d.provincia === "Buenos Aires" && d.gba !== "si" && d.gba !== "no") e.gba = "Contanos si estás en el GBA.";
 
   if (!d.localidad.trim()) e.localidad = "Ingresá tu localidad.";
 

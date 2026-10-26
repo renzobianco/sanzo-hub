@@ -23,3 +23,9 @@ export function textoEnvio(envio: EstadoEnvio) {
       return envio.monto === 0 ? "Gratis" : formatearPrecio(envio.monto);
   }
 }
+
+/** "Patagonia · a sucursal": zona y tipo de entrega del envío, si ya se sabe la zona. */
+export function detalleEnvio(envio: EstadoEnvio) {
+  if (envio.tipo !== "precio" && envio.tipo !== "cotizar") return "";
+  return `${envio.zona.nombre} · ${envio.entrega === "sucursal" ? "a sucursal" : "a domicilio"}`;
+}

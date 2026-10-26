@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { calcularTotales, type LineaCarrito, type Totales } from "@/lib/carrito";
-import { formatearPrecio, textoEnvio } from "@/lib/formato";
+import { detalleEnvio, formatearPrecio, textoEnvio } from "@/lib/formato";
 import { crearPreferencia, pagoOnlineActivo, sePuedeCobrar } from "@/lib/mercadopago";
 import type { PedidoEntrada, PedidoRespuesta } from "@/lib/pedido";
 import { esImagenNuestra, guardarPedidoEnHub } from "@/lib/hub";
@@ -74,7 +74,6 @@ function limpiarCliente(c: Partial<DatosCheckout> | undefined): DatosCheckout {
     pisoDepto: str(c?.pisoDepto, 60),
     referencia: str(c?.referencia),
     provincia: str(c?.provincia, 80),
-    gba: str(c?.gba, 4),
     localidad: str(c?.localidad, 120),
     codigoPostal: str(c?.codigoPostal, 12),
     notas: str(c?.notas, 1000),
@@ -89,9 +88,8 @@ function armarMail(numero: string, c: DatosCheckout, t: Totales, pago: string) {
           .filter(Boolean)
           .join(" · ")
       : "—";
-  const zona = t.envio.tipo === "precio" || t.envio.tipo === "cotizar" ? ` (${t.envio.zona.nombre})` : "";
+  const zona = t.envio.tipo === "precio" || t.envio.tipo === "cotizar" ? ` (${detalleEnvio(t.envio)})` : "";
   const envio = `${textoEnvio(t.envio)}${zona}`;
-  const gba = c.provincia === "Buenos Aires" ? ` · GBA: ${c.gba === "si" ? "sí" : "no"}` : "";
 
   const filas: [string, string][] = [
     ["Nombre", c.nombre],
@@ -100,7 +98,7 @@ function armarMail(numero: string, c: DatosCheckout, t: Totales, pago: string) {
     ["Celular", c.celular],
     ["Entrega", entrega],
     ["Dirección", direccion],
-    ["Provincia", c.provincia + gba],
+    ["Provincia", c.provincia],
     ["Localidad", c.localidad],
     ["Código postal", c.codigoPostal.toUpperCase()],
     ["Notas", c.notas || "—"],
@@ -188,7 +186,8 @@ export async function POST(req: Request) {
 
   const totales = calcularTotales(lineas, {
     provincia: cliente.provincia,
-    enGBA: cliente.provincia === "Buenos Aires" ? cliente.gba === "si" : null,
+    cp: cliente.codigoPostal,
+    entrega: cliente.entrega,
   });
   if (totales.lineas.length === 0) {
     return NextResponse.json<PedidoRespuesta>({ ok: false, error: "El carrito está vacío." }, { status: 400 });
