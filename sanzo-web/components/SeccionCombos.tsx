@@ -176,7 +176,7 @@ export function SeccionCombos() {
                       <h3 className="text-base font-normal uppercase tracking-[0.12em]">{combo.nombre}</h3>
                       <p className="mt-1.5 text-[13px] text-tinta/75">{combo.descripcion}</p>
                       <div className="mt-3.5">
-                        <MiniPiezas incluye={combo.incluye} miniaturas={combo.miniaturas} />
+                        <MiniPiezas incluye={combo.incluye} />
                       </div>
                       {combo.precio !== null && (
                         <div className="mt-3.5">

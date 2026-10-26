@@ -168,7 +168,7 @@ export function FichaProducto({
 
               {producto.incluye.length > 0 && (
                 <div className="mt-5">
-                  <MiniPiezas incluye={producto.incluye} miniaturas={producto.miniaturas} columnas="grid-cols-3" />
+                  <MiniPiezas incluye={producto.incluye} columnas="grid-cols-3" />
                 </div>
               )}
 
