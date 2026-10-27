@@ -434,20 +434,6 @@ export const combos: Producto[] = [
     opcion: { nombre: "Talle", valores: TALLES_ARNES, agotados: TALLES_AGOTADOS },
   },
   {
-    id: "combo-sol",
-    nombre: "Combo Sol",
-    tipo: "combo",
-    descripcion: "Gorra y piluso, para cada día de sol.",
-    incluye: ["gorra", "piluso"],
-    precio: 21999,
-    imagenes: ["/productos/solo/gorra/1.jpg", "/productos/solo/piluso/1.jpg", "/productos/solo/gorra/2.jpg", "/productos/solo/piluso/2.jpg"],
-    envioGratis: false,
-    linkPago: "",
-    disponible: true,
-    // Un talle para las dos piezas; el color de la gorra y el del piluso se eligen aparte (salen de cada pieza).
-    opcion: { nombre: "Talle", valores: TALLES, agotados: TALLES_AGOTADOS },
-  },
-  {
     // Collar (base 8.500) + chapita (6.000, lo que sale sumada a una compra) → 14.499.
     // Al agregarlo se abre la personalización de la chapita; el grabado va en la opción: "M · Corazón · Coco".
     id: "combo-identidad",
@@ -462,6 +448,20 @@ export const combos: Producto[] = [
     disponible: true,
     // Mismos talles que el collar.
     opcion: { nombre: "Talle", valores: ["M"], agotados: ["S", ...TALLES_AGOTADOS] },
+  },
+  {
+    id: "combo-sol",
+    nombre: "Combo Sol",
+    tipo: "combo",
+    descripcion: "Gorra y piluso, para cada día de sol.",
+    incluye: ["gorra", "piluso"],
+    precio: 21999,
+    imagenes: ["/productos/solo/gorra/1.jpg", "/productos/solo/piluso/1.jpg", "/productos/solo/gorra/2.jpg", "/productos/solo/piluso/2.jpg"],
+    envioGratis: false,
+    linkPago: "",
+    disponible: true,
+    // Un talle para las dos piezas; el color de la gorra y el del piluso se eligen aparte (salen de cada pieza).
+    opcion: { nombre: "Talle", valores: TALLES, agotados: TALLES_AGOTADOS },
   },
 ];
 
