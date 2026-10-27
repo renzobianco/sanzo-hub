@@ -26,6 +26,8 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [errores, setErrores] = useState<ErroresGrabado>({});
+  // Si lo que compra ya trae la chapita (combo), el cartel no se muestra nunca: directo a personalizar.
+  const verCartel = modo === "oferta" && paso === "cartel";
 
   useEffect(() => {
     const d = ref.current;
@@ -77,7 +79,7 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
       onClose={() => (document.body.style.overflow = "")}
       className="m-0 mt-auto max-h-[94dvh] w-full max-w-none overflow-y-auto rounded-t-[1.4rem] bg-crema p-0 text-tinta backdrop:bg-tinta/55 sm:m-auto sm:max-w-md sm:rounded-[1.4rem]"
     >
-      {paso === "cartel" ? (
+      {verCartel ? (
         <>
           <div className="relative">
             <div className="relative aspect-[1672/941] w-full bg-marron">
