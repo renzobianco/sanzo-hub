@@ -172,7 +172,7 @@ export const sitio = {
     bajada: "Accesorios para perros, pensados para salir juntos.",
     boton: "Ver el kit",
     link: "#kit",
-    fotos: ["/productos/hero/playa.jpg", "/productos/hero/3.jpg", "/productos/hero/1.jpg", "/productos/hero/4.jpg", "/productos/hero/2.jpg"],
+    fotos: ["/productos/hero/playa-2.jpg", "/productos/hero/3.jpg", "/productos/hero/1.jpg", "/productos/hero/4.jpg", "/productos/hero/2.jpg"],
   },
   kit: {
     bajada: "",
