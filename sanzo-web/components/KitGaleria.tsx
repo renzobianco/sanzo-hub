@@ -45,8 +45,10 @@ export function KitGaleria({
       <div className="relative">
         <div aria-hidden="true" className="destellos" />
         {etiqueta && (
-          <p className="holografico pointer-events-none absolute bottom-3 left-3 z-10 rounded-full px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-tinta shadow-[0_6px_16px_-8px_rgb(var(--tinta)/0.5)]">
-            <span className="relative z-10">{etiqueta}</span>
+          // Cartel sobrio: tinta translúcida, letra crema espaciada y una rayita marrón (como "— como se merece").
+          <p className="pointer-events-none absolute bottom-3 left-3 z-10 flex items-center gap-2 rounded-full border border-crema/15 bg-tinta/75 px-3.5 py-1.5 text-[9.5px] uppercase tracking-[0.24em] text-crema backdrop-blur-sm">
+            <span aria-hidden="true" className="h-px w-3 bg-marron" />
+            {etiqueta}
           </p>
         )}
         <ul
