@@ -162,7 +162,7 @@ export function SeccionCombos() {
                         <ImagenProducto
                           srcs={combo.imagenes}
                           nombre={combo.nombre}
-                          aspecto="aspect-[4/3]"
+                          aspecto="aspect-[4/5]"
                           sizes="(min-width: 768px) 28rem, 85vw"
                         />
                       </ConZoom>
