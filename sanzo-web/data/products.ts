@@ -824,15 +824,36 @@ export const ofertaChapita = {
   /** Medida de las fotos de las chapitas (todas iguales), en píxeles. */
   fotoTam: { ancho: 541, alto: 722 },
   /**
-   * Formas de chapita. Se graba la foto, el nombre, el teléfono o cualquier combinación (al menos uno).
+   * Formas de chapita (las 4 de la foto del Combo Identidad). Se graba la foto, el nombre, el teléfono o cualquier combinación (al menos uno).
    * zona: dónde va el grabado sobre la foto, en píxeles de la foto: centro (x, y) y lo que entra (ancho, alto).
+   * recorte: la chapita sin fondo (como las piezas del personalizador), con su medida en píxeles.
+   * zonaRecorte: dónde va el grabado sobre el recorte, en partes del ancho y alto (0 a 1): centro (x, y) y lo que entra.
    */
   tipos: [
-    { id: "Huesito", texto: "Huesito", imagen: "/productos/chapitas/huesito.jpg", zona: { x: 300, y: 380, ancho: 250, alto: 120 } },
-    { id: "Corazón", texto: "Corazón", imagen: "/productos/chapitas/corazon.jpg", zona: { x: 278, y: 350, ancho: 185, alto: 120 } },
-    { id: "Circular", texto: "Circular", imagen: "/productos/chapitas/circular.jpg", zona: { x: 256, y: 390, ancho: 185, alto: 140 } },
-    { id: "Placa", texto: "Placa", imagen: "/productos/chapitas/rectangular.jpg", zona: { x: 266, y: 365, ancho: 180, alto: 200 } },
-  ] as { id: string; texto: string; imagen: string; zona: { x: number; y: number; ancho: number; alto: number } }[],
+    {
+      id: "Huesito", texto: "Huesito", imagen: "/productos/chapitas/huesito.jpg", zona: { x: 300, y: 380, ancho: 250, alto: 120 },
+      recorte: { src: "/productos/chapitas/recortes/huesito.webp", ancho: 775, alto: 577 }, zonaRecorte: { x: 0.5, y: 0.63, ancho: 0.6, alto: 0.36 },
+    },
+    {
+      id: "Corazón", texto: "Corazón", imagen: "/productos/chapitas/corazon.jpg", zona: { x: 278, y: 350, ancho: 185, alto: 120 },
+      recorte: { src: "/productos/chapitas/recortes/corazon.webp", ancho: 479, alto: 641 }, zonaRecorte: { x: 0.5, y: 0.56, ancho: 0.6, alto: 0.3 },
+    },
+    {
+      id: "Circular", texto: "Circular", imagen: "/productos/chapitas/circular.jpg", zona: { x: 256, y: 390, ancho: 185, alto: 140 },
+      recorte: { src: "/productos/chapitas/recortes/circular.webp", ancho: 455, alto: 593 }, zonaRecorte: { x: 0.52, y: 0.62, ancho: 0.66, alto: 0.44 },
+    },
+    {
+      id: "Placa", texto: "Placa", imagen: "/productos/chapitas/rectangular.jpg", zona: { x: 266, y: 365, ancho: 180, alto: 200 },
+      recorte: { src: "/productos/chapitas/recortes/placa.webp", ancho: 452, alto: 868 }, zonaRecorte: { x: 0.5, y: 0.58, ancho: 0.7, alto: 0.6 },
+    },
+  ] as {
+    id: string;
+    texto: string;
+    imagen: string;
+    zona: { x: number; y: number; ancho: number; alto: number };
+    recorte: { src: string; ancho: number; alto: number };
+    zonaRecorte: { x: number; y: number; ancho: number; alto: number };
+  }[],
 };
 
 // -----------------------------------------------------------------------------

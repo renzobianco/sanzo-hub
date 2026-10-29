@@ -19,6 +19,8 @@ interface Props {
   fondo?: string;
   /** Muestra otra foto en vez de la primera (ej. la del color elegido). */
   fija?: number;
+  /** "contain": la foto entra entera (piezas sin fondo, ej. la chapita en el carrito). */
+  ajuste?: "cover" | "contain";
 }
 
 /**
@@ -37,6 +39,7 @@ export function ImagenProducto({
   tamTexto = "text-sm md:text-base",
   fondo = "bg-lino",
   fija,
+  ajuste = "cover",
 }: Props) {
   const fotos = (srcs && srcs.length > 0 ? srcs : src ? [src] : []).filter(Boolean);
   const [activa, setActiva] = useState(0);
@@ -65,7 +68,7 @@ export function ImagenProducto({
               priority={priority && i === 0}
               onLoad={() => setCargadas((c) => ({ ...c, [i]: true }))}
               onError={() => i === 0 && setFallo(true)}
-              className={`object-cover transition-[opacity,filter,transform] duration-[1400ms] ease-suave ${
+              className={`${ajuste === "contain" ? "object-contain p-1.5" : "object-cover"} transition-[opacity,filter,transform] duration-[1400ms] ease-suave ${
                 visible ? "scale-100 opacity-100 blur-0" : i === activa ? "opacity-0 blur-md" : "scale-[1.06] opacity-0"
               }`}
             />

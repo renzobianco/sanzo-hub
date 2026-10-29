@@ -116,7 +116,7 @@ export function chapitaConFoto(producto: Producto, opcion?: string) {
 export function fotoDeLinea(producto: Producto, opcion?: string) {
   if (esChapita(producto.id) && opcion) {
     const t = tipoChapita(opcion.split(SEP)[0]);
-    if (t) return t.imagen;
+    if (t) return t.recorte.src;
   }
   return producto.imagenes[0];
 }

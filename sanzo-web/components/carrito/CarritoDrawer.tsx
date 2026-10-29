@@ -13,7 +13,7 @@ import { IconoCerrar, IconoMas, IconoMenos } from "../Iconos";
 import { detalleEnvio, formatearPrecio, textoEnvio } from "@/lib/formato";
 import { MAX_CANTIDAD } from "@/lib/carrito";
 import { textoOpcion } from "@/lib/combos";
-import { fotoDeLinea } from "@/lib/chapita";
+import { esChapita, fotoDeLinea } from "@/lib/chapita";
 import { textoPersonalizacion } from "@/lib/personalizacion";
 
 export function CarritoDrawer() {
@@ -92,6 +92,7 @@ export function CarritoDrawer() {
                   <div className="flex gap-4">
                   <ImagenProducto
                     src={fotoDeLinea(l.producto, l.opcion)}
+                    ajuste={esChapita(l.producto.id) ? "contain" : "cover"}
                     nombre={l.producto.nombre}
                     sizes="80px"
                     className="w-20 shrink-0"

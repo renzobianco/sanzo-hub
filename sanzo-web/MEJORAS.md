@@ -388,6 +388,8 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - **Color de la cuerina del parche**: solo **Negro** y **Natural** (antes "Blanco") se pueden elegir; tabaco, chocolate y camel quedan apagados con "No disponible" (`disponible: false` en `personalizacion.colores`). Negro queda elegido de entrada. Carritos viejos con un color no disponible pasan a negro.
 - **Chapita en Individuales** (`vitrinaIndividuales`): tarjeta propia a $8.000. "Agregar" abre directo el grabado.
 - **Grabado de la chapita por pasos**, como el de los parches: 1 · Forma → 2 · Qué grabamos → 3 · Letra (las mismas letras de los parches, menos "Tu letra"). La letra va en la opción: "Huesito · Coco · Letra Cursiva" (la Moderna no se escribe, así los pedidos viejos siguen valiendo).
+- **Editor de la chapita con el mismo formato que el de los parches** (Santi: "sigue horrible"): pantalla completa, título y X arriba, la chapita **sin fondo sobre lino** con el grabado en vivo (gris oscuro mate, como láser sobre acero), pasos tocables, Atrás / Siguiente abajo. Las 4 formas son las de la foto del Combo Identidad, recortadas sin fondo: `public/productos/chapitas/recortes/*.webp` (`recorte` y `zonaRecorte` en cada `ofertaChapita.tipos`). El cartel del principio (oferta) queda igual. En el carrito y el checkout la chapita se ve con su recorte entero.
+- [ ] Las fotos de las chapitas salen de una foto chica (~150 px cada una, agrandadas): para que se vean nítidas, sacar una foto de las 4 sobre fondo liso y de cerca.
 
 ### Falta
 - [ ] Elegir el fondo de los círculos de las piezas (hoy gris plateado; opciones beige pasadas a Santi).

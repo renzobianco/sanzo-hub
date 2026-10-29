@@ -9,7 +9,7 @@ import { CLAVE_ULTIMO_PEDIDO, type PedidoEntrada, type PedidoRespuesta } from "@
 import { esPersonalizable, sinImagen, textoPersonalizacion } from "@/lib/personalizacion";
 import { Personalizar } from "../personalizar/Personalizar";
 import { datosVacios, validarCheckout, type DatosCheckout } from "@/lib/validacion";
-import { chapitaConFoto, fotoDeLinea } from "@/lib/chapita";
+import { chapitaConFoto, esChapita, fotoDeLinea } from "@/lib/chapita";
 import { useCarrito } from "../carrito/CarritoProvider";
 import { ImagenProducto } from "../ImagenProducto";
 import { textoOpcion } from "@/lib/combos";
@@ -350,6 +350,7 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
             <li key={l.key} className="flex gap-4 py-4">
               <ImagenProducto
                 src={fotoDeLinea(l.producto, l.opcion)}
+                ajuste={esChapita(l.producto.id) ? "contain" : "cover"}
                 nombre={l.producto.nombre}
                 sizes="56px"
                 className="w-14 shrink-0"
