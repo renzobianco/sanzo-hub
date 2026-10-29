@@ -1,10 +1,12 @@
 import { chapita, ofertaChapita, personalizacion, type Producto } from "@/data/products";
 
-/** Lo que el cliente pidió grabar en la chapita: la foto de su perro, el nombre, el teléfono (al menos uno). */
+/** Lo que el cliente pidió grabar en la chapita: la cara de su perro u otra imagen, el nombre, el teléfono (al menos uno). */
 export interface Grabado {
   tipo: string;
-  /** Nos manda la foto por WhatsApp después del pedido y la grabamos. */
+  /** La cara de su perro: nos manda la foto por WhatsApp después del pedido y la grabamos. */
   foto: boolean;
+  /** Otra imagen (un dibujo, un logo…): también nos la manda por WhatsApp. No va junto con `foto`. */
+  imagen?: boolean;
   nombre: string;
   telefono: string;
   /** id de una letra de `personalizacion.fuentes` (la misma lista que los parches, sin "Tu letra"). Vacío = la de la marca. */
@@ -20,6 +22,8 @@ const SEP = " · ";
 const TEL = "Tel. ";
 /** Marca de la foto en la opción: "Circular · Con su foto · Coco". */
 const FOTO = "Con su foto";
+/** Marca de otra imagen: "Placa · Con tu imagen · Tel. 11 2345 6789". */
+const IMAGEN = "Con tu imagen";
 /** Letra elegida, al final de la opción: "Placa · Coco · Letra Clásica". La de la marca no se escribe. */
 const LETRA = "Letra ";
 
@@ -46,8 +50,8 @@ export function validarGrabado(g: Grabado): ErroresGrabado {
   }
   const nombre = limpiarNombre(g.nombre);
   const tel = limpiarTelefono(g.telefono);
-  if (!g.foto && !nombre && !tel) {
-    e.nombre = "Elegí la foto, poné su nombre o tu teléfono.";
+  if (!g.foto && !g.imagen && !nombre && !tel) {
+    e.nombre = "Elegí una imagen, poné su nombre o tu teléfono.";
     return e;
   }
   if (nombre.length > ofertaChapita.maxNombre) e.nombre = `Hasta ${ofertaChapita.maxNombre} letras.`;
@@ -64,7 +68,7 @@ export function textoGrabado(g: Grabado) {
   const nombre = limpiarNombre(g.nombre);
   const tel = limpiarTelefono(g.telefono);
   const letra = g.letra && g.letra !== LETRA_BASE ? letrasChapita.find((f) => f.id === g.letra) : undefined;
-  return [g.tipo, g.foto && FOTO, nombre, tel && `${TEL}${tel}`, letra && `${LETRA}${letra.nombre}`].filter(Boolean).join(SEP);
+  return [g.tipo, g.foto ? FOTO : g.imagen && IMAGEN, nombre, tel && `${TEL}${tel}`, letra && `${LETRA}${letra.nombre}`].filter(Boolean).join(SEP);
 }
 
 /** Revisa la opción que llega del carrito (o del pedido). Devuelve el texto limpio o null si no sirve. */
@@ -78,12 +82,13 @@ export function normalizarOpcionChapita(opcion?: string): string | null {
   if (conLetra && !letra) return null;
   const partes = conLetra ? todas.slice(0, -1) : todas;
   const foto = partes[0] === FOTO;
-  const resto = foto ? partes.slice(1) : partes;
-  if (!tipoChapita(tipo) || resto.length > 2 || (!foto && resto.length === 0)) return null;
+  const imagen = partes[0] === IMAGEN;
+  const resto = foto || imagen ? partes.slice(1) : partes;
+  if (!tipoChapita(tipo) || resto.length > 2 || (!foto && !imagen && resto.length === 0)) return null;
   const tels = resto.filter((p) => p.startsWith(TEL));
   const nombres = resto.filter((p) => !p.startsWith(TEL));
   if (tels.length > 1 || nombres.length > 1) return null;
-  const g: Grabado = { tipo, foto, nombre: nombres[0] ?? "", telefono: tels[0]?.slice(TEL.length) ?? "", letra: letra?.id };
+  const g: Grabado = { tipo, foto, imagen, nombre: nombres[0] ?? "", telefono: tels[0]?.slice(TEL.length) ?? "", letra: letra?.id };
   if (Object.keys(validarGrabado(g)).length > 0) return null;
   return textoGrabado(g);
 }
@@ -107,9 +112,9 @@ export function normalizarOpcionComboChapita(combo: Producto, opcion?: string): 
   return grabado ? `${talle}${SEP}${grabado}` : null;
 }
 
-/** Lleva una chapita con la foto de su perro (hay que pedírsela por WhatsApp). */
+/** Lleva una chapita con la cara de su perro u otra imagen (hay que pedírsela por WhatsApp). */
 export function chapitaConFoto(producto: Producto, opcion?: string) {
-  return llevaChapita(producto) && !!opcion && opcion.split(SEP).some((p) => p.trim() === FOTO);
+  return llevaChapita(producto) && !!opcion && opcion.split(SEP).some((p) => p.trim() === FOTO || p.trim() === IMAGEN);
 }
 
 /** Foto para la línea del carrito/checkout: en la chapita, la forma elegida; en el resto, la primera foto. */

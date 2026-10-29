@@ -816,10 +816,15 @@ export const ofertaChapita = {
   foto: {
     texto: "Grabar la foto de tu perro",
     detalle: "Después de comprar nos la mandás por WhatsApp y la pasamos a grabado láser.",
+    /** Botones de "¿Lleva imagen?": ninguna, la cara de su perro u otra imagen (dibujo, logo…). */
+    opciones: { ninguna: "Sin imagen", carita: "Su carita", otra: "Otra imagen" },
+    detalleCarita: "Subí una foto de su cara para ver cómo queda. Después de comprar nos la mandás por WhatsApp y la pasamos a grabado láser.",
+    detalleOtra: "Un dibujo, un logo, lo que quieras. Subila para ver cómo queda y después de comprar nos la mandás por WhatsApp.",
+    elegir: "Subir foto para ver cómo queda",
     ejemplo: "/productos/chapitas/perro-grabado.png",
     ejemploTam: { ancho: 336, alto: 263 },
     /** Mensaje que se arma en /gracias para mandar la foto ({numero} = número de pedido). */
-    mensajeWhatsapp: "Hola sanzo! Les mando la foto de mi perro para grabar en la chapita del pedido {numero}.",
+    mensajeWhatsapp: "Hola sanzo! Les mando la imagen para grabar en la chapita del pedido {numero}.",
   },
   /** Medida de las fotos de las chapitas (todas iguales), en píxeles. */
   fotoTam: { ancho: 541, alto: 722 },

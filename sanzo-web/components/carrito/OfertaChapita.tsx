@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { chapita, ofertaChapita as oferta } from "@/data/products";
 import { letrasChapita, tipoChapita, textoGrabado, validarGrabado, type ErroresGrabado } from "@/lib/chapita";
 import { familia } from "@/lib/fuentes";
+import { aGrabadoLaser } from "@/lib/laser";
 import { formatearPrecio } from "@/lib/formato";
 import { IconoCerrar } from "../Iconos";
 
@@ -29,7 +30,11 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
   const id = useId();
   const [paso, setPaso] = useState<"cartel" | "personalizar">("cartel");
   const [tipo, setTipo] = useState(oferta.tipos[0]?.id ?? "");
-  const [foto, setFoto] = useState(false);
+  // Imagen grabada: ninguna, la cara de su perro u otra. La que suben es solo para la vista previa (la original llega por WhatsApp).
+  const [imagenTipo, setImagenTipo] = useState<"" | "carita" | "otra">("");
+  const [vistaImagen, setVistaImagen] = useState<{ src: string; proporcion: number } | null>(null);
+  const [procesando, setProcesando] = useState(false);
+  const foto = imagenTipo === "carita";
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [letra, setLetra] = useState(letrasChapita[0]?.id ?? "jost");
@@ -52,7 +57,7 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
 
   /** Revisa lo que hay que grabar; si falta algo, vuelve a ese paso y marca el campo. */
   function revisar() {
-    const e = validarGrabado({ tipo, foto, nombre, telefono });
+    const e = validarGrabado({ tipo, foto, imagen: imagenTipo === "otra", nombre, telefono });
     setErrores(e);
     const campo = Object.keys(e)[0];
     if (!campo) return true;
@@ -69,7 +74,21 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
 
   function sumar() {
     if (!revisar()) return;
-    onSumar(textoGrabado({ tipo, foto, nombre, telefono, letra }));
+    onSumar(textoGrabado({ tipo, foto, imagen: imagenTipo === "otra", nombre, telefono, letra }));
+  }
+
+  /** Cualquier foto → cómo quedaría grabada (en el navegador, al instante). */
+  async function verImagen(archivo?: File) {
+    if (!archivo) return;
+    setProcesando(true);
+    try {
+      const g = await aGrabadoLaser(archivo);
+      setVistaImagen({ src: g.grabado, proporcion: g.proporcion });
+    } catch {
+      setVistaImagen(null);
+    } finally {
+      setProcesando(false);
+    }
   }
 
   const elegido = tipoChapita(tipo) ?? oferta.tipos[0];
@@ -130,7 +149,7 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
           {/* La vista queda fija arriba para ver los cambios mientras elige. */}
           <div className="shrink-0 bg-lino px-4 pt-4 sm:row-span-2 sm:flex sm:flex-col sm:justify-center sm:px-8 sm:pt-6">
             <div className="flex h-[30dvh] items-center justify-center [--alto-vista:30dvh] sm:h-[52vh] sm:[--alto-vista:52vh]">
-              <VistaChapita tipo={tipo} foto={foto} nombre={nombre} telefono={telefono} letra={letra} />
+              <VistaChapita tipo={tipo} imagenTipo={imagenTipo} vistaImagen={vistaImagen} nombre={nombre} telefono={telefono} letra={letra} />
             </div>
             <p className="pb-3 pt-3 text-center text-[11px] text-tinta/60">{elegido.texto} · grabado láser</p>
           </div>
@@ -192,25 +211,51 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
 
               {PASOS[pasoGrabado] === "Qué grabamos" && (
                 <>
-                  <label className="flex cursor-pointer items-start gap-3 border border-tinta/20 p-3.5 transition-colors has-[:checked]:border-tinta has-[:checked]:bg-lino/60">
-                    <input
-                      type="checkbox"
-                      checked={foto}
-                      onChange={(e) => {
-                        setFoto(e.target.checked);
-                        setErrores({});
-                      }}
-                      className="mt-0.5 size-5 shrink-0 accent-tinta"
-                    />
-                    <span>
-                      <span className="block text-[15px]">{oferta.foto.texto}</span>
-                      <span className="mt-0.5 block text-[13px] leading-snug text-tinta/60">{oferta.foto.detalle}</span>
-                    </span>
-                  </label>
+                  <fieldset>
+                    <legend className="eyebrow mb-3">¿Lleva imagen?</legend>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(
+                        [
+                          ["", oferta.foto.opciones.ninguna],
+                          ["carita", oferta.foto.opciones.carita],
+                          ["otra", oferta.foto.opciones.otra],
+                        ] as const
+                      ).map(([v, texto]) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => {
+                            setImagenTipo(v);
+                            setErrores({});
+                          }}
+                          className={`h-11 border text-[10px] uppercase tracking-[0.12em] transition-colors ${imagenTipo === v ? "border-tinta bg-tinta text-crema" : "border-tinta/20"}`}
+                        >
+                          {texto}
+                        </button>
+                      ))}
+                    </div>
+                    {imagenTipo && (
+                      <div className="mt-3 animate-entrada">
+                        <p className="text-[12px] leading-relaxed text-tinta/70">{imagenTipo === "carita" ? oferta.foto.detalleCarita : oferta.foto.detalleOtra}</p>
+                        <label className="btn mt-3 flex w-full cursor-pointer items-center justify-center border border-dashed border-tinta/60 py-3 text-[11px] text-tinta">
+                          {procesando ? "Preparando…" : vistaImagen ? "Cambiar foto" : oferta.foto.elegir}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={(e) => {
+                              verImagen(e.target.files?.[0]);
+                              e.target.value = "";
+                            }}
+                          />
+                        </label>
+                      </div>
+                    )}
+                  </fieldset>
 
                   <div>
                     <p className="mb-3 text-[13px] text-tinta/65">
-                      {foto ? "Si querés, sumale su nombre y tu teléfono." : "Grabá su nombre, tu teléfono o los dos."}
+                      {imagenTipo ? "Si querés, sumale su nombre y tu teléfono." : "Grabá su nombre, tu teléfono o los dos."}
                     </p>
                     <label htmlFor={`${id}-nombre`} className="etiqueta flex justify-between">
                       <span>Su nombre</span>
@@ -330,7 +375,21 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
  * (partes del ancho y alto del recorte; cqw = parte del ancho de la vista). Grabado láser sobre acero: gris
  * oscuro mate, apenas hundido.
  */
-function VistaChapita({ tipo, foto, nombre, telefono, letra }: { tipo: string; foto: boolean; nombre: string; telefono: string; letra: string }) {
+function VistaChapita({
+  tipo,
+  imagenTipo,
+  vistaImagen,
+  nombre,
+  telefono,
+  letra,
+}: {
+  tipo: string;
+  imagenTipo: "" | "carita" | "otra";
+  vistaImagen: { src: string; proporcion: number } | null;
+  nombre: string;
+  telefono: string;
+  letra: string;
+}) {
   const t = tipoChapita(tipo) ?? oferta.tipos[0];
   const { familia: fam, peso } = familia(letra);
   const mayusculas = letrasChapita.find((f) => f.id === letra)?.mayusculas;
@@ -338,6 +397,9 @@ function VistaChapita({ tipo, foto, nombre, telefono, letra }: { tipo: string; f
   const z = t.zonaRecorte;
   const n = nombre.trim().replace(/\s+/g, " ");
   const tel = telefono.trim().replace(/\s+/g, " ");
+  // Imagen en la vista: la que subió (pasada a grabado) o, si eligió "Su carita" y no subió nada, la de ejemplo.
+  const img = vistaImagen ?? (imagenTipo === "carita" ? { src: oferta.foto.ejemplo, proporcion: oferta.foto.ejemploTam.ancho / oferta.foto.ejemploTam.alto } : null);
+  const foto = !!imagenTipo && !!img;
   const vacio = !foto && !n && !tel;
   // Sin nada elegido, un ejemplo apagado para que se entienda dónde va.
   const lineaNombre = vacio ? "Kala" : n;
@@ -346,9 +408,8 @@ function VistaChapita({ tipo, foto, nombre, telefono, letra }: { tipo: string; f
 
   // Todo en partes del ancho del recorte (1 = todo el ancho).
   const zAlto = (z.alto * alto) / ancho;
-  const ej = oferta.foto.ejemploTam;
   const altoFoto = foto ? zAlto * (hayTexto ? 0.58 : 0.95) : 0;
-  const anchoFoto = Math.min(z.ancho * 0.8, (altoFoto * ej.ancho) / ej.alto);
+  const anchoFoto = img ? Math.min(z.ancho * 0.85, altoFoto * img.proporcion) : 0;
   const altoTexto = foto ? zAlto * 0.4 : zAlto;
   const tamNombre = Math.min(altoTexto * (lineaTel ? 0.42 : 0.55), z.ancho / (Math.max(lineaNombre.length, 3) * 0.6));
   const tamTel = Math.min(altoTexto * (lineaNombre ? 0.2 : 0.3), z.ancho / (Math.max(lineaTel.length, 6) * 0.56));
@@ -373,17 +434,31 @@ function VistaChapita({ tipo, foto, nombre, telefono, letra }: { tipo: string; f
           top: `${z.y * 100}%`,
           width: cqw(z.ancho),
           gap: cqw(zAlto * 0.04),
-          color: "rgba(48, 43, 39, 0.82)",
-          textShadow: "0 1px 0 rgba(255,255,255,0.28), 0 -0.5px 0 rgba(0,0,0,0.25)",
+          // Grabado láser sobre acero: gris casi negro, mate y nítido (como las chapitas reales).
+          color: "rgba(30, 28, 27, 0.88)",
+          textShadow: "0 0 0.4px rgba(30,28,27,0.6)",
           opacity: vacio ? 0.45 : 1,
         }}
       >
-        {foto && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={oferta.foto.ejemplo}
-            alt="Ejemplo: la foto de tu perro grabada"
-            style={{ width: cqw(anchoFoto), opacity: 0.85, filter: "invert(1) brightness(0.35)" }}
+        {foto && img && (
+          // El grabado es blanco con transparencia: se pinta del gris del láser con una máscara.
+          <span
+            role="img"
+            aria-label={vistaImagen ? "Tu imagen grabada" : "Ejemplo: la cara de tu perro grabada"}
+            className="block"
+            style={{
+              width: cqw(anchoFoto),
+              aspectRatio: `${img.proporcion}`,
+              backgroundColor: "rgba(30, 28, 27, 0.88)",
+              WebkitMaskImage: `url(${img.src})`,
+              maskImage: `url(${img.src})`,
+              WebkitMaskSize: "contain",
+              maskSize: "contain",
+              WebkitMaskRepeat: "no-repeat",
+              maskRepeat: "no-repeat",
+              WebkitMaskPosition: "center",
+              maskPosition: "center",
+            }}
           />
         )}
         {lineaNombre && (
