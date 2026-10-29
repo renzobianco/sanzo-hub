@@ -130,6 +130,8 @@ export interface ColorParche {
   borde: string;
   /** Cuánto manchado/envejecido tiene la cuerina (0 = parejo, 1 = muy veteado). El grano va siempre. */
   veteado?: number;
+  /** false → se ve apagado con "No disponible" y no se puede elegir. */
+  disponible?: boolean;
 }
 
 /** Letra para el grabado. La fuente en sí se carga en `lib/fuentes.ts` (mismo id). */
@@ -277,13 +279,16 @@ export const personalizacion: {
     { id: "silueta", nombre: "Su silueta", especial: "silueta" },
     { id: "otra", nombre: "Otra", especial: "otra" },
   ],
-  /** Colores de cuerina. `grabado` y `borde` son aproximados: ajustarlos con fotos de muestras reales. */
+  /**
+   * Colores de cuerina. `grabado` y `borde` son aproximados: ajustarlos con fotos de muestras reales.
+   * El primero disponible queda elegido de entrada. Hoy solo hay negro y natural (Santi, 2026-10-29).
+   */
   colores: [
-    { id: "tabaco", nombre: "Tabaco envejecido", color: "#8f5535", grabado: "#2b170c", borde: "#3a2213", veteado: 0.9 },
-    { id: "chocolate", nombre: "Marrón chocolate", color: "#5b3a26", grabado: "#24140a", borde: "#2e1b10", veteado: 0.35 },
-    { id: "camel", nombre: "Camel", color: "#c08a55", grabado: "#4a2a14", borde: "#6e4423", veteado: 0.4 },
-    { id: "blanco", nombre: "Blanco", color: "#f1ece4", grabado: "#5a3a24", borde: "#8a6a50", veteado: 0.1 },
     { id: "negro", nombre: "Negro", color: "#2a2726", grabado: "#0c0b0a", borde: "#121010", veteado: 0.15 },
+    { id: "blanco", nombre: "Natural", color: "#ece4d6", grabado: "#5a3a24", borde: "#8a6a50", veteado: 0.12 },
+    { id: "tabaco", nombre: "Tabaco envejecido", color: "#8f5535", grabado: "#2b170c", borde: "#3a2213", veteado: 0.9, disponible: false },
+    { id: "chocolate", nombre: "Marrón chocolate", color: "#5b3a26", grabado: "#24140a", borde: "#2e1b10", veteado: 0.35, disponible: false },
+    { id: "camel", nombre: "Camel", color: "#c08a55", grabado: "#4a2a14", borde: "#6e4423", veteado: 0.4, disponible: false },
   ],
   /** Letras para el grabado (se cargan en lib/fuentes.ts). La primera queda elegida de entrada. */
   fuentes: [
@@ -674,24 +679,25 @@ export const clientes = {
    * Videos de clientes usándolos (verticales 9:16, cortos, sin sonido): ruta en /public, ej. "/videos/clientes/lola.mp4".
    * `foto` se muestra mientras carga el video, o sola si todavía no hay video.
    * `perro`: nombre y barrio, ej. "Lola · Caballito". Opcional.
+   * `esVideo`: muestra el ícono de video aunque todavía no esté cargado (lugar guardado para un video).
    */
   videos: [
-    { video: "", foto: "/productos/clientes/1.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/1.jpg", perro: "", esVideo: true },
     { video: "", foto: "/productos/galeria/1.jpg", perro: "" },
     { video: "", foto: "/productos/clientes/2.jpg", perro: "" },
-    { video: "", foto: "/productos/hero/1.jpg", perro: "" },
+    { video: "", foto: "/productos/hero/1.jpg", perro: "", esVideo: true },
     { video: "", foto: "/productos/clientes/3.jpg", perro: "" },
     { video: "", foto: "/productos/galeria/2.jpg", perro: "" },
-    { video: "", foto: "/productos/clientes/4.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/4.jpg", perro: "", esVideo: true },
     { video: "", foto: "/productos/hero/2.jpg", perro: "" },
     { video: "", foto: "/productos/galeria/3.jpg", perro: "" },
-    { video: "", foto: "/productos/clientes/5.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/5.jpg", perro: "", esVideo: true },
     { video: "", foto: "/productos/hero/3.jpg", perro: "" },
     { video: "", foto: "/productos/galeria/4.jpg", perro: "" },
-    { video: "", foto: "/productos/clientes/6.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/6.jpg", perro: "", esVideo: true },
     { video: "", foto: "/productos/hero/4.jpg", perro: "" },
     { video: "", foto: "/productos/galeria/5.jpg", perro: "" },
-  ] as { video: string; foto: string; perro: string }[],
+  ] as { video: string; foto: string; perro: string; esVideo?: boolean }[],
 };
 
 // -----------------------------------------------------------------------------
@@ -763,7 +769,7 @@ export const preguntas: { pregunta: string; respuesta: string }[] = [
 ];
 
 // -----------------------------------------------------------------------------
-// Chapita personalizada: se ofrece en un cartel al tocar "Comprar el kit" o "Agregar".
+// Chapita personalizada: se vende suelta en Individuales y se ofrece en un cartel al tocar "Comprar el kit" o "Agregar".
 // Suelta sale `precio`; sumada a otra compra sale `oferta.precio` (lo calcula el carrito).
 // El grabado viaja como la opción de la línea, ej. "Corazón · Coco · Tel. 11 2345 6789".
 // -----------------------------------------------------------------------------
@@ -781,6 +787,9 @@ export const chapita: Producto = {
   linkPago: "",
   disponible: true,
 };
+
+/** Lo que se ve en "Individuales", en orden: las piezas y, al final, la chapita (Santi, 2026-10-29). */
+export const vitrinaIndividuales: Producto[] = [...individuales, chapita];
 
 export const ofertaChapita = {
   /** false → el cartel no aparece. */

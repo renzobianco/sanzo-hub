@@ -57,6 +57,11 @@ export const materialPorId = (id: string) => config.materiales.find((m) => m.id 
 export const colorPorId = (id: string) => config.colores.find((c) => c.id === id);
 export const fuentePorId = (id: string) => config.fuentes.find((f) => f.id === id);
 
+/** El color que queda elegido de entrada: el primero disponible. */
+export function colorInicial() {
+  return (config.colores.find((c) => c.disponible !== false) ?? config.colores[0]).id;
+}
+
 /** El material que queda elegido de entrada: el primero que se puede pedir. */
 export function materialInicial() {
   return config.materiales.find((m) => !m.proximamente)?.id ?? "";
@@ -137,7 +142,7 @@ export function validarPersonalizacion(p: DisenoPieza & { piezas?: Personalizaci
   else if (forma.especial === "otra" && !p.formaOtra?.trim()) e.formaOtra = "Contanos qué forma querés.";
   const m = materialPorId(p.material);
   if (!m || m.proximamente) e.material = "Elegí un material.";
-  if (!colorPorId(p.color)) e.color = "Elegí un color.";
+  if (colorPorId(p.color)?.disponible === false || !colorPorId(p.color)) e.color = "Elegí un color.";
 
   const max = medidaMaxima([]);
   const min = config.medidas.minCm;
@@ -247,7 +252,8 @@ function normalizarDiseno(p: unknown): DisenoPieza | null {
     forma,
     formaOtra: forma === "otra" && typeof o.formaOtra === "string" ? o.formaOtra.trim().replace(/\s+/g, " ").slice(0, 120) : undefined,
     material: typeof o.material === "string" && o.material ? o.material : materialInicial(),
-    color: typeof o.color === "string" && o.color ? o.color : config.colores[0].id,
+    // Un color que dejó de estar disponible (carritos viejos) pasa al de entrada.
+    color: typeof o.color === "string" && colorPorId(o.color) && colorPorId(o.color)?.disponible !== false ? o.color : colorInicial(),
     ancho: redondear(ancho),
     alto: redondear(alto),
     modo: enImagen ? "imagen" : "nombre",

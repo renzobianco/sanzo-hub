@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { ConZoom } from "./ConZoom";
+import { FlechasGaleria } from "./FlechasGaleria";
 import { ImagenProducto } from "./ImagenProducto";
 
 /** Galería del kit: se desliza con el dedo, con puntitos que muestran en qué foto estás. */
@@ -74,6 +75,7 @@ export function KitGaleria({
             </li>
           ))}
         </ul>
+        <FlechasGaleria activa={activa} total={imagenes.length} ir={ir} />
       </div>
       <p className="pointer-events-none absolute right-3 top-3 rounded-full bg-crema/85 px-2.5 py-1 text-[10px] tracking-[0.2em] backdrop-blur-sm">
         {activa + 1} / {imagenes.length}

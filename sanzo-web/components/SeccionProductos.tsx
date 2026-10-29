@@ -1,5 +1,5 @@
 import { Palabras } from "./Palabras";
-import { individuales } from "@/data/products";
+import { vitrinaIndividuales } from "@/data/products";
 import { TarjetaProducto } from "./TarjetaProducto";
 import { Reveal } from "./Reveal";
 
@@ -15,7 +15,7 @@ export function SeccionProductos() {
         </Reveal>
 
         <ul className="grid grid-cols-2 gap-x-3 gap-y-10 md:grid-cols-4 md:gap-x-6 md:gap-y-14">
-          {individuales.map((p, i) => (
+          {vitrinaIndividuales.map((p, i) => (
             <li key={p.id}>
               <Reveal delay={(i % 4) * 80} className="group flex h-full flex-col">
                 <TarjetaProducto producto={p} />

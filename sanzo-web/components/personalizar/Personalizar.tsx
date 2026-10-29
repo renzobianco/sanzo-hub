@@ -9,6 +9,7 @@ import { aGrabadoLaser, imagenParaSubir, type Grabado } from "@/lib/laser";
 import { cargarZonas, colocar, esRedonda, recortarZona, type Zona } from "@/lib/zonas";
 import {
   clavePersonalizacion,
+  colorInicial,
   colorPorId,
   materialInicial,
   medidaMaxima,
@@ -75,7 +76,7 @@ function disenoDesde(p?: DisenoPieza | null): Diseno {
     forma: p?.forma ?? config.formas[0].id,
     formaOtra: p?.formaOtra ?? "",
     material: p?.material ?? materialInicial(),
-    color: p?.color ?? config.colores[0].id,
+    color: p?.color ?? colorInicial(),
     ancho: p?.ancho ?? inicial.ancho,
     alto: p?.alto ?? inicial.alto,
     modo: p?.modo ?? "nombre",
@@ -1126,26 +1127,35 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                   <legend className="eyebrow mb-3">
                     Color <span className="ml-1 normal-case tracking-normal text-tinta/60">{colorElegido.nombre}</span>
                   </legend>
-                  <div className="flex flex-wrap gap-3">
-                    {config.colores.map((c) => (
-                      <label key={c.id} className="cursor-pointer" title={c.nombre}>
-                        <input
-                          type="radio"
-                          name={`${id}-color`}
-                          value={c.id}
-                          checked={color === c.id}
-                          onChange={() => setColor(c.id)}
-                          className="peer sr-only"
-                          aria-label={c.nombre}
-                        />
-                        {/* Muestra con el mismo grano del parche; al elegirla, un aro y un pequeño salto. */}
-                        <span className="block rounded-full p-[3px] ring-1 ring-tinta/15 transition-transform duration-300 ease-suave peer-checked:scale-110 peer-checked:ring-2 peer-checked:ring-tinta peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-marron">
-                          <svg viewBox="-20 -20 40 40" className="block h-9 w-9 rounded-full" aria-hidden="true">
-                            <ParcheMuestra color={c.id} />
-                          </svg>
-                        </span>
-                      </label>
-                    ))}
+                  <div className="flex flex-wrap gap-x-1 gap-y-3">
+                    {config.colores.map((c) => {
+                      const no = c.disponible === false;
+                      return (
+                        <label key={c.id} className={`flex w-[4.1rem] flex-col items-center ${no ? "cursor-not-allowed" : "cursor-pointer"}`} title={c.nombre}>
+                          <input
+                            type="radio"
+                            name={`${id}-color`}
+                            value={c.id}
+                            checked={color === c.id}
+                            disabled={no}
+                            onChange={() => setColor(c.id)}
+                            className="peer sr-only"
+                            aria-label={no ? `${c.nombre} (no disponible)` : c.nombre}
+                          />
+                          {/* Muestra con el mismo grano del parche; al elegirla, un aro y un pequeño salto. Sin stock: apagada y con una raya. */}
+                          <span className="relative block rounded-full p-[3px] ring-1 ring-tinta/15 transition-transform duration-300 ease-suave peer-checked:scale-110 peer-checked:ring-2 peer-checked:ring-tinta peer-disabled:opacity-40 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-marron">
+                            <svg viewBox="-20 -20 40 40" className="block h-9 w-9 rounded-full" aria-hidden="true">
+                              <ParcheMuestra color={c.id} />
+                            </svg>
+                            {no && <span aria-hidden="true" className="absolute left-1/2 top-1/2 h-px w-[2.6rem] -translate-x-1/2 -translate-y-1/2 -rotate-45 bg-tinta/60" />}
+                          </span>
+                          <span className={`mt-1.5 text-center text-[9px] uppercase leading-tight tracking-[0.1em] ${no ? "text-tinta/45" : "text-tinta/80"}`}>
+                            {c.nombre}
+                            {no && <span className="mt-0.5 block normal-case tracking-normal">No disponible</span>}
+                          </span>
+                        </label>
+                      );
+                    })}
                   </div>
                 </fieldset>
                 </>

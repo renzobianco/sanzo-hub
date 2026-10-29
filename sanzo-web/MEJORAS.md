@@ -380,3 +380,17 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
   - **Letras**: en PC se pisaban; ahora cada muestra queda adentro de su recuadro.
   - **Bug imagen por pieza**: "Diseño propio" arrancaba vacío (de nombre) en vez de copiar el actual, y por eso no se veía/no dejaba la imagen en otra pieza. Ahora arranca como copia y cada pieza conserva su imagen. El campo de imagen también acepta volver a elegir el mismo archivo.
   - Paso Lugar: se sacaron los botones "Piezas"; "Seguir con…" vuelve al paso 1. Arnés "Abajo" subido a (608, 915).
+
+## 2026-10-29 · Pendientes de Santi (flechitas, clientes, colores, chapita)
+
+- **Flechitas en las galerías que se deslizan** (`FlechasGaleria`): kit y ficha de cada individual. La de la derecha se mueve apenas mientras estás en la primera foto (para que se note que hay más); la de la izquierda aparece desde la segunda. Se tocan para pasar de foto.
+- **Clientes: ícono de video** (▶ arriba a la derecha) en las tarjetas marcadas con `esVideo: true` en `clientes.videos` (lugar guardado para los videos que se cargan después). Con `video` cargado sale solo.
+- **Color de la cuerina del parche**: solo **Negro** y **Natural** (antes "Blanco") se pueden elegir; tabaco, chocolate y camel quedan apagados con "No disponible" (`disponible: false` en `personalizacion.colores`). Negro queda elegido de entrada. Carritos viejos con un color no disponible pasan a negro.
+- **Chapita en Individuales** (`vitrinaIndividuales`): tarjeta propia a $8.000. "Agregar" abre directo el grabado.
+- **Grabado de la chapita por pasos**, como el de los parches: 1 · Forma → 2 · Qué grabamos → 3 · Letra (las mismas letras de los parches, menos "Tu letra"). La letra va en la opción: "Huesito · Coco · Letra Cursiva" (la Moderna no se escribe, así los pedidos viejos siguen valiendo).
+
+### Falta
+- [ ] Elegir el fondo de los círculos de las piezas (hoy gris plateado; opciones beige pasadas a Santi).
+- [ ] Videos de clientes → `clientes.videos[].video`.
+- [ ] Precios de personalización ("p de precios", Santi lo ve después).
+- [ ] Fotos de la parte de atrás de cada pieza (Santi las pasa).

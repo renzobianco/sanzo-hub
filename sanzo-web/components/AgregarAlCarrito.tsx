@@ -135,10 +135,11 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
     setAviso("");
     const valor = conColor.length ? armarOpcion(producto, seleccion, colores) : producto.opcionTalle ? `${seleccion} · ${talle}` : seleccion;
     const seguir = () => (irAlCheckout ? router.push("/checkout") : abrirCarrito());
-    // Combo que trae chapita: primero se elige el grabado, y va en la opción ("M · Corazón · Coco").
+    // Chapita suelta o combo que la trae: primero se elige el grabado, y va en la opción
+    // ("Corazón · Coco" en la suelta, "M · Corazón · Coco" en el combo).
     if (llevaChapita(producto)) {
       pedirGrabado((grabado) => {
-        agregar(producto.id, `${valor} · ${grabado}`, { abrir: false });
+        agregar(producto.id, valor ? `${valor} · ${grabado}` : grabado, { abrir: false });
         seguir();
       });
       return;

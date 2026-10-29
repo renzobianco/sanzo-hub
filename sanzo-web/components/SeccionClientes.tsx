@@ -98,7 +98,7 @@ export function SeccionClientes() {
 }
 
 /** Tarjeta vertical: video que se reproduce solo cuando está en pantalla, o foto con zoom lento. */
-function Reel({ video, foto, perro }: { video: string; foto: string; perro: string }) {
+function Reel({ video, foto, perro, esVideo }: { video: string; foto: string; perro: string; esVideo?: boolean }) {
   const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -117,6 +117,14 @@ function Reel({ video, foto, perro }: { video: string; foto: string; perro: stri
         <Image src={foto} alt="" fill sizes="(min-width: 768px) 13rem, 9.5rem" className="object-cover" />
       )}
       <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-tinta/55 to-transparent" />
+      {(video || esVideo) && (
+        // Ícono de video (como el de los reels): marca las tarjetas que son o van a ser video.
+        <span aria-label="Video" className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-tinta/35 text-crema backdrop-blur-sm">
+          <svg viewBox="0 0 24 24" width={12} height={12} fill="currentColor" aria-hidden="true">
+            <path d="M8 5.5v13a.6.6 0 0 0 .9.5l10.4-6.5a.6.6 0 0 0 0-1L8.9 5a.6.6 0 0 0-.9.5z" />
+          </svg>
+        </span>
+      )}
       {perro && <figcaption className="absolute bottom-4 left-4 text-[11px] uppercase tracking-marca text-crema">{perro}</figcaption>}
     </figure>
   );

@@ -10,6 +10,7 @@ import { useCarrito } from "./carrito/CarritoProvider";
 import { SelectorZona } from "./carrito/SelectorZona";
 import { ConZoom } from "./ConZoom";
 import { Detalles } from "./Detalles";
+import { FlechasGaleria } from "./FlechasGaleria";
 import { IconoCerrar } from "./Iconos";
 import { MiniPiezas } from "./MiniPiezas";
 
@@ -33,6 +34,7 @@ export function FichaProducto({
   const { abierto: carritoAbierto } = useCarrito();
   const [arriba, setArriba] = useState(false); // la hoja ya subió
   const [foto, setFoto] = useState(0);
+  const pista = useRef<HTMLUListElement>(null);
   const [arrastre, setArrastre] = useState(0);
   const inicio = useRef<number | null>(null);
 
@@ -120,6 +122,7 @@ export function FichaProducto({
             {fotos.length > 0 && (
               <div className="relative">
                 <ul
+                  ref={pista}
                   className="sin-scrollbar flex snap-x snap-mandatory overflow-x-auto"
                   onScroll={(e) => {
                     const el = e.currentTarget;
@@ -144,6 +147,13 @@ export function FichaProducto({
                     </li>
                   ))}
                 </ul>
+                <div className="pointer-events-none absolute inset-x-4 top-0 aspect-square [&>button]:pointer-events-auto">
+                  <FlechasGaleria
+                    activa={foto}
+                    total={fotos.length}
+                    ir={(i) => pista.current?.scrollTo({ left: i * pista.current.clientWidth, behavior: "smooth" })}
+                  />
+                </div>
                 {fotos.length > 1 && (
                   <div className="mt-3 flex justify-center gap-1.5" aria-hidden="true">
                     {fotos.map((src, i) => (
