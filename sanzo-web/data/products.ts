@@ -70,6 +70,11 @@ export interface Producto {
    * (ej. "gorra:Beige"). Sin cargar → usa la foto de la pieza suelta.
    */
   fotosPiezas?: Record<string, string>;
+  /**
+   * Solo combos de chapitas (Combo Manada): cuántas chapitas trae. Al agregarlo se graba una por una y entran
+   * al carrito como chapitas sueltas, así el 3x2 de `ofertaChapita.tresPorDos` hace el descuento.
+   */
+  chapitas?: number;
 }
 
 /**
@@ -453,6 +458,22 @@ export const combos: Producto[] = [
     disponible: true,
     // Mismos talles que el collar.
     opcion: { nombre: "Talle", valores: ["M"], agotados: ["S", ...TALLES_AGOTADOS] },
+  },
+  {
+    // 3 chapitas sueltas (8.000 c/u) con el 3x2 → 16.000. No entra al carrito como combo: se agregan las 3 chapitas.
+    id: "combo-manada",
+    nombre: "Combo Manada",
+    tipo: "combo",
+    descripcion: "Tres chapitas grabadas y pagás dos. Una para cada uno de la manada.",
+    incluye: ["chapita", "chapita", "chapita"],
+    precio: 16000,
+    chapitas: 3,
+    // Fotos hechas con el ChatGPT de Sanzo a partir de las chapitas reales, sobre el fondo sábana.
+    imagenes: ["/productos/combo-manada/1.jpg", "/productos/combo-manada/2.jpg"],
+    envioGratis: false,
+    linkPago: "",
+    disponible: true,
+    etiqueta: "3x2",
   },
   {
     id: "combo-sol",

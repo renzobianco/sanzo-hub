@@ -14,7 +14,7 @@ export function MiniPiezas({ incluye, columnas = "grid-cols-3" }: { incluye: str
         const p = getProducto(pieza);
         const nombre = p?.nombre ?? pieza;
         return (
-          <li key={pieza} className="pieza text-center" style={{ transitionDelay: `${250 + i * 80}ms` }}>
+          <li key={`${pieza}-${i}`} className="pieza text-center" style={{ transitionDelay: `${250 + i * 80}ms` }}>
             <span className="relative mx-auto block w-full">
             {/* Lo que trae adentro (ej. "+ rollito"): etiqueta chiquita sobre el círculo. */}
             {p?.incluyeExtra && <Rollito texto={p.incluyeExtra} foto={p.incluyeExtraFoto} className="absolute -right-1 -top-1 z-10" />}

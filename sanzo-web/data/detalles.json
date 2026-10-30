@@ -47,7 +47,7 @@
   ],
   "collar-circulo": [
     { "x": 64, "y": 38, "tx": 60, "ty": 14, "texto": "Regulable", "sub": "De 33 a 51 cm" },
-    { "x": 34, "y": 62, "tx": 50, "ty": 78, "texto": "Personalizable", "sub": "Su nombre en la cinta" },
+    { "x": 50, "y": 51, "tx": 54, "ty": 76, "texto": "Personalizable", "sub": "Su nombre en la cinta" },
     { "x": 18, "y": 70, "tx": 24, "ty": 92, "texto": "Traba rápida", "sub": "Se pone en un segundo" }
   ],
   "mono-circulo": [

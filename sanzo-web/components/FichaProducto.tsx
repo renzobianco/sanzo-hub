@@ -243,9 +243,12 @@ export function FichaProducto({
                 <AgregarAlCarrito producto={producto} grande />
               </div>
 
-              <div className="mt-6 border-t border-tinta/10 pt-5">
-                {producto.envioGratis ? <p className="text-[14px] text-marron">Envío gratis a todo el país.</p> : <SelectorZona elegir={false} />}
-              </div>
+              {/* En los individuales no va el cálculo de envío (Santino, 2026-10-30): se ve en el carrito. */}
+              {producto.tipo !== "individual" && (
+                <div className="mt-6 border-t border-tinta/10 pt-5">
+                  {producto.envioGratis ? <p className="text-[14px] text-marron">Envío gratis a todo el país.</p> : <SelectorZona elegir={false} />}
+                </div>
+              )}
             </div>
           </div>
         </div>

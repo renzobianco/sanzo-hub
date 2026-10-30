@@ -112,9 +112,12 @@ function propiosIniciales(piezas: string[], valor?: Personalizacion) {
   return Object.fromEntries(piezas.map((pz) => [pz, !!valor?.piezas?.[pz] && clavePersonalizacion(valor.piezas[pz]!) !== comun]));
 }
 
-/** Qué piezas van personalizadas (cualquiera se puede dejar sin parche). */
+/**
+ * Qué piezas van personalizadas (cualquiera se puede dejar sin parche). La primera vez arranca solo la primera
+ * y el resto se suma tocándolo: así, si solo quieren el arnés, no pasan pieza por pieza (Santino, 2026-10-30).
+ */
 function activasIniciales(piezas: string[], valor?: Personalizacion) {
-  return Object.fromEntries(piezas.map((pz) => [pz, valor?.piezas ? valor.piezas[pz] !== null : true]));
+  return Object.fromEntries(piezas.map((pz, i) => [pz, valor?.piezas ? valor.piezas[pz] !== null : valor ? true : i === 0]));
 }
 
 /** La medida final de un diseño: dentro de lo que entra y con la proporción de su forma. */
@@ -351,6 +354,17 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
     setPaso(i);
   }
 
+  /** Sumar o sacar una pieza: al sumarla se pasa a editarla; al sacar la que se edita, se pasa a otra de las que van. */
+  function tocarPieza(pz: string) {
+    const va = activas[pz] !== false;
+    setActivas((a) => ({ ...a, [pz]: !va }));
+    if (!va) seguirConPieza(pz);
+    else if (pz === piezaEdit) {
+      const otra = piezas.find((x) => x !== pz && activas[x] !== false);
+      if (otra) seguirConPieza(otra);
+    }
+  }
+
   // La pieza que sigue (en kits): al terminar una se sigue con la próxima sin volver atrás.
   const siguientePieza = piezas.slice(piezas.indexOf(piezaEdit) + 1).find((pz) => activas[pz] !== false);
   function seguirConPieza(pz: string) {
@@ -464,7 +478,8 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
 
   // Cualquier imagen → cómo quedaría grabada (en el navegador, al instante) y, en paralelo,
   // la original se sube en alta calidad para grabarla.
-  async function subirImagen(archivo?: File) {
+  /** `foto: false` = un dibujo a mano ("Tu letra"): no se le saca el fondo ni se pasa a líneas. */
+  async function subirImagen(archivo?: File, foto = true) {
     if (!archivo) return;
     const pz = piezaEdit;
     setProcesando(true);
@@ -484,7 +499,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
       }
     })();
     try {
-      cambiar({ vistaImagen: await aGrabadoLaser(archivo) }, pz);
+      cambiar({ vistaImagen: await aGrabadoLaser(archivo, { foto }) }, pz);
       setErrores((x) => ({ ...x, imagen: undefined, forma: undefined }));
     } catch {
       cambiar({ subida: "nada" }, pz);
@@ -620,21 +635,33 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
           <div className="relative flex-1 space-y-7 overflow-y-auto px-4 py-6 sm:col-start-2 sm:row-start-2 sm:px-6">
             {/* Kits y combos: cada pieza con parche o sin, y con el diseño de todas o uno propio. Nada se borra. */}
             {piezas.length > 1 && (
-              <div className="space-y-2 border border-tinta/15 p-3">
-                <p className="text-[13px]">
-                  Estás en <span className="font-normal">{getProducto(piezaEdit)?.nombre ?? piezaEdit}</span>
-                  <span className="ml-1 text-[11px] text-tinta/60">· cambiá de pieza arriba</span>
-                </p>
-                <label className="flex cursor-pointer items-center justify-between gap-3 text-[12px] uppercase tracking-[0.1em]">
-                  Lleva parche
-                  <input
-                    type="checkbox"
-                    checked={activa}
-                    onChange={(e) => setActivas((a) => ({ ...a, [piezaEdit]: e.target.checked }))}
-                    className="h-5 w-5 accent-[rgb(var(--tinta))]"
-                  />
-                </label>
+              <div className="space-y-3 border border-tinta/15 p-3">
+                <p className="eyebrow">¿Qué piezas personalizás?</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {piezas.map((pz) => {
+                    const va = activas[pz] !== false;
+                    return (
+                      <button
+                        key={pz}
+                        type="button"
+                        aria-pressed={va}
+                        onClick={() => tocarPieza(pz)}
+                        className={`rounded-full border px-3 py-1.5 text-[11px] uppercase tracking-[0.1em] transition-colors duration-300 ${
+                          va ? "border-tinta bg-tinta text-crema" : "border-tinta/25 text-tinta/70"
+                        }`}
+                      >
+                        {va ? "✓ " : "+ "}
+                        {getProducto(pz)?.nombre ?? pz}
+                      </button>
+                    );
+                  })}
+                </div>
                 {activa && (
+                  <p className="text-[13px]">
+                    Estás en <span className="font-normal">{getProducto(piezaEdit)?.nombre ?? piezaEdit}</span>
+                  </p>
+                )}
+                {activa && piezas.filter((pz) => activas[pz] !== false).length > 1 && (
                   <div className="relative grid grid-cols-2 rounded-full bg-lino p-1">
                     <span
                       aria-hidden="true"
@@ -813,7 +840,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                       <span className="text-[13px] leading-snug">
                         <span className="block uppercase tracking-[0.12em]">{vistaImagen ? "Cambiar imagen" : "Subir imagen"}</span>
                         <span className="mt-0.5 block text-tinta/60">
-                          {procesando ? "Grabando…" : "Cualquier foto, dibujo o logo. Te mostramos cómo queda grabado."}
+                          {procesando ? "Sacando el fondo y grabando… (la primera vez tarda un poco)" : "Cualquier foto, dibujo o logo. Te mostramos cómo queda grabado."}
                         </span>
                       </span>
                     </label>
@@ -875,6 +902,30 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                       />
                       {errores.nombre && <p className="mt-1.5 text-sm text-marron">{errores.nombre}</p>}
                     </div>
+
+                    {/* Tamaño de la letra (justo debajo del nombre, para que se vea sin bajar): de la mitad a lo más grande que entra en el parche. */}
+                    {!config.fuentes.find((x) => x.id === fuente)?.propia && (
+                      <div>
+                        <label htmlFor={`${id}-tam-letra`} className="eyebrow mb-3 flex items-baseline justify-between">
+                          Tamaño de letra
+                          <span className="normal-case tracking-normal text-tinta/60">{Math.round(actual.tamLetra * 100)} %</span>
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <span aria-hidden="true" className="text-[11px] text-tinta/60">A</span>
+                          <input
+                            id={`${id}-tam-letra`}
+                            type="range"
+                            min={TAM_LETRA.min}
+                            max={TAM_LETRA.max}
+                            step={TAM_LETRA.paso}
+                            value={actual.tamLetra}
+                            onChange={(e) => cambiar({ tamLetra: Number(e.target.value) })}
+                            className="h-8 w-full cursor-pointer accent-tinta"
+                          />
+                          <span aria-hidden="true" className="text-lg leading-none text-tinta/60">A</span>
+                        </div>
+                      </div>
+                    )}
     
                     {/* min-w-0: el fieldset no se estira con el recuadro de "Tu letra". */}
                     <fieldset className="min-w-0">
@@ -935,37 +986,13 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                               Escribí el nombre en un papel con birome o fibra negra, sacale una foto bien de frente y mandala por WhatsApp después del pedido, con tu número de pedido. Mientras, en la vista previa lo mostramos con una letra a mano.
                             </p>
                           ) : (
-                            <PadEscritura key={piezaEdit} hayDibujo={!!vistaImagen} onListo={(archivo) => subirImagen(archivo)} />
+                            <PadEscritura key={piezaEdit} hayDibujo={!!vistaImagen} onListo={(archivo) => subirImagen(archivo, false)} />
                           )}
                           {errores.fuente && <p className="mt-1.5 text-sm text-marron">{errores.fuente}</p>}
                         </div>
                       )}
                     </fieldset>
 
-                    {/* Tamaño de la letra: de la mitad a lo más grande que entra en el parche. */}
-                    {!config.fuentes.find((x) => x.id === fuente)?.propia && (
-                      <div>
-                        <label htmlFor={`${id}-tam-letra`} className="eyebrow mb-3 flex items-baseline justify-between">
-                          Tamaño de letra
-                          <span className="normal-case tracking-normal text-tinta/60">{Math.round(actual.tamLetra * 100)} %</span>
-                        </label>
-                        <div className="flex items-center gap-3">
-                          <span aria-hidden="true" className="text-[11px] text-tinta/60">A</span>
-                          <input
-                            id={`${id}-tam-letra`}
-                            type="range"
-                            min={TAM_LETRA.min}
-                            max={TAM_LETRA.max}
-                            step={TAM_LETRA.paso}
-                            value={actual.tamLetra}
-                            onChange={(e) => cambiar({ tamLetra: Number(e.target.value) })}
-                            className="h-8 w-full cursor-pointer accent-tinta"
-                          />
-                          <span aria-hidden="true" className="text-lg leading-none text-tinta/60">A</span>
-                        </div>
-                      </div>
-                    )}
-    
                     <fieldset>
                       <legend className="eyebrow mb-3">¿Sumamos otra línea abajo?</legend>
                       <div className="grid grid-cols-3 gap-2">

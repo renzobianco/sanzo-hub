@@ -21,13 +21,15 @@ interface Props {
   onNo: () => void;
   /** "oferta": cartel al comprar (con Agregar y precio). "combo": la chapita viene en el combo (o se compra suelta), directo a personalizar. */
   modo?: "oferta" | "combo";
+  /** Título de arriba en vez del de siempre (ej. "Chapita 2 de 3" en el Combo Manada). */
+  titulo?: string;
 }
 
 /**
  * Cartel que aparece al comprar: primero la pieza con "Agregar"; al tocarlo, el grabado con el mismo formato
  * que el personalizador de los parches: pantalla completa, la chapita sin fondo sobre lino arriba y los pasos abajo.
  */
-export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props) {
+export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const liberar = useRef<(() => void) | null>(null);
   useEffect(() => () => liberar.current?.(), []);
@@ -165,7 +167,7 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
         <div className="flex h-full flex-col sm:grid sm:grid-cols-[1.15fr_1fr] sm:grid-rows-[auto_1fr_auto]">
           <div className="flex items-center justify-between border-b border-tinta/10 px-4 py-3 sm:col-span-2 sm:px-6">
             <h2 id={`${id}-titulo`} className="text-sm uppercase tracking-marca">
-              {oferta.titulo}
+              {titulo ?? oferta.titulo}
             </h2>
             <button type="button" onClick={onNo} aria-label="Cerrar" className="-mr-2 p-2">
               <IconoCerrar />
@@ -264,7 +266,7 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
                       <div className="mt-3 animate-entrada">
                         <p className="text-[12px] leading-relaxed text-tinta/70">{imagenTipo === "carita" ? oferta.foto.detalleCarita : oferta.foto.detalleOtra}</p>
                         <label className="btn mt-3 flex w-full cursor-pointer items-center justify-center border border-dashed border-tinta/60 py-3 text-[11px] text-tinta">
-                          {procesando ? "Preparando…" : vistaImagen ? "Cambiar foto" : oferta.foto.elegir}
+                          {procesando ? "Sacando el fondo… (la primera vez tarda un poco)" : vistaImagen ? "Cambiar foto" : oferta.foto.elegir}
                           <input
                             type="file"
                             accept="image/*"
@@ -458,9 +460,17 @@ function VistaChapita({
   const altoFoto = foto ? zAlto * (hayTexto ? 0.58 : 0.95) : 0;
   const anchoFoto = img ? Math.min(z.ancho * 0.85, altoFoto * img.proporcion) : 0;
   const altoTexto = foto ? zAlto * 0.4 : zAlto;
-  // Lo más grande que entra, por el tamaño que eligió (1 = todo).
-  const tamNombre = Math.min(altoTexto * (lineaTel ? 0.42 : 0.55), z.ancho / (Math.max(lineaNombre.length, 3) * 0.6)) * tamLetra;
-  const tamTel = Math.min(altoTexto * (lineaNombre ? 0.2 : 0.3), z.ancho / (Math.max(lineaTel.length, 6) * 0.56)) * tamLetra;
+  // El tamaño de siempre por lo que eligió (0,5 a 2), sin pasar los bordes de la chapita.
+  const tamNombre = Math.min(
+    Math.min(altoTexto * (lineaTel ? 0.42 : 0.55), z.ancho / (Math.max(lineaNombre.length, 3) * 0.6)) * tamLetra,
+    altoTexto * (lineaTel ? 0.6 : 0.9),
+    z.ancho / (Math.max(lineaNombre.length, 2) * 0.56),
+  );
+  const tamTel = Math.min(
+    Math.min(altoTexto * (lineaNombre ? 0.2 : 0.3), z.ancho / (Math.max(lineaTel.length, 6) * 0.56)) * tamLetra,
+    altoTexto * (lineaNombre ? 0.3 : 0.5),
+    z.ancho / (Math.max(lineaTel.length, 6) * 0.52),
+  );
   const cqw = (parte: number) => `${parte * 100}cqw`;
 
   return (

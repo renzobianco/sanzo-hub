@@ -12,7 +12,7 @@ export interface Grabado {
   telefono: string;
   /** id de una letra de `personalizacion.fuentes` (la misma lista que los parches, sin "Tu letra"). Vacío = la de la marca. */
   letra?: string;
-  /** Tamaño de la letra: 0,5 a 1 de lo más grande que entra (vacío o 1 = lo más grande). */
+  /** Tamaño de la letra: 0,5 a 2 veces el de siempre, sin pasar los bordes (vacío o 1 = el de siempre). */
   tamLetra?: number;
 }
 
@@ -29,9 +29,9 @@ const FOTO = "Con su foto";
 const IMAGEN = "Con tu imagen";
 /** Letra elegida, al final de la opción: "Placa · Coco · Letra Clásica". La de la marca no se escribe. */
 const LETRA = "Letra ";
-/** Tamaño de letra, al final de todo: "… · Tamaño 80 %". Lo más grande (100 %) no se escribe. */
+/** Tamaño de letra, al final de todo: "… · Tamaño 80 %" o "… · Tamaño 150 %". El de siempre (100 %) no se escribe. */
 const TAM = "Tamaño ";
-const textoTam = (t?: number) => (t && t < 1 ? `${TAM}${Math.round(t * 100)} %` : "");
+const textoTam = (t?: number) => (t && t !== 1 ? `${TAM}${Math.round(t * 100)} %` : "");
 
 /** Letras para grabar la chapita: las mismas de los parches, menos "Tu letra" (a mano). */
 export const letrasChapita = personalizacion.fuentes.filter((f) => !f.propia);

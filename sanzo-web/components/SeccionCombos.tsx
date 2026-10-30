@@ -18,7 +18,8 @@ const VUELTAS = [0, 1, 2];
 /** Lo que salen las piezas sueltas y cuánto se ahorra con el combo (con precios reales; null si falta alguno). */
 function ahorroDe(combo: Producto) {
   // La chapita, sumada a otra compra, sale el precio de la oferta: eso es lo real "por separado".
-  const sueltos = combo.incluye.map((id) => (id === chapita.id ? ofertaChapita.precio : getProducto(id)?.precio ?? null));
+  // En el Combo Manada son solo chapitas: cada una sale el precio de la suelta.
+  const sueltos = combo.incluye.map((id) => (id === chapita.id ? (combo.chapitas ? chapita.precio : ofertaChapita.precio) : getProducto(id)?.precio ?? null));
   if (combo.precio === null || sueltos.some((p) => p === null)) return null;
   const porSeparado = sueltos.reduce<number>((a, p) => a + (p ?? 0), 0);
   return porSeparado > combo.precio ? { porSeparado, ahorro: porSeparado - combo.precio } : null;
@@ -176,7 +177,8 @@ export function SeccionCombos() {
                       <h3 className="text-base font-normal uppercase tracking-[0.12em]">{combo.nombre}</h3>
                       <p className="mt-1.5 text-[13px] text-tinta/75">{combo.descripcion}</p>
                       <div className="mt-3.5">
-                        <MiniPiezas incluye={combo.incluye} />
+                        {/* Combo Manada: una sola chapita en el círculo (son tres iguales). */}
+                        <MiniPiezas incluye={combo.chapitas ? [chapita.id] : combo.incluye} />
                       </div>
                       {combo.precio !== null && (
                         <div className="mt-3.5">

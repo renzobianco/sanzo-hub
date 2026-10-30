@@ -20,18 +20,107 @@ function lienzo(w: number, h: number) {
   return { canvas, ctx };
 }
 
+/** Desenfoque gaussiano separable (para las líneas y el relleno del grabado). */
+function desenfocar(src: Float32Array, w: number, h: number, sigma: number) {
+  const r = Math.max(1, Math.ceil(sigma * 3));
+  const nucleo = new Float32Array(r * 2 + 1);
+  let suma = 0;
+  for (let i = -r; i <= r; i++) suma += nucleo[i + r] = Math.exp(-(i * i) / (2 * sigma * sigma));
+  for (let i = 0; i < nucleo.length; i++) nucleo[i] /= suma;
+  const tmp = new Float32Array(w * h);
+  const out = new Float32Array(w * h);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      let v = 0;
+      for (let i = -r; i <= r; i++) v += src[y * w + Math.min(w - 1, Math.max(0, x + i))] * nucleo[i + r];
+      tmp[y * w + x] = v;
+    }
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      let v = 0;
+      for (let i = -r; i <= r; i++) v += tmp[Math.min(h - 1, Math.max(0, y + i)) * w + x] * nucleo[i + r];
+      out[y * w + x] = v;
+    }
+  return out;
+}
+
+const percentil = (vals: number[], p: number) => {
+  const o = [...vals].sort((a, b) => a - b);
+  return o[Math.min(o.length - 1, Math.floor(o.length * p))] ?? 0;
+};
+
+/** Modelo para sacar el fondo (ISNet general, 8 bits, 1024×1024). Se baja la primera vez que alguien sube una foto. */
+const MODELO_FONDO = "/modelos/isnet-q8.onnx";
+const LADO_MODELO = 1024;
+let sesionFondo: Promise<import("onnxruntime-web/wasm").InferenceSession> | null = null;
+
 /**
- * Convierte cualquier imagen en cómo se vería grabada con láser: escala de grises con niveles automáticos,
- * lo oscuro queda "quemado" y lo claro desaparece. Una foto de Messi no se ve como foto: se ve grabada.
- * Además recorta los bordes vacíos y arma el contorno para la forma "Su silueta".
+ * Qué parte de la imagen es lo importante (el perro, la persona, el logo) y qué es fondo: 1 = sujeto, 0 = fondo,
+ * del tamaño w×h. null si no se pudo (sin red, celular sin memoria…): entonces se graba la imagen entera.
  */
-export async function aGrabadoLaser(archivo: File, lado = 480): Promise<Grabado> {
+async function mascaraSujeto(bmp: ImageBitmap, w: number, h: number): Promise<Float32Array | null> {
+  try {
+    const ort = await import("onnxruntime-web/wasm");
+    if (!sesionFondo) {
+      // El motor (wasm) va servido por la web, en public/ort (copiado de onnxruntime-web/dist, misma versión).
+      ort.env.wasm.wasmPaths = "/ort/";
+      ort.env.wasm.numThreads = 1;
+      sesionFondo = ort.InferenceSession.create(MODELO_FONDO, { executionProviders: ["wasm"] });
+      sesionFondo.catch(() => (sesionFondo = null));
+    }
+    const sesion = await sesionFondo;
+    const L = LADO_MODELO;
+    const { ctx } = lienzo(L, L);
+    ctx.drawImage(bmp, 0, 0, L, L);
+    const px = ctx.getImageData(0, 0, L, L).data;
+    const entrada = new Float32Array(3 * L * L);
+    for (let i = 0; i < L * L; i++) {
+      entrada[i] = px[i * 4] / 255 - 0.5;
+      entrada[L * L + i] = px[i * 4 + 1] / 255 - 0.5;
+      entrada[2 * L * L + i] = px[i * 4 + 2] / 255 - 0.5;
+    }
+    const res = await sesion.run({ [sesion.inputNames[0]]: new ort.Tensor("float32", entrada, [1, 3, L, L]) });
+    const salida = res[sesion.outputNames[0]].data as Float32Array;
+    let mn = Infinity, mx = -Infinity;
+    for (const v of salida) {
+      if (v < mn) mn = v;
+      if (v > mx) mx = v;
+    }
+    const rango = Math.max(1e-6, mx - mn);
+    // A w×h con el canvas (escala bien y rápido).
+    const m = lienzo(L, L);
+    const img = m.ctx.createImageData(L, L);
+    for (let i = 0; i < L * L; i++) {
+      const v = Math.round(((salida[i] - mn) / rango) * 255);
+      img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v;
+      img.data[i * 4 + 3] = 255;
+    }
+    m.ctx.putImageData(img, 0, 0);
+    const chico = lienzo(w, h);
+    chico.ctx.drawImage(m.canvas, 0, 0, w, h);
+    const dm = chico.ctx.getImageData(0, 0, w, h).data;
+    const mascara = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) mascara[i] = dm[i * 4] / 255;
+    return mascara;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Convierte cualquier imagen en cómo se vería grabada con láser. Una foto (`foto`): se le saca el fondo solo y
+ * queda en líneas y relleno, como un grabado de verdad (Santi, 2026-10-30: "no solo el filtro modo gris").
+ * Un dibujo a mano (`foto: false`): lo oscuro se quema tal cual. Además recorta los bordes vacíos y arma
+ * el contorno para la forma "Su silueta".
+ */
+export async function aGrabadoLaser(archivo: File, { lado = 480, foto = true }: { lado?: number; foto?: boolean } = {}): Promise<Grabado> {
   const bmp = await createImageBitmap(archivo);
   const k = Math.min(1, lado / Math.max(bmp.width, bmp.height));
   const w = Math.max(1, Math.round(bmp.width * k));
   const h = Math.max(1, Math.round(bmp.height * k));
   const { ctx } = lienzo(w, h);
   ctx.drawImage(bmp, 0, 0, w, h);
+  const mascara = foto ? await mascaraSujeto(bmp, w, h) : null;
   bmp.close();
 
   const d = ctx.getImageData(0, 0, w, h).data;
@@ -42,18 +131,45 @@ export async function aGrabadoLaser(archivo: File, lado = 480): Promise<Grabado>
     const l = (0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2]) / 255;
     lum[i] = l * a + (1 - a);
   }
-  // Niveles automáticos: estira entre el 2% más oscuro y el 2% más claro para que se lea bien.
-  const orden = Array.from(lum).sort((x, y) => x - y);
-  const negro = orden[Math.floor(orden.length * 0.02)];
-  const blanco = orden[Math.floor(orden.length * 0.98)];
-  const rango = Math.max(0.05, blanco - negro);
+  // Lo que es sujeto (sin máscara: toda la imagen, salvo lo transparente).
+  const adentro = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) adentro[i] = (mascara ? mascara[i] > 0.5 : d[i * 4 + 3] > 128) ? 1 : 0;
+  const delSujeto: number[] = [];
+  for (let i = 0; i < w * h; i++) if (adentro[i]) delSujeto.push(lum[i]);
+  const base = delSujeto.length > 50 ? delSujeto : Array.from(lum);
+  // Niveles automáticos: estira entre el 2% más oscuro y el 2% más claro del sujeto para que se lea bien.
+  const negro = percentil(base, 0.02);
+  const rango = Math.max(0.05, percentil(base, 0.98) - negro);
+  const gn = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) gn[i] = Math.min(1, Math.max(0, (lum[i] - negro) / rango));
 
-  // Curva: los medios tonos se queman menos que lo oscuro, como el láser real.
   const quemado = new Float32Array(w * h);
+  if (foto) {
+    // Líneas (diferencia de desenfoques: los bordes oscuros) + relleno (lo más oscuro del sujeto) + el contorno.
+    const fino = desenfocar(gn, w, h, 1.2);
+    const grueso = desenfocar(gn, w, h, 2.4);
+    const suave = desenfocar(gn, w, h, 1.5);
+    const umbralRelleno = percentil(base.map((v) => Math.min(1, Math.max(0, (v - negro) / rango))), 0.22);
+    const sujeto = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) sujeto[i] = adentro[i];
+    const borde = mascara ? desenfocar(sujeto, w, h, 1.5) : null;
+    const crudo = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) {
+      const linea = grueso[i] - fino[i] > 0.04;
+      const relleno = suave[i] < umbralRelleno;
+      const contorno = !!borde && borde[i] > 0.2 && borde[i] < 0.8;
+      crudo[i] = ((linea || relleno) && adentro[i]) || contorno ? 1 : 0;
+    }
+    // Sin puntitos sueltos: se suaviza y se vuelve a cortar.
+    const limpio = desenfocar(crudo, w, h, 0.8);
+    for (let i = 0; i < w * h; i++) quemado[i] = limpio[i] > 0.45 ? 1 : 0;
+  } else {
+    // Curva: los medios tonos se queman menos que lo oscuro, como el láser real.
+    for (let i = 0; i < w * h; i++) quemado[i] = Math.pow(1 - gn[i], 1.4);
+  }
+
   let x0 = w, y0 = h, x1 = -1, y1 = -1;
   for (let i = 0; i < w * h; i++) {
-    const l = Math.min(1, Math.max(0, (lum[i] - negro) / rango));
-    quemado[i] = Math.pow(1 - l, 1.4);
     if (quemado[i] > 0.12) {
       const x = i % w;
       const y = (i / w) | 0;

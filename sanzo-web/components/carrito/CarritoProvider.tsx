@@ -48,7 +48,8 @@ interface CarritoContexto {
    * Combo que trae chapita (Combo Identidad): abre directo la personalización y, si la completa,
    * llama a `listo` con el texto del grabado ("Corazón · Coco"). Si cancela, no pasa nada.
    */
-  pedirGrabado: (listo: (grabado: string) => void) => void;
+  /** Abre la personalización de la chapita; `titulo` reemplaza el de arriba (ej. "Chapita 2 de 3"). */
+  pedirGrabado: (listo: (grabado: string) => void, titulo?: string) => void;
 }
 
 const Ctx = createContext<CarritoContexto | null>(null);
@@ -63,6 +64,9 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
   const [armado, setArmado] = useState<string | null>(null);
   const [seguirTrasOferta, setSeguirTrasOferta] = useState<(() => void) | null>(null);
   const [alGrabar, setAlGrabar] = useState<((grabado: string) => void) | null>(null);
+  const [tituloGrabado, setTituloGrabado] = useState<string>();
+  // Cada pedido de grabado arranca el cartel de cero (en el Combo Manada se piden tres seguidos).
+  const [vezGrabado, setVezGrabado] = useState(0);
   const dijoQueNo = useRef(false);
   const lineasRef = useRef(lineas);
   lineasRef.current = lineas;
@@ -161,7 +165,11 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
     else setSeguirTrasOferta(() => seguir);
   }, []);
 
-  const pedirGrabado = useCallback((listo: (grabado: string) => void) => setAlGrabar(() => listo), []);
+  const pedirGrabado = useCallback((listo: (grabado: string) => void, titulo?: string) => {
+    setAlGrabar(() => listo);
+    setTituloGrabado(titulo);
+    setVezGrabado((v) => v + 1);
+  }, []);
 
   function cerrarOferta(sumar?: string) {
     const seguir = seguirTrasOferta;
@@ -200,12 +208,15 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
       {children}
       {/* Un solo cartel: la oferta al comprar, o la personalización de la chapita de un combo. */}
       <OfertaChapita
+        key={vezGrabado}
         abierta={seguirTrasOferta !== null || alGrabar !== null}
         modo={alGrabar ? "combo" : "oferta"}
+        titulo={alGrabar ? tituloGrabado : undefined}
         onSumar={(texto) => {
           if (alGrabar) {
-            alGrabar(texto);
+            // Primero se cierra este pedido: el que sigue (si hay) puede pedir otro grabado.
             setAlGrabar(null);
+            alGrabar(texto);
           } else cerrarOferta(texto);
         }}
         onNo={() => (alGrabar ? setAlGrabar(null) : cerrarOferta())}

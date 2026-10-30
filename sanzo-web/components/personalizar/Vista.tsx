@@ -71,9 +71,11 @@ function TextoGrabado({ ancho, alto, dy, nombre, telefono, fuente, color, escala
   const tel = telefono.trim();
   const medida = useAnchoTexto(texto, fam, peso, esp);
   const medidaTel = useAnchoTexto(tel || "0", fam, peso, 0.04);
-  // Lo más grande que entra en la zona, por el tamaño que eligió (1 = todo).
-  const tamNombre = Math.min(alto * (tel ? 0.56 : 0.8), (ancho / medida) * 100) * escala;
-  const tamTel = Math.min(alto * 0.28, (ancho / medidaTel) * 100) * escala;
+  // El tamaño de siempre por lo que eligió (0,5 a 2), sin pasar los bordes de la zona.
+  const anchoNombre = (ancho / medida) * 100;
+  const anchoTel = (ancho / medidaTel) * 100;
+  const tamNombre = Math.min(Math.min(alto * (tel ? 0.56 : 0.8), anchoNombre) * escala, alto * (tel ? 0.62 : 0.95), anchoNombre);
+  const tamTel = Math.min(Math.min(alto * 0.28, anchoTel) * escala, alto * 0.34, anchoTel);
   const yNombre = dy + (tel ? -alto * 0.16 : 0);
   const yTel = dy + alto * 0.3;
 

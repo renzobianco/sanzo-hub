@@ -70,8 +70,11 @@ export function materialInicial() {
 }
 
 /** ¿Esta pieza se puede personalizar? Las que tienen vista previa en `piezas`. El moño no. */
+/** Gorra, piluso y moño no se personalizan (Santi, 2026-10-30), aunque haya foto de personalizador. */
+const NO_SE_PERSONALIZAN = new Set(["gorra", "piluso", "mono"]);
+
 function piezaPersonalizable(id: string) {
-  return id in config.piezas;
+  return id in config.piezas && !NO_SE_PERSONALIZAN.has(id);
 }
 
 /** Piezas que se personalizan al personalizar este producto (en kits y combos, todas las que se puede). */
@@ -81,11 +84,10 @@ export function piezasPersonalizables(producto: Producto): string[] {
 }
 
 /**
- * ¿Lleva botón de personalizar? Sueltos: solo el arnés. Kit y combos: todos los que traen alguna pieza
- * personalizable (Santi, 2026-10-30: "agregar personalizar en todos los combos").
+ * ¿Lleva botón de personalizar? Todo lo que trae alguna pieza con foto de personalizador: sueltos, kit y combos
+ * (Santi, 2026-10-30: "agregar personalizar en todos los combos" y después "también a los individuales").
  */
 export function esPersonalizable(producto: Producto) {
-  if (producto.tipo === "individual") return producto.id === "arnes";
   return piezasPersonalizables(producto).length > 0;
 }
 
@@ -187,13 +189,16 @@ export function validarPersonalizacion(p: DisenoPieza & { piezas?: Personalizaci
 const FORMA_VIEJA: Record<string, string> = { clasica: "rectangulo", redondeada: "redondeado", cinta: "banderin", hueso: "hueso" };
 const ANCHO_VIEJO: Record<string, number> = { chico: 4.5, mediano: 5.5, grande: 6.5 };
 
-/** Tamaño de letra: de la mitad a lo más grande que entra, de a 5 %. 1 (o nada) = lo más grande. */
-export const TAM_LETRA = { min: 0.5, max: 1, paso: 0.05 };
+/**
+ * Tamaño de letra, de a 5 %: 1 (o nada) = el de siempre; se puede achicar a la mitad o agrandar hasta el doble,
+ * pero nunca pasa los bordes del parche o de la chapita (eso lo frena la vista).
+ */
+export const TAM_LETRA = { min: 0.5, max: 2, paso: 0.05 };
 export function tamLetraValido(v: unknown): number | undefined {
   const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN;
   if (!Number.isFinite(n)) return undefined;
   const t = Math.round(Math.min(TAM_LETRA.max, Math.max(TAM_LETRA.min, n)) / TAM_LETRA.paso) * TAM_LETRA.paso;
-  return t >= TAM_LETRA.max ? undefined : Math.round(t * 100) / 100;
+  return Math.abs(t - 1) < 0.001 ? undefined : Math.round(t * 100) / 100;
 }
 
 const num = (v: unknown) => (typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN);

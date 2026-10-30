@@ -294,3 +294,13 @@
     transform: translateX(3px);
   }
 }
+
+/* Sombra de palmera de fondo: apenas se nota, multiplica sobre lo que haya debajo. */
+.sombra-palmera {
+  background: url("/palma.png") center / contain no-repeat;
+  opacity: 0.28;
+  mix-blend-mode: multiply;
+}
+@media print {
+  .sombra-palmera { display: none; }
+}

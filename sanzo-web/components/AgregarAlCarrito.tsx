@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
-import type { Producto } from "@/data/products";
+import { chapita, type Producto } from "@/data/products";
 import { armarOpcion, piezasConColor } from "@/lib/combos";
 import { llevaChapita } from "@/lib/chapita";
 import { esPersonalizable, type Personalizacion } from "@/lib/personalizacion";
@@ -135,6 +135,18 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
     setAviso("");
     const valor = conColor.length ? armarOpcion(producto, seleccion, colores) : producto.opcionTalle ? `${seleccion} · ${talle}` : seleccion;
     const seguir = () => (irAlCheckout ? router.push("/checkout") : abrirCarrito());
+    // Combo Manada: se graba una chapita por vez y entran sueltas (el 3x2 hace el descuento).
+    if (producto.chapitas) {
+      const total = producto.chapitas;
+      const pedir = (n: number) =>
+        pedirGrabado((grabado) => {
+          agregar(chapita.id, grabado, { abrir: false });
+          if (n < total) pedir(n + 1);
+          else seguir();
+        }, `Chapita ${n} de ${total}`);
+      pedir(1);
+      return;
+    }
     // Chapita suelta o combo que la trae: primero se elige el grabado, y va en la opción
     // ("Corazón · Coco" en la suelta, "M · Corazón · Coco" en el combo).
     if (llevaChapita(producto)) {
