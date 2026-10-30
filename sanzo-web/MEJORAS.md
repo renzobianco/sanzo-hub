@@ -397,3 +397,9 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - [ ] Videos de clientes → `clientes.videos[].video`.
 - [ ] Precios de personalización ("p de precios", Santi lo ve después).
 - [ ] Fotos de la parte de atrás de cada pieza (Santi las pasa).
+
+## 2026-10-30 · Chapita con fotos nítidas y portada "para mascotas"
+- Recortes de las 4 chapitas rehechos desde las fotos grandes (`chapitas/huesito.jpg`, etc.), pasadas a acero claro: más nítidos y bien recortados. Zonas del grabado recalculadas (el nombre queda centrado en el huesito).
+- Foto de la chapita en Individuales (`piezas/chapita.jpg`, 1080×1350) con el mismo fondo de lino y sombra de palmera que el resto de los ítems (el fondo sale de la foto del moño, sin el moño).
+- Portada y título de la página: "Accesorios para mascotas" (antes "para perros").
+- [ ] Moño: la foto de la web la hizo una IA y no se parece al real. Falta foto real del moño (Santi la pasa).

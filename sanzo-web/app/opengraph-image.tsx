@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 // Imagen Open Graph placeholder. Para usar una foto: borrá este archivo y poné
 // app/opengraph-image.jpg (1200x630).
-export const alt = "sanzo — accesorios para perros";
+export const alt = "sanzo — accesorios para mascotas";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

@@ -23,10 +23,10 @@ const descripcion =
 
 export const metadata: Metadata = {
   metadataBase: new URL(urlSitio),
-  title: "sanzo — accesorios para perros",
+  title: "sanzo — accesorios para mascotas",
   description: descripcion,
   openGraph: {
-    title: "sanzo — accesorios para perros",
+    title: "sanzo — accesorios para mascotas",
     description: descripcion,
     type: "website",
     locale: "es_AR",

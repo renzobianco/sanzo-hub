@@ -171,7 +171,7 @@ export const sitio = {
     /** El título va en dos partes: la primera palabra grande y el cierre más chico, en marrón. */
     titulo: "Sacalo",
     cierre: "como se merece",
-    bajada: "Accesorios para perros, pensados para salir juntos.",
+    bajada: "Accesorios para mascotas, pensados para salir juntos.",
     boton: "Ver el kit",
     link: "#kit",
     fotos: ["/productos/hero/gato.jpg", "/productos/hero/gorra.jpg", "/productos/hero/salchicha.jpg"],
@@ -837,19 +837,19 @@ export const ofertaChapita = {
   tipos: [
     {
       id: "Huesito", texto: "Huesito", imagen: "/productos/chapitas/huesito.jpg", zona: { x: 300, y: 380, ancho: 250, alto: 120 },
-      recorte: { src: "/productos/chapitas/recortes/huesito.webp", ancho: 775, alto: 577 }, zonaRecorte: { x: 0.5, y: 0.63, ancho: 0.6, alto: 0.36 },
+      recorte: { src: "/productos/chapitas/recortes/huesito.webp", ancho: 750, alto: 566 }, zonaRecorte: { x: 0.505, y: 0.64, ancho: 0.62, alto: 0.36 },
     },
     {
       id: "Corazón", texto: "Corazón", imagen: "/productos/chapitas/corazon.jpg", zona: { x: 278, y: 350, ancho: 185, alto: 120 },
-      recorte: { src: "/productos/chapitas/recortes/corazon.webp", ancho: 479, alto: 641 }, zonaRecorte: { x: 0.5, y: 0.56, ancho: 0.6, alto: 0.3 },
+      recorte: { src: "/productos/chapitas/recortes/corazon.webp", ancho: 512, alto: 684 }, zonaRecorte: { x: 0.5, y: 0.56, ancho: 0.62, alto: 0.32 },
     },
     {
       id: "Circular", texto: "Circular", imagen: "/productos/chapitas/circular.jpg", zona: { x: 256, y: 390, ancho: 185, alto: 140 },
-      recorte: { src: "/productos/chapitas/recortes/circular.webp", ancho: 455, alto: 593 }, zonaRecorte: { x: 0.52, y: 0.62, ancho: 0.66, alto: 0.44 },
+      recorte: { src: "/productos/chapitas/recortes/circular.webp", ancho: 481, alto: 716 }, zonaRecorte: { x: 0.5, y: 0.665, ancho: 0.68, alto: 0.4 },
     },
     {
       id: "Placa", texto: "Placa", imagen: "/productos/chapitas/rectangular.jpg", zona: { x: 266, y: 365, ancho: 180, alto: 200 },
-      recorte: { src: "/productos/chapitas/recortes/placa.webp", ancho: 452, alto: 868 }, zonaRecorte: { x: 0.5, y: 0.58, ancho: 0.7, alto: 0.6 },
+      recorte: { src: "/productos/chapitas/recortes/placa.webp", ancho: 448, alto: 900 }, zonaRecorte: { x: 0.5, y: 0.58, ancho: 0.74, alto: 0.62 },
     },
   ] as {
     id: string;
