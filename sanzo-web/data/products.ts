@@ -806,7 +806,7 @@ export const chapita: Producto = {
   precio: 8000,
   miniatura: "/productos/piezas/chapita.jpg",
   circulo: "/productos/piezas-fondo/chapita-circ.jpg",
-  imagenes: ["/productos/piezas/chapita.jpg"],
+  imagenes: ["/productos/piezas/chapita-grabadas.jpg"],
   envioGratis: false,
   linkPago: "",
   disponible: true,
