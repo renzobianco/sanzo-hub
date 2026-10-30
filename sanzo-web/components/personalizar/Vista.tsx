@@ -167,6 +167,18 @@ export function Parche({ forma, w, h, color, pxCm, contenido }: { forma: string;
         <rect {...caja} fill={color.grabado} mask={`url(#${uid}img)`} style={{ transition: "fill 0.4s" }} />
       </>
     );
+  } else if (contenido?.modo === "imagen") {
+    // Su imagen no se procesa en la web: un círculo con "Tu imagen" del tamaño que va a tener.
+    const d = Math.min(w * def.imagen.ancho, h * def.imagen.alto) * 0.86;
+    const cy = h * (def.imagen.dy ?? 0);
+    grabado = (
+      <g fill="none" stroke={color.grabado} strokeOpacity={0.75}>
+        <circle cx={0} cy={cy} r={d / 2} strokeWidth={Math.max(0.4, d * 0.018)} strokeDasharray={`${d * 0.06} ${d * 0.04}`} />
+        <text x={0} y={cy} dy="0.35em" textAnchor="middle" fill={color.grabado} stroke="none" fontSize={d * 0.17} style={{ fontFamily: "var(--font-jost), sans-serif", letterSpacing: "0.04em" }}>
+          Tu imagen
+        </text>
+      </g>
+    );
   } else if (contenido?.modo === "nombre") {
     grabado = (
       <TextoGrabado

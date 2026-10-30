@@ -4,7 +4,7 @@ import type { DatosCheckout } from "./validacion";
 /** Lo que el checkout manda a /api/pedido. Los precios se recalculan en el servidor. */
 export interface PedidoEntrada {
   cliente: DatosCheckout;
-  lineas: { productoId: string; opcion?: string; personalizacion?: Personalizacion; cantidad: number }[];
+  lineas: { productoId: string; opcion?: string; personalizacion?: Personalizacion; imagen?: string; cantidad: number }[];
   /** Honeypot anti-spam: tiene que llegar vacío. */
   empresa?: string;
 }

@@ -62,6 +62,12 @@ function limpiarDiseno(p: unknown): DisenoPieza | undefined {
   };
 }
 
+/** Link de una imagen subida por nosotros (Supabase Storage); cualquier otra cosa se descarta. */
+function imagenNuestra(u: unknown) {
+  const url = str(u, 400);
+  return url && esImagenNuestra(url) ? url : undefined;
+}
+
 function limpiarCliente(c: Partial<DatosCheckout> | undefined): DatosCheckout {
   return {
     nombre: str(c?.nombre),
@@ -112,7 +118,9 @@ function armarMail(numero: string, c: DatosCheckout, t: Totales, pago: string) {
       (l.personalizacion ? ` — PERSONALIZADO: ${textoPersonalizacion(l.personalizacion)}` : ""),
     imagenes: l.personalizacion
       ? imagenesPersonalizacion(l.personalizacion).map((i) => ({ pieza: i.pieza, url: i.url ?? "FALTA LA IMAGEN: la manda por WhatsApp" }))
-      : [],
+      : l.imagen
+        ? [{ pieza: "Chapita", url: l.imagen }]
+        : [],
     cantidad: l.cantidad,
     unitario: formatearPrecio(l.unitario),
     subtotal: formatearPrecio(l.subtotal),
@@ -181,6 +189,7 @@ export async function POST(req: Request) {
     productoId: str(l?.productoId, 60),
     opcion: str(l?.opcion, 80) || undefined,
     personalizacion: limpiarPersonalizacion(l?.personalizacion),
+    imagen: imagenNuestra(l?.imagen),
     cantidad: Number(l?.cantidad) || 1,
   }));
 

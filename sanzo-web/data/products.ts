@@ -264,11 +264,11 @@ export const personalizacion: {
   precioExtra: 100,
   /** Por grabar su propia imagen, por pieza. PROVISORIO. */
   precioImagen: 100,
-  avisoImagen: "Es una vista previa: la grabamos con tu imagen original, en alta calidad.",
+  avisoImagen: "La grabamos con tu imagen original, en alta calidad.",
   mensajeAyuda: "Hola sanzo! Quiero personalizar un parche y necesito ayuda con el diseño",
   ilustrativo: "Es a modo ilustrativo, para que veas cómo se previsualiza. El grabado real puede variar y quedar todavía mejor.",
   ideasImagen: ["Una foto tuya con tu perro", "Su carita", "El escudo de tu club", "Su huellita", "Un dibujo de tus hijos", "Tu logo"],
-  avisoImagenSinSubir: "No pudimos guardar la imagen original. Después del pedido mandala por WhatsApp con tu número de pedido.",
+  avisoImagenSinSubir: "No pudimos subir la imagen. Podés seguir igual: después del pedido mandala por WhatsApp con tu número de pedido.",
   /** Máximo de letras del nombre. */
   maxNombre: 14,
   /** Formas, en el orden en que se muestran (el dibujo de cada una está en lib/formas.ts). */
@@ -864,11 +864,13 @@ export const ofertaChapita = {
     detalle: "Después de comprar nos la mandás por WhatsApp y la pasamos a grabado láser.",
     /** Botones de "¿Lleva imagen?": ninguna, la cara de su perro u otra imagen (dibujo, logo…). */
     opciones: { ninguna: "Sin imagen", carita: "Su carita", otra: "Otra imagen" },
-    detalleCarita: "Subí una foto de su cara para ver cómo queda. Después de comprar nos la mandás por WhatsApp y la pasamos a grabado láser.",
-    detalleOtra: "Un dibujo, un logo, lo que quieras. Subila para ver cómo queda y después de comprar nos la mandás por WhatsApp.",
+    detalleCarita: "Subí una foto de su cara y nosotros la pasamos a grabado láser.",
+    detalleOtra: "Un dibujo, un logo, lo que quieras. Subila y nosotros la pasamos a grabado láser.",
     /** Debajo del botón de subir: la vista es orientativa (Santino, 2026-10-30). */
     ilustrativo: "Es a modo ilustrativo, para que veas cómo se previsualiza. El grabado real puede variar y quedar todavía mejor.",
-    elegir: "Subir foto para ver cómo queda",
+    elegir: "Subir imagen",
+    /** Si no se pudo subir: la manda por WhatsApp después del pedido (/gracias). */
+    sinSubir: "No pudimos subir la imagen. Después del pedido mandala por WhatsApp con tu número de pedido.",
     ejemplo: "/productos/chapitas/perro-grabado.png",
     ejemploTam: { ancho: 336, alto: 263 },
     /** Mensaje que se arma en /gracias para mandar la foto ({numero} = número de pedido). */

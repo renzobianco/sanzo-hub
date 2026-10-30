@@ -82,6 +82,7 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
         productoId: l.productoId,
         opcion: l.opcion,
         personalizacion: sinImagen(l.personalizacion),
+        imagen: l.imagen,
         cantidad: l.cantidad,
       })),
       empresa,
@@ -96,8 +97,8 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
       if (!res.ok || !data.ok || !data.numero) throw new Error(data.error || "Error");
 
       try {
-        // fotoPerro: en /gracias le pedimos la foto por WhatsApp.
-        const fotoPerro = totales.lineas.some((l) => chapitaConFoto(l.producto, l.opcion));
+        // fotoPerro: en /gracias le pedimos la foto por WhatsApp (solo si no la pudo subir).
+        const fotoPerro = totales.lineas.some((l) => chapitaConFoto(l.producto, l.opcion) && !l.imagen);
         window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ numero: data.numero, nombre: d.nombre, pago: data.redirigirA, fotoPerro }));
       } catch {
         // sin almacenamiento: /gracias igual recibe el número por la URL

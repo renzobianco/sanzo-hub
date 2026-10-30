@@ -71,6 +71,8 @@ interface Diseno {
   formaAntes?: string;
   vistaImagen?: Grabado;
   imagenUrl?: string;
+  /** Nombre del archivo que subió (para mostrar "foto.jpg cargada"). */
+  imagenNombre?: string;
   subida: EstadoSubida;
 }
 
@@ -341,7 +343,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
   function irAPaso(i: number) {
     if (i > paso && PASOS.indexOf("Qué grabamos") >= paso && PASOS.indexOf("Qué grabamos") < i && activa) {
       const e = validarPersonalizacion(
-        { forma, material, color, ancho: final.ancho, alto: final.alto, modo, nombre, telefono: modo === "nombre" && conTelefono ? telefono : undefined, linea2: modo === "nombre" && actual.conLinea2 ? actual.linea2 : undefined, fuente, vista: vistaImagen, imagenUrl, letraWhatsapp: actual.letraWhatsapp },
+        { forma, material, color, ancho: final.ancho, alto: final.alto, modo, nombre, telefono: modo === "nombre" && conTelefono ? telefono : undefined, linea2: modo === "nombre" && actual.conLinea2 ? actual.linea2 : undefined, fuente, vista: vistaImagen, imagenUrl: imagenUrl ?? (subida === "subiendo" || subida === "error" ? "pendiente" : undefined), letraWhatsapp: actual.letraWhatsapp },
         { pedirImagen: true },
       );
       if (e.nombre || e.telefono || e.linea2 || e.imagen || e.fuente) {
@@ -378,7 +380,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
     // En "¿Qué grabamos?" no se sigue sin nombre o imagen.
     if (PASOS[paso] === "Qué grabamos" && activa) {
       const e = validarPersonalizacion(
-        { forma, material, color, ancho: final.ancho, alto: final.alto, modo, nombre, telefono: modo === "nombre" && conTelefono ? telefono : undefined, linea2: modo === "nombre" && actual.conLinea2 ? actual.linea2 : undefined, fuente, vista: vistaImagen, imagenUrl, letraWhatsapp: actual.letraWhatsapp },
+        { forma, material, color, ancho: final.ancho, alto: final.alto, modo, nombre, telefono: modo === "nombre" && conTelefono ? telefono : undefined, linea2: modo === "nombre" && actual.conLinea2 ? actual.linea2 : undefined, fuente, vista: vistaImagen, imagenUrl: imagenUrl ?? (subida === "subiendo" || subida === "error" ? "pendiente" : undefined), letraWhatsapp: actual.letraWhatsapp },
         { pedirImagen: true },
       );
       const delPaso = { nombre: e.nombre, telefono: e.telefono, linea2: e.linea2, imagen: e.imagen, fuente: e.fuente };
@@ -401,9 +403,12 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
 
   function elegirModo(m: Personalizacion["modo"]) {
     if (m === modo) return;
+    // La imagen de un modo no sirve en el otro (su foto no es "Tu letra" ni al revés): se empieza de cero.
+    delete subiendo.current[piezaEdit];
+    const sinImagen = { vistaImagen: undefined, imagenUrl: undefined, imagenNombre: undefined, subida: "nada" as const };
     // Con su imagen el parche se recorta por su contorno ("Su silueta"); al volver a nombre, vuelve la forma que tenía.
-    if (m === "imagen") cambiar({ modo: m, formaAntes: forma === "silueta" ? actual.formaAntes : forma, forma: "silueta" });
-    else cambiar({ modo: m, forma: actual.formaAntes && actual.formaAntes !== "silueta" ? actual.formaAntes : config.formas[0].id });
+    if (m === "imagen") cambiar({ ...sinImagen, modo: m, formaAntes: forma === "silueta" ? actual.formaAntes : forma, forma: "silueta" });
+    else cambiar({ ...sinImagen, modo: m, forma: actual.formaAntes && actual.formaAntes !== "silueta" ? actual.formaAntes : config.formas[0].id });
   }
 
   async function listo() {
@@ -459,7 +464,8 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
     for (const pz of piezas) {
       const d = porPieza[pz];
       if (!d) continue;
-      const e = validarPersonalizacion(d, { pedirImagen: true });
+      // Si su imagen no se pudo subir, igual puede terminar: la manda por WhatsApp después del pedido.
+      const e = validarPersonalizacion(d, { pedirImagen: efectivo(pz).subida !== "error" });
       if (Object.keys(e).length > 0) {
         setVista(pz);
         setErrores(e);
@@ -476,9 +482,8 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
     ref.current?.close();
   }
 
-  // Cualquier imagen → cómo quedaría grabada (en el navegador, al instante) y, en paralelo,
-  // la original se sube en alta calidad para grabarla.
-  /** `foto: false` = un dibujo a mano ("Tu letra"): no se le saca el fondo ni se pasa a líneas. */
+  // Su imagen se sube tal cual, en alta calidad, y la pasamos a grabado nosotros: en la vista previa va un
+  // círculo con "Tu imagen". El dibujo a mano ("Tu letra", `foto: false`) sí se ve grabado al instante.
   async function subirImagen(archivo?: File, foto = true) {
     if (!archivo) return;
     const pz = piezaEdit;
@@ -498,6 +503,12 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
         return undefined;
       }
     })();
+    if (foto) {
+      cambiar({ vistaImagen: undefined, imagenNombre: archivo.name }, pz);
+      setErrores((x) => ({ ...x, imagen: undefined, forma: undefined }));
+      setProcesando(false);
+      return;
+    }
     try {
       cambiar({ vistaImagen: await aGrabadoLaser(archivo, { foto }) }, pz);
       setErrores((x) => ({ ...x, imagen: undefined, forma: undefined }));
@@ -813,41 +824,17 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                           e.target.value = "";
                         }}
                       />
-                      <span className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md" style={{ background: colorElegido.color }}>
-                        {vistaImagen ? (
-                          <span
-                            aria-label="Tu imagen grabada"
-                            className="block h-full w-full"
-                            style={{
-                              background: colorElegido.grabado,
-                              WebkitMaskImage: `url(${vistaImagen.grabado})`,
-                              maskImage: `url(${vistaImagen.grabado})`,
-                              WebkitMaskSize: "contain",
-                              maskSize: "contain",
-                              WebkitMaskRepeat: "no-repeat",
-                              maskRepeat: "no-repeat",
-                              WebkitMaskPosition: "center",
-                              maskPosition: "center",
-                            }}
-                          />
-                        ) : (
-                          <span aria-hidden="true" className="text-2xl font-light text-crema/80 mix-blend-difference">
-                            +
-                          </span>
-                        )}
-                        {procesando && <span className="absolute inset-0 animate-pulse bg-crema/60" />}
+                      <span className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-dashed border-tinta/40 bg-lino text-center text-[10px] leading-tight text-tinta/70">
+                        {subida === "ok" ? <span aria-hidden="true" className="text-xl text-marron">✓</span> : subida === "subiendo" ? <span aria-hidden="true" className="h-4 w-4 animate-spin rounded-full border border-tinta/30 border-t-tinta" /> : "Tu imagen"}
                       </span>
-                      <span className="text-[13px] leading-snug">
-                        <span className="block uppercase tracking-[0.12em]">{vistaImagen ? "Cambiar imagen" : "Subir imagen"}</span>
-                        <span className="mt-0.5 block text-tinta/60">
-                          {procesando ? "Sacando el fondo y grabando… (la primera vez tarda un poco)" : "Cualquier foto, dibujo o logo. Te mostramos cómo queda grabado."}
-                        </span>
+                      <span className="min-w-0 text-[13px] leading-snug">
+                        <span className="block uppercase tracking-[0.12em]">{subida === "nada" ? "Subir imagen" : "Cambiar imagen"}</span>
+                        <span className="mt-0.5 block text-tinta/60">Cualquier foto, dibujo o logo. Nosotros la pasamos a grabado.</span>
                       </span>
                     </label>
-                    <p className="mt-2 text-[12px] leading-relaxed text-marron">{config.ilustrativo}</p>
                     {errores.imagen && <p className="mt-1.5 text-sm text-marron">{errores.imagen}</p>}
                     {/* Ideas para que se animen: lo que imaginen se puede grabar. */}
-                    {!vistaImagen && (
+                    {subida === "nada" && (
                       <div className="mt-3">
                         <p className="text-[12px] text-tinta/60">Ideas: lo que imagines se graba.</p>
                         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -859,18 +846,18 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                         </div>
                       </div>
                     )}
-                    {vistaImagen && (
+                    {subida !== "nada" && (
                       <p className="mt-3 flex items-center gap-2 text-[12px] leading-relaxed text-tinta/70" aria-live="polite">
                         {subida === "subiendo" && (
                           <>
                             <span aria-hidden="true" className="h-3 w-3 shrink-0 animate-spin rounded-full border border-tinta/30 border-t-tinta" />
-                            Guardando tu imagen en alta calidad…
+                            Subiendo {actual.imagenNombre ?? "tu imagen"}…
                           </>
                         )}
                         {subida === "ok" && (
                           <>
                             <span aria-hidden="true" className="text-marron">✓</span>
-                            {config.avisoImagen}
+                            <span className="min-w-0">{actual.imagenNombre ? `${actual.imagenNombre} cargada. ` : ""}{config.avisoImagen}</span>
                           </>
                         )}
                         {subida === "error" && <span className="text-marron">{config.avisoImagenSinSubir}</span>}

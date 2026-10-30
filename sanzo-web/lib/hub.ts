@@ -143,9 +143,9 @@ export async function guardarPedidoEnHub(numero: string, c: DatosCheckout, t: To
       opcion: l.opcion ? textoOpcion(l.producto, l.opcion) : "",
       personalizacion: l.personalizacion ? textoPersonalizacion(l.personalizacion) : "",
       // Imagen original para grabar (link público). Vacío si no se pudo subir: la manda por WhatsApp.
-      imagen: l.personalizacion ? imagenesPersonalizacion(l.personalizacion).find((i) => i.url)?.url ?? "" : "",
+      imagen: l.personalizacion ? imagenesPersonalizacion(l.personalizacion).find((i) => i.url)?.url ?? "" : l.imagen ?? "",
       // Todas las imágenes a grabar (en kits con un diseño por pieza puede haber varias).
-      imagenes: l.personalizacion ? imagenesPersonalizacion(l.personalizacion) : [],
+      imagenes: l.personalizacion ? imagenesPersonalizacion(l.personalizacion) : l.imagen ? [{ pieza: "Chapita", url: l.imagen }] : [],
       // Dónde va el parche en cada pieza: foto de la pieza + punto (x, y en % de la foto).
       ubicacion: Object.entries(l.personalizacion?.posiciones ?? {}).filter(([pieza]) => l.personalizacion?.piezas?.[pieza] !== null).map(([pieza, [x, y]]) => ({
         pieza: getProducto(pieza)?.nombre ?? pieza,

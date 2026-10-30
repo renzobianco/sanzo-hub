@@ -29,7 +29,7 @@ interface CarritoContexto {
   agregar: (
     productoId: string,
     opcion?: string,
-    opts?: { abrir?: boolean; personalizacion?: Personalizacion },
+    opts?: { abrir?: boolean; personalizacion?: Personalizacion; imagen?: string },
   ) => void;
   cambiarCantidad: (key: string, cantidad: number) => void;
   /** Pone, cambia o saca (undefined) la personalización de una línea. */
@@ -49,7 +49,7 @@ interface CarritoContexto {
    * llama a `listo` con el texto del grabado ("Corazón · Coco"). Si cancela, no pasa nada.
    */
   /** Abre la personalización de la chapita; `titulo` reemplaza el de arriba (ej. "Chapita 2 de 3"). */
-  pedirGrabado: (listo: (grabado: string) => void, titulo?: string) => void;
+  pedirGrabado: (listo: (grabado: string, imagen?: string) => void, titulo?: string) => void;
 }
 
 const Ctx = createContext<CarritoContexto | null>(null);
@@ -63,7 +63,7 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
   const [listo, setListo] = useState(false);
   const [armado, setArmado] = useState<string | null>(null);
   const [seguirTrasOferta, setSeguirTrasOferta] = useState<(() => void) | null>(null);
-  const [alGrabar, setAlGrabar] = useState<((grabado: string) => void) | null>(null);
+  const [alGrabar, setAlGrabar] = useState<((grabado: string, imagen?: string) => void) | null>(null);
   const [tituloGrabado, setTituloGrabado] = useState<string>();
   // Cada pedido de grabado arranca el cartel de cero (en el Combo Manada se piden tres seguidos).
   const [vezGrabado, setVezGrabado] = useState(0);
@@ -115,13 +115,14 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
 
   const agregar = useCallback<CarritoContexto["agregar"]>((productoId, opcion, opts) => {
     const personalizacion = opts?.personalizacion;
-    const key = claveLinea(productoId, opcion, personalizacion);
+    const imagen = opts?.imagen;
+    const key = claveLinea(productoId, opcion, personalizacion, imagen);
     setLineas((prev) => {
       const existe = prev.find((l) => l.key === key);
       if (existe) {
         return prev.map((l) => (l.key === key ? { ...l, cantidad: Math.min(MAX_CANTIDAD, l.cantidad + 1) } : l));
       }
-      return [...prev, { key, productoId, opcion, personalizacion, cantidad: 1 }];
+      return [...prev, { key, productoId, opcion, personalizacion, imagen, cantidad: 1 }];
     });
     if (opts?.abrir !== false) setAbierto(true);
   }, []);
@@ -165,15 +166,15 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
     else setSeguirTrasOferta(() => seguir);
   }, []);
 
-  const pedirGrabado = useCallback((listo: (grabado: string) => void, titulo?: string) => {
+  const pedirGrabado = useCallback((listo: (grabado: string, imagen?: string) => void, titulo?: string) => {
     setAlGrabar(() => listo);
     setTituloGrabado(titulo);
     setVezGrabado((v) => v + 1);
   }, []);
 
-  function cerrarOferta(sumar?: string) {
+  function cerrarOferta(sumar?: string, imagen?: string) {
     const seguir = seguirTrasOferta;
-    if (sumar) agregar(chapita.id, sumar, { abrir: false });
+    if (sumar) agregar(chapita.id, sumar, { abrir: false, imagen });
     else dijoQueNo.current = true; // no se la volvemos a ofrecer en esta visita
     setSeguirTrasOferta(null);
     seguir?.();
@@ -212,12 +213,12 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
         abierta={seguirTrasOferta !== null || alGrabar !== null}
         modo={alGrabar ? "combo" : "oferta"}
         titulo={alGrabar ? tituloGrabado : undefined}
-        onSumar={(texto) => {
+        onSumar={(texto, imagen) => {
           if (alGrabar) {
             // Primero se cierra este pedido: el que sigue (si hay) puede pedir otro grabado.
             setAlGrabar(null);
-            alGrabar(texto);
-          } else cerrarOferta(texto);
+            alGrabar(texto, imagen);
+          } else cerrarOferta(texto, imagen);
         }}
         onNo={() => (alGrabar ? setAlGrabar(null) : cerrarOferta())}
       />

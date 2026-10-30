@@ -12,6 +12,8 @@ export interface LineaCarrito {
   opcion?: string;
   /** Pieza con el nombre del perro, si la personalizó. */
   personalizacion?: Personalizacion;
+  /** Chapita: la imagen que subió para grabar (link público de Supabase Storage). Va con el pedido y se ve en el Hub. */
+  imagen?: string;
   cantidad: number;
 }
 
@@ -58,8 +60,9 @@ export interface Totales {
 
 export const MAX_CANTIDAD = 10;
 
-export function claveLinea(productoId: string, opcion?: string, personalizacion?: Personalizacion) {
-  const base = opcion ? `${productoId}__${opcion}` : productoId;
+export function claveLinea(productoId: string, opcion?: string, personalizacion?: Personalizacion, imagen?: string) {
+  let base = opcion ? `${productoId}__${opcion}` : productoId;
+  if (imagen) base += `__${imagen.slice(-24)}`;
   return personalizacion ? `${base}__${clavePersonalizacion(personalizacion)}` : base;
 }
 

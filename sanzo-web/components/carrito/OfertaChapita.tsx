@@ -6,7 +6,7 @@ import { trabarScroll } from "@/lib/scroll";
 import { chapita, ofertaChapita as oferta } from "@/data/products";
 import { letrasChapita, tipoChapita, textoGrabado, validarGrabado, type ErroresGrabado } from "@/lib/chapita";
 import { familia } from "@/lib/fuentes";
-import { aGrabadoLaser } from "@/lib/laser";
+import { imagenParaSubir } from "@/lib/laser";
 import { formatearPrecio } from "@/lib/formato";
 import { TAM_LETRA } from "@/lib/personalizacion";
 import { IconoCerrar } from "../Iconos";
@@ -17,7 +17,8 @@ const PASOS = ["Forma", "Qué grabamos", "Letra"];
 interface Props {
   abierta: boolean;
   /** Sumó la chapita: llega el texto del grabado ("Corazón · Coco · Tel. 11 2345 6789"). */
-  onSumar: (texto: string) => void;
+  /** `imagen`: link de la imagen que subió para grabar (si subió una). */
+  onSumar: (texto: string, imagen?: string) => void;
   onNo: () => void;
   /** "oferta": cartel al comprar (con Agregar y precio). "combo": la chapita viene en el combo (o se compra suelta), directo a personalizar. */
   modo?: "oferta" | "combo";
@@ -36,10 +37,12 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo 
   const id = useId();
   const [paso, setPaso] = useState<"cartel" | "personalizar">("cartel");
   const [tipo, setTipo] = useState(oferta.tipos[0]?.id ?? "");
-  // Imagen grabada: ninguna, la cara de su perro u otra. La que suben es solo para la vista previa (la original llega por WhatsApp).
+  // Imagen grabada: ninguna, la cara de su perro u otra. La que suben se guarda tal cual y llega al Hub con el pedido
+  // (en la vista previa solo se ve un círculo con "Tu imagen").
   const [imagenTipo, setImagenTipo] = useState<"" | "carita" | "otra">("");
-  const [vistaImagen, setVistaImagen] = useState<{ src: string; proporcion: number } | null>(null);
-  const [procesando, setProcesando] = useState(false);
+  const [imagen, setImagen] = useState<{ nombre: string; estado: "subiendo" | "ok" | "error"; url?: string } | null>(null);
+  const subida = useRef<Promise<string | undefined> | null>(null);
+  const [guardando, setGuardando] = useState(false);
   const foto = imagenTipo === "carita";
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
@@ -80,23 +83,36 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo 
     setPasoGrabado(i);
   }
 
-  function sumar() {
+  async function sumar() {
     if (!revisar()) return;
-    onSumar(textoGrabado({ tipo, foto, imagen: imagenTipo === "otra", nombre, telefono, letra, tamLetra }));
+    // Si la imagen todavía se está subiendo, la esperamos (el botón dice "Guardando imagen…").
+    let url = imagen?.url;
+    if (imagenTipo && subida.current) {
+      setGuardando(true);
+      url = await subida.current;
+      setGuardando(false);
+    }
+    onSumar(textoGrabado({ tipo, foto, imagen: imagenTipo === "otra", nombre, telefono, letra, tamLetra }), imagenTipo ? url : undefined);
   }
 
-  /** Cualquier foto → cómo quedaría grabada (en el navegador, al instante). */
-  async function verImagen(archivo?: File) {
+  /** La imagen se sube tal cual (sin vista previa): la pasamos a grabado nosotros. */
+  function subirImagen(archivo?: File) {
     if (!archivo) return;
-    setProcesando(true);
-    try {
-      const g = await aGrabadoLaser(archivo);
-      setVistaImagen({ src: g.grabado, proporcion: g.proporcion });
-    } catch {
-      setVistaImagen(null);
-    } finally {
-      setProcesando(false);
-    }
+    setImagen({ nombre: archivo.name, estado: "subiendo" });
+    subida.current = (async () => {
+      try {
+        const datos = new FormData();
+        datos.append("imagen", await imagenParaSubir(archivo));
+        const res = await fetch("/api/imagen", { method: "POST", body: datos });
+        const json = (await res.json()) as { ok: boolean; url?: string };
+        if (!json.ok || !json.url) throw new Error("Sin link");
+        setImagen({ nombre: archivo.name, estado: "ok", url: json.url });
+        return json.url;
+      } catch {
+        setImagen({ nombre: archivo.name, estado: "error" });
+        return undefined;
+      }
+    })();
   }
 
   const elegido = tipoChapita(tipo) ?? oferta.tipos[0];
@@ -171,7 +187,7 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo 
           {/* La vista queda fija arriba para ver los cambios mientras elige. */}
           <div className="shrink-0 bg-lino px-4 pt-4 sm:row-span-2 sm:flex sm:flex-col sm:justify-center sm:px-8 sm:pt-6">
             <div className="flex h-[30dvh] items-center justify-center [--alto-vista:30dvh] sm:h-[52vh] sm:[--alto-vista:52vh]">
-              <VistaChapita tipo={tipo} imagenTipo={imagenTipo} vistaImagen={vistaImagen} nombre={nombre} telefono={telefono} letra={letra} tamLetra={tamLetra} />
+              <VistaChapita tipo={tipo} imagenTipo={imagenTipo} nombre={nombre} telefono={telefono} letra={letra} tamLetra={tamLetra} />
             </div>
             <p className="pb-3 pt-3 text-center text-[11px] text-tinta/60">{elegido.texto} · grabado láser</p>
           </div>
@@ -262,18 +278,34 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo 
                       <div className="mt-3 animate-entrada">
                         <p className="text-[12px] leading-relaxed text-tinta/70">{imagenTipo === "carita" ? oferta.foto.detalleCarita : oferta.foto.detalleOtra}</p>
                         <label className="btn mt-3 flex w-full cursor-pointer items-center justify-center border border-dashed border-tinta/60 py-3 text-[11px] text-tinta">
-                          {procesando ? "Sacando el fondo… (la primera vez tarda un poco)" : vistaImagen ? "Cambiar foto" : oferta.foto.elegir}
+                          {imagen ? "Cambiar imagen" : oferta.foto.elegir}
                           <input
                             type="file"
                             accept="image/*"
                             className="sr-only"
                             onChange={(e) => {
-                              verImagen(e.target.files?.[0]);
+                              subirImagen(e.target.files?.[0]);
                               e.target.value = "";
                             }}
                           />
                         </label>
-                        <p className="mt-2 text-[12px] leading-relaxed text-marron">{oferta.foto.ilustrativo}</p>
+                        {imagen && (
+                          <p className="mt-2 flex items-center gap-2 text-[12px] leading-relaxed text-tinta/70" aria-live="polite">
+                            {imagen.estado === "subiendo" && (
+                              <>
+                                <span aria-hidden="true" className="h-3 w-3 shrink-0 animate-spin rounded-full border border-tinta/30 border-t-tinta" />
+                                Subiendo {imagen.nombre}…
+                              </>
+                            )}
+                            {imagen.estado === "ok" && (
+                              <>
+                                <span aria-hidden="true" className="text-marron">✓</span>
+                                <span className="min-w-0 truncate">{imagen.nombre} cargada</span>
+                              </>
+                            )}
+                            {imagen.estado === "error" && <span className="text-marron">{oferta.foto.sinSubir}</span>}
+                          </p>
+                        )}
                       </div>
                     )}
                   </fieldset>
@@ -398,8 +430,8 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo 
                 </button>
               )}
               {ultimo ? (
-                <button type="button" onClick={sumar} className="btn-primario flex-1 py-4">
-                  {textoBoton}
+                <button type="button" onClick={sumar} disabled={guardando} className="btn-primario flex-1 py-4">
+                  {guardando ? "Guardando imagen…" : textoBoton}
                 </button>
               ) : (
                 <button type="button" onClick={() => irAPaso(pasoGrabado + 1)} className="btn-primario flex-1 py-4">
@@ -422,7 +454,6 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo 
 function VistaChapita({
   tipo,
   imagenTipo,
-  vistaImagen,
   nombre,
   telefono,
   letra,
@@ -430,7 +461,6 @@ function VistaChapita({
 }: {
   tipo: string;
   imagenTipo: "" | "carita" | "otra";
-  vistaImagen: { src: string; proporcion: number } | null;
   nombre: string;
   telefono: string;
   letra: string;
@@ -443,9 +473,8 @@ function VistaChapita({
   const z = t.zonaRecorte;
   const n = nombre.trim().replace(/\s+/g, " ");
   const tel = telefono.trim().replace(/\s+/g, " ");
-  // Imagen en la vista: la que subió (pasada a grabado) o, si eligió "Su carita" y no subió nada, la de ejemplo.
-  const img = vistaImagen ?? (imagenTipo === "carita" ? { src: oferta.foto.ejemplo, proporcion: oferta.foto.ejemploTam.ancho / oferta.foto.ejemploTam.alto } : null);
-  const foto = !!imagenTipo && !!img;
+  // Con imagen, en la vista va un círculo con "Tu imagen" del tamaño que tendría (la imagen no se procesa acá).
+  const foto = !!imagenTipo;
   const vacio = !foto && !n && !tel;
   // Sin nada elegido, un ejemplo apagado para que se entienda dónde va.
   const lineaNombre = vacio ? "Kala" : n;
@@ -455,7 +484,7 @@ function VistaChapita({
   // Todo en partes del ancho del recorte (1 = todo el ancho).
   const zAlto = (z.alto * alto) / ancho;
   const altoFoto = foto ? zAlto * (hayTexto ? 0.58 : 0.95) : 0;
-  const anchoFoto = img ? Math.min(z.ancho * 0.85, altoFoto * img.proporcion) : 0;
+  const anchoFoto = foto ? Math.min(z.ancho * 0.85, altoFoto) : 0;
   const altoTexto = foto ? zAlto * 0.4 : zAlto;
   // El tamaño de siempre por lo que eligió (0,5 a 2), sin pasar los bordes de la chapita.
   const tamNombre = Math.min(
@@ -495,26 +524,13 @@ function VistaChapita({
           opacity: vacio ? 0.45 : 1,
         }}
       >
-        {foto && img && (
-          // El grabado es blanco con transparencia: se pinta del gris del láser con una máscara.
+        {foto && (
           <span
-            role="img"
-            aria-label={vistaImagen ? "Tu imagen grabada" : "Ejemplo: la cara de tu perro grabada"}
-            className="block"
-            style={{
-              width: cqw(anchoFoto),
-              aspectRatio: `${img.proporcion}`,
-              backgroundColor: "rgba(30, 28, 27, 0.88)",
-              WebkitMaskImage: `url(${img.src})`,
-              maskImage: `url(${img.src})`,
-              WebkitMaskSize: "contain",
-              maskSize: "contain",
-              WebkitMaskRepeat: "no-repeat",
-              maskRepeat: "no-repeat",
-              WebkitMaskPosition: "center",
-              maskPosition: "center",
-            }}
-          />
+            className="flex aspect-square items-center justify-center rounded-full border border-dashed text-center leading-none"
+            style={{ width: cqw(anchoFoto), borderColor: "rgba(30, 28, 27, 0.55)", fontSize: cqw(anchoFoto * 0.16) }}
+          >
+            Tu imagen
+          </span>
         )}
         {lineaNombre && (
           <span className="whitespace-nowrap" style={{ fontSize: cqw(tamNombre), fontFamily: fam, fontWeight: peso, letterSpacing: mayusculas ? "0.06em" : undefined }}>

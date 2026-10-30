@@ -139,8 +139,8 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
     if (producto.chapitas) {
       const total = producto.chapitas;
       const pedir = (n: number) =>
-        pedirGrabado((grabado) => {
-          agregar(chapita.id, grabado, { abrir: false });
+        pedirGrabado((grabado, imagen) => {
+          agregar(chapita.id, grabado, { abrir: false, imagen });
           if (n < total) pedir(n + 1);
           else seguir();
         }, `Chapita ${n} de ${total}`);
@@ -150,8 +150,8 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
     // Chapita suelta o combo que la trae: primero se elige el grabado, y va en la opción
     // ("Corazón · Coco" en la suelta, "M · Corazón · Coco" en el combo).
     if (llevaChapita(producto)) {
-      pedirGrabado((grabado) => {
-        agregar(producto.id, valor ? `${valor} · ${grabado}` : grabado, { abrir: false, personalizacion });
+      pedirGrabado((grabado, imagen) => {
+        agregar(producto.id, valor ? `${valor} · ${grabado}` : grabado, { abrir: false, personalizacion, imagen });
         seguir();
       });
       return;
