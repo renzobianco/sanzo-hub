@@ -4,19 +4,19 @@ import Link from "next/link";
 import { Fragment, useEffect, useRef } from "react";
 import { useCarrito } from "./CarritoProvider";
 import { SelectorZona } from "./SelectorZona";
-import { AvisoArmado, CombosArmados, ItemSugerencia } from "./SugerenciasPromo";
+import { AvisoArmado, ItemSugerencia } from "./SugerenciasPromo";
 import type { Sugerencia } from "@/lib/promos";
 import { Personalizar } from "../personalizar/Personalizar";
 import { esPersonalizable } from "@/lib/personalizacion";
-import { ImagenProducto } from "../ImagenProducto";
 import { IconoCerrar, IconoMas, IconoMenos } from "../Iconos";
-import { CabeceraManada } from "@/components/carrito/CabeceraManada";
 import { PrecioLinea } from "@/components/carrito/PrecioLinea";
+import { LineaManada } from "@/components/carrito/LineaManada";
+import { MiniaturaLinea } from "@/components/carrito/MiniaturaLinea";
 import { detalleEnvio, formatearPrecio, textoEnvio } from "@/lib/formato";
-import { chapitasEnCarrito, MAX_CANTIDAD, ahorroChapitas } from "@/lib/carrito";
+import { ahorroChapitas, ahorroTotal, chapitasEnCarrito, MAX_CANTIDAD, precioDeLinea } from "@/lib/carrito";
 import { textoOpcion } from "@/lib/combos";
 import { ofertaChapita } from "@/data/products";
-import { esChapita, fotoDeLinea } from "@/lib/chapita";
+import { esChapita } from "@/lib/chapita";
 import { textoPersonalizacion } from "@/lib/personalizacion";
 import { trabarScroll } from "@/lib/scroll";
 
@@ -24,9 +24,16 @@ export function CarritoDrawer() {
   const { abierto, cerrar, totales, cambiarCantidad, quitar, personalizar } = useCarrito();
   const botonCerrar = useRef<HTMLButtonElement>(null);
   const { lineas, subtotal, descuentos, envio, total, contieneKit, faltaParaGratis } = totales;
-  // Chapitas: cada línea muestra lo que paga de verdad y cuánto ahorra.
+  // Cada línea muestra lo que paga de verdad (con el precio de lista tachado si ahorra).
   const chapitas = ahorroChapitas(lineas);
-  const motivoChapita = chapitas.tresPorDos ? "con el Combo Manada" : "por sumarla a tu compra";
+  const ahorra = ahorroTotal(totales);
+  // Saca del carrito las chapitas que forman el Combo Manada (las sueltas quedan).
+  const quitarManada = () => {
+    for (const l of lineas) {
+      const r = chapitas.reparto[l.key];
+      if (r?.enManada) cambiarCantidad(l.key, l.cantidad - r.enManada);
+    }
+  };
   // Nombre del combo que arma esa pieza (para la etiquetita en la línea).
   // Cada combo a medio armar va debajo del primer producto del carrito que lo empieza (uno por producto).
   const sugerenciaDe = new Map<string, Sugerencia>();
@@ -97,23 +104,19 @@ export function CarritoDrawer() {
             <div className="flex-1 overflow-y-auto px-5">
             <AvisoArmado />
             <ul className="divide-y divide-tinta/10">
-              {lineas.map((l) => (
+              {lineas.map((l) => {
+                const precio = precioDeLinea(l, chapitas);
+                return (
                 <Fragment key={l.key}>
                 {chapitas.agrupadas && l.key === primeraChapita && (
                   <li className="py-5">
-                    <CabeceraManada unidades={chapitas.unidades} lista={chapitas.lista} ahorro={chapitas.tresPorDos + chapitas.conCompra} />
+                    <LineaManada lineas={lineas} ch={chapitas} onQuitar={quitarManada} />
                   </li>
                 )}
-                <li className={`py-5 ${chapitas.agrupadas && esChapita(l.productoId) ? "!border-t-0 pl-6 pt-0" : ""}`}>
+                {precio.cantidad > 0 && (
+                <li className="py-5">
                   <div className="flex gap-4">
-                  <ImagenProducto
-                    src={fotoDeLinea(l.producto, l.opcion)}
-                    ajuste="cover"
-                    nombre={l.producto.nombre}
-                    sizes="80px"
-                    className="w-20 shrink-0"
-                    tamTexto="text-[9px]"
-                  />
+                  <MiniaturaLinea producto={l.producto} opcion={l.opcion} />
                   <div className="flex flex-1 flex-col">
                     <div className="flex justify-between gap-3">
                       <div>
@@ -140,9 +143,7 @@ export function CarritoDrawer() {
                           l.personalizacion && <p className="text-sm text-marron">{textoPersonalizacion(l.personalizacion)}</p>
                         )}
                       </div>
-                      {!(chapitas.agrupadas && esChapita(l.productoId)) && (
-                        <PrecioLinea subtotal={l.subtotal} ahorro={chapitas.porLinea[l.key]} motivo={motivoChapita} />
-                      )}
+                      <PrecioLinea lista={precio.lista} paga={precio.paga} />
                     </div>
                     <div className="mt-auto flex items-center justify-between pt-3">
                       <div className="flex items-center border border-tinta/25">
@@ -155,7 +156,7 @@ export function CarritoDrawer() {
                           <IconoMenos />
                         </button>
                         <span className="w-8 text-center text-sm" aria-live="polite">
-                          {l.cantidad}
+                          {precio.cantidad}
                         </span>
                         <button
                           type="button"
@@ -169,7 +170,7 @@ export function CarritoDrawer() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => quitar(l.key)}
+                        onClick={() => (precio.cantidad === l.cantidad ? quitar(l.key) : cambiarCantidad(l.key, l.cantidad - precio.cantidad))}
                         className="text-xs uppercase tracking-marca text-tinta/70 underline-offset-4 hover:underline"
                       >
                         Quitar
@@ -179,10 +180,11 @@ export function CarritoDrawer() {
                   </div>
                   {sugerenciaDe.has(l.key) && <ItemSugerencia sugerencia={sugerenciaDe.get(l.key)!} />}
                 </li>
+                )}
                 </Fragment>
-              ))}
+                );
+              })}
             </ul>
-            <CombosArmados />
             </div>
 
             <div className="space-y-4 border-t border-tinta/10 bg-lino/50 px-5 pb-6 pt-5">
@@ -193,16 +195,17 @@ export function CarritoDrawer() {
               )}
               {envio.tipo !== "gratis" && <SelectorZona />}
               <dl className="space-y-2 text-[15px]">
+                {/* Las líneas ya muestran lo que se paga: el subtotal es eso, y abajo cuánto ahorra en total. */}
                 <div className="flex justify-between">
                   <dt>Subtotal</dt>
-                  <dd>{formatearPrecio(subtotal)}</dd>
+                  <dd>{formatearPrecio(subtotal - totales.ahorro)}</dd>
                 </div>
-                {descuentos.map((d) => (
-                  <div key={d.promoId} className="flex justify-between text-marron">
-                    <dt>{d.texto}</dt>
-                    <dd>− {formatearPrecio(d.monto)}</dd>
+                {ahorra > 0 && (
+                  <div className="flex justify-between text-marron">
+                    <dt>Ahorrás con combos y promos</dt>
+                    <dd>{formatearPrecio(ahorra)}</dd>
                   </div>
-                ))}
+                )}
                 <div className="flex justify-between">
                   <dt>
                     Envío

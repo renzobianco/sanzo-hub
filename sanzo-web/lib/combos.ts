@@ -1,4 +1,4 @@
-import { getProducto, type Producto } from "@/data/products";
+import { chapita, getProducto, ofertaChapita, type Producto } from "@/data/products";
 
 /** Piezas del combo (individuales de `incluye`), en orden. */
 export function piezasDe(combo: Producto): Producto[] {
@@ -52,4 +52,28 @@ export function fotoDePieza(combo: Producto, pieza: Producto, color?: string): s
   if (propias[pieza.id]) return propias[pieza.id];
   const i = color ? pieza.opcion?.fotos?.[color] ?? 0 : 0;
   return pieza.imagenes[i] ?? pieza.imagenes[0];
+}
+
+/**
+ * Cuánto sale el combo (o el kit) comprando las piezas por separado, o null si no conviene / no se puede calcular.
+ * La chapita, sumada a otra compra, sale el precio de la oferta; en el Combo Manada (solo chapitas), el de la suelta.
+ */
+export function porSeparadoDe(combo: Producto): number | null {
+  if (combo.tipo !== "combo" && combo.tipo !== "kit") return null;
+  const sueltos = combo.incluye.map((id) => (id === chapita.id ? (combo.chapitas ? chapita.precio : ofertaChapita.precio) : getProducto(id)?.precio ?? null));
+  if (combo.precio === null || sueltos.some((p) => p === null)) return null;
+  const total = sueltos.reduce<number>((a, p) => a + (p ?? 0), 0);
+  return total > combo.precio ? total : null;
+}
+
+/** Fotos de las piezas de color con el color elegido (Combo Sol: la gorra y el piluso), o [] si no aplica. */
+export function fotosPorColor(combo: Producto, opcion?: string): string[] {
+  const piezas = piezasConColor(combo);
+  if (piezas.length < 2 || !opcion) return [];
+  const partes = opcion.split(" · ");
+  return piezas.map((p) => {
+    const color = partes.find((x) => x.startsWith(`${p.nombre} `))?.slice(p.nombre.length + 1);
+    const i = color ? (p.opcion?.fotos?.[color] ?? 0) : 0;
+    return p.imagenes[i] ?? p.imagenes[0];
+  });
 }

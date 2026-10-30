@@ -4,18 +4,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { PROVINCIAS } from "@/data/envios";
-import { CabeceraManada } from "@/components/carrito/CabeceraManada";
+import { LineaManada } from "@/components/carrito/LineaManada";
+import { MiniaturaLinea } from "@/components/carrito/MiniaturaLinea";
 import { PrecioLinea } from "@/components/carrito/PrecioLinea";
 import { detalleEnvio, formatearPrecio, textoEnvio } from "@/lib/formato";
 import { CLAVE_ULTIMO_PEDIDO, type PedidoEntrada, type PedidoRespuesta } from "@/lib/pedido";
 import { esPersonalizable, sinImagen, textoPersonalizacion } from "@/lib/personalizacion";
 import { Personalizar } from "../personalizar/Personalizar";
 import { datosVacios, validarCheckout, type DatosCheckout } from "@/lib/validacion";
-import { chapitaConFoto, esChapita, fotoDeLinea } from "@/lib/chapita";
+import { chapitaConFoto, esChapita } from "@/lib/chapita";
 import { useCarrito } from "../carrito/CarritoProvider";
-import { ImagenProducto } from "../ImagenProducto";
 import { textoOpcion } from "@/lib/combos";
-import { ahorroChapitas, zonaDeUbicacion } from "@/lib/carrito";
+import { ahorroChapitas, ahorroTotal, precioDeLinea, zonaDeUbicacion } from "@/lib/carrito";
 
 type Campo = keyof DatosCheckout;
 
@@ -133,10 +133,10 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
     );
   }
 
-  const { lineas, subtotal, descuentos, envio, total } = totales;
+  const { lineas, subtotal, envio, total } = totales;
   const chapitas = ahorroChapitas(lineas);
   const primeraChapita = lineas.find((l) => esChapita(l.productoId))?.key;
-  const motivoChapita = chapitas.tresPorDos ? "con el Combo Manada" : "por sumarla a tu compra";
+  const ahorra = ahorroTotal(totales);
   const zona = zonaDeUbicacion(ubicacion);
   // Con envío "a cotizar" no hay total cerrado: el pedido se confirma y le escribimos con el link.
   const pagaAhora = pagoOnline && envio.tipo !== "cotizar";
@@ -351,27 +351,23 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
           Tu pedido
         </h2>
         <ul className="mt-5 divide-y divide-tinta/10">
-          {lineas.map((l) => (
+          {lineas.map((l) => {
+            const precio = precioDeLinea(l, chapitas);
+            return (
             <Fragment key={l.key}>
             {chapitas.agrupadas && l.key === primeraChapita && (
               <li className="py-4">
-                <CabeceraManada unidades={chapitas.unidades} lista={chapitas.lista} ahorro={chapitas.tresPorDos + chapitas.conCompra} chica />
+                <LineaManada lineas={lineas} ch={chapitas} chica />
               </li>
             )}
-            <li className={`flex gap-4 py-4 ${chapitas.agrupadas && esChapita(l.productoId) ? "!border-t-0 pl-6 pt-0" : ""}`}>
-              <ImagenProducto
-                src={fotoDeLinea(l.producto, l.opcion)}
-                ajuste="cover"
-                nombre={l.producto.nombre}
-                sizes="56px"
-                className="w-14 shrink-0"
-                tamTexto="text-[7px]"
-              />
+            {precio.cantidad > 0 && (
+            <li className="flex gap-4 py-4">
+              <MiniaturaLinea producto={l.producto} opcion={l.opcion} chica />
               <div className="flex-1 text-[15px]">
                 <p>{l.producto.nombre}</p>
                 <p className="text-sm text-tinta/70">
                   {l.opcion ? `${textoOpcion(l.producto, l.opcion)} · ` : ""}
-                  {l.cantidad} u.
+                  {precio.cantidad} u.
                 </p>
                 {/* Personalizar también acá: si entraron directo al pedido, que no se lo pierdan. */}
                 {esPersonalizable(l.producto) ? (
@@ -382,24 +378,25 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
                   l.personalizacion && <p className="text-sm text-marron">{textoPersonalizacion(l.personalizacion)}</p>
                 )}
               </div>
-              {!(chapitas.agrupadas && esChapita(l.productoId)) && (
-                <PrecioLinea subtotal={l.subtotal} ahorro={chapitas.porLinea[l.key]} motivo={motivoChapita} />
-              )}
+              <PrecioLinea lista={precio.lista} paga={precio.paga} />
             </li>
+            )}
             </Fragment>
-          ))}
+            );
+          })}
         </ul>
         <dl className="mt-4 space-y-2 border-t border-tinta/15 pt-4 text-[15px]">
+          {/* Las líneas ya muestran lo que se paga: el subtotal es eso, y abajo cuánto ahorra en total. */}
           <div className="flex justify-between">
             <dt>Subtotal</dt>
-            <dd>{formatearPrecio(subtotal)}</dd>
+            <dd>{formatearPrecio(subtotal - totales.ahorro)}</dd>
           </div>
-          {descuentos.map((d) => (
-            <div key={d.promoId} className="flex justify-between text-marron">
-              <dt>{d.texto}</dt>
-              <dd>− {formatearPrecio(d.monto)}</dd>
+          {ahorra > 0 && (
+            <div className="flex justify-between text-marron">
+              <dt>Ahorrás con combos y promos</dt>
+              <dd>{formatearPrecio(ahorra)}</dd>
             </div>
-          ))}
+          )}
           <div className="flex justify-between gap-4">
             <dt>
               Envío

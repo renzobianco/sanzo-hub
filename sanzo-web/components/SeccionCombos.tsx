@@ -2,10 +2,12 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Palabras } from "./Palabras";
-import { chapita, combos, getProducto, ofertaChapita, sitio, type Producto } from "@/data/products";
+import { chapita, combos, sitio, type Producto } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
+import { porSeparadoDe } from "@/lib/combos";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
 import { ConZoom } from "./ConZoom";
+import { FlechasGaleria } from "./FlechasGaleria";
 import { ImagenProducto } from "./ImagenProducto";
 import { MiniPiezas } from "./MiniPiezas";
 import { Reveal } from "./Reveal";
@@ -16,13 +18,23 @@ const N = combos.length;
 // (después de Sol asoma Paseo, y antes de Paseo, Sol).
 const VUELTAS = [0, 1, 2];
 /** Lo que salen las piezas sueltas y cuánto se ahorra con el combo (con precios reales; null si falta alguno). */
+/** Fotos del combo: se pasan con las flechitas (deslizar mueve el carrusel de combos, no las fotos). */
+function FotosCombo({ combo }: { combo: Producto }) {
+  const [activa, setActiva] = useState(0);
+  const total = combo.imagenes.length;
+  return (
+    <>
+      <ConZoom fotos={combo.imagenes} nombre={combo.nombre} inicial={activa}>
+        <ImagenProducto srcs={combo.imagenes} fija={activa} nombre={combo.nombre} aspecto="aspect-[4/5]" sizes="(min-width: 768px) 28rem, 85vw" />
+      </ConZoom>
+      <FlechasGaleria activa={activa} total={total} ir={(i) => setActiva(Math.max(0, Math.min(total - 1, i)))} />
+    </>
+  );
+}
+
 function ahorroDe(combo: Producto) {
-  // La chapita, sumada a otra compra, sale el precio de la oferta: eso es lo real "por separado".
-  // En el Combo Manada son solo chapitas: cada una sale el precio de la suelta.
-  const sueltos = combo.incluye.map((id) => (id === chapita.id ? (combo.chapitas ? chapita.precio : ofertaChapita.precio) : getProducto(id)?.precio ?? null));
-  if (combo.precio === null || sueltos.some((p) => p === null)) return null;
-  const porSeparado = sueltos.reduce<number>((a, p) => a + (p ?? 0), 0);
-  return porSeparado > combo.precio ? { porSeparado, ahorro: porSeparado - combo.precio } : null;
+  const porSeparado = porSeparadoDe(combo);
+  return porSeparado !== null && combo.precio !== null ? { porSeparado, ahorro: porSeparado - combo.precio } : null;
 }
 
 const tarjetas = VUELTAS.flatMap((v) => combos.map((combo, i) => ({ combo, i, pos: v * N + i })));
@@ -159,14 +171,7 @@ export function SeccionCombos() {
                 >
                   <article inert={!enfocado} className="overflow-hidden rounded-[0.85rem] bg-crema">
                     <div className="relative">
-                      <ConZoom fotos={combo.imagenes} nombre={combo.nombre}>
-                        <ImagenProducto
-                          srcs={combo.imagenes}
-                          nombre={combo.nombre}
-                          aspecto="aspect-[4/5]"
-                          sizes="(min-width: 768px) 28rem, 85vw"
-                        />
-                      </ConZoom>
+                      <FotosCombo combo={combo} />
                       {combo.etiqueta && (
                         <p className="pointer-events-none absolute left-2.5 top-2.5 rounded-full border border-marron/35 bg-crema/90 px-2.5 py-1 text-[9px] uppercase tracking-[0.16em] text-marron">
                           {combo.etiqueta}

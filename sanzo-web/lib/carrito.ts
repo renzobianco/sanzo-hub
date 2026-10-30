@@ -3,7 +3,7 @@ import { esChapita, llevaChapita, normalizarOpcionChapita, normalizarOpcionCombo
 import { envioInfo, zonaPorCP, zonaPorProvincia, type TipoEntrega, type ZonaEnvio } from "@/data/envios";
 import { clavePersonalizacion, normalizarPersonalizacion, precioPersonalizacion, type Personalizacion } from "./personalizacion";
 import { armables, calcularPromos, type DescuentoAplicado, type Sugerencia } from "./promos";
-import { armarOpcion, opcionesValidas, piezasConColor } from "./combos";
+import { armarOpcion, opcionesValidas, piezasConColor, porSeparadoDe } from "./combos";
 
 export interface LineaCarrito {
   key: string;
@@ -146,6 +146,9 @@ export function calcularTotales(lineas: LineaCarrito[], ubicacion: Ubicacion): T
  */
 export function ahorroChapitas(lineas: LineaResuelta[]) {
   const porLinea: Record<string, number> = {};
+  /** Por línea: cuántas entran en el Combo Manada y cuántas quedan sueltas (con su ahorro). */
+  const reparto: Record<string, { enManada: number; sueltas: number; ahorroSueltas: number }> = {};
+  // Orden estable: con el mismo precio, las primeras del carrito arman el combo.
   const unidades = lineas
     .filter((l) => esChapita(l.productoId))
     .flatMap((l) => Array.from({ length: l.cantidad }, () => ({ key: l.key, precio: l.unitario })))
@@ -154,18 +157,25 @@ export function ahorroChapitas(lineas: LineaResuelta[]) {
   const conOtraCompra = lineas.some((l) => !esChapita(l.productoId));
   let tresPorDos = 0;
   let conCompra = 0;
+  let listaManada = 0;
   unidades.forEach((u, i) => {
+    const r = (reparto[u.key] ??= { enManada: 0, sueltas: 0, ahorroSueltas: 0 });
     let monto = 0;
     if (i < enTrios) {
+      r.enManada++;
+      listaManada += u.precio;
       if (i % 3 === 2) tresPorDos += monto = u.precio;
-    } else if (conOtraCompra) {
-      conCompra += monto = Math.max(0, u.precio - ofertaChapita.precio);
+    } else {
+      r.sueltas++;
+      if (conOtraCompra) {
+        conCompra += monto = Math.max(0, u.precio - ofertaChapita.precio);
+        r.ahorroSueltas += monto;
+      }
     }
     if (monto) porLinea[u.key] = (porLinea[u.key] ?? 0) + monto;
   });
-  const lista = lineas.filter((l) => esChapita(l.productoId)).reduce((t, l) => t + l.subtotal, 0);
-  // Con al menos un trío, el carrito las junta bajo "Combo Manada" con un solo precio.
-  return { porLinea, tresPorDos, conCompra, unidades: unidades.length, lista, agrupadas: enTrios > 0 };
+  // Con al menos un trío, el carrito las junta en una línea "Combo Manada" (como los otros combos) y las sueltas siguen aparte.
+  return { porLinea, reparto, tresPorDos, conCompra, unidades: unidades.length, enManada: enTrios, listaManada, agrupadas: enTrios > 0 };
 }
 
 function descuentosChapitas(lineas: LineaResuelta[]): DescuentoAplicado[] {
@@ -174,6 +184,38 @@ function descuentosChapitas(lineas: LineaResuelta[]): DescuentoAplicado[] {
   if (tresPorDos) out.push({ promoId: "chapitas-3x2", texto: ofertaChapita.tresPorDos.texto, monto: tresPorDos, piezas: [chapita.id], envioGratis: false });
   if (conCompra) out.push({ promoId: "chapita-con-compra", texto: ofertaChapita.textoConCompra, monto: conCompra, piezas: [chapita.id], envioGratis: false });
   return out;
+}
+
+export type AhorroChapitas = ReturnType<typeof ahorroChapitas>;
+
+/**
+ * Lo que muestra cada línea del carrito: cuántas unidades, el precio de lista (tachado si es mayor) y lo que se paga.
+ * Combos y kit: lista = las piezas por separado. Chapitas que entran en el Combo Manada no van acá (cantidad 0):
+ * se muestran juntas en la línea del combo.
+ */
+export function precioDeLinea(l: LineaResuelta, ch: AhorroChapitas) {
+  if (esChapita(l.productoId)) {
+    const r = ch.reparto[l.key];
+    if (!ch.agrupadas || !r) return { cantidad: l.cantidad, lista: l.subtotal, paga: l.subtotal - (ch.porLinea[l.key] ?? 0) };
+    const lista = l.unitario * r.sueltas;
+    return { cantidad: r.sueltas, lista, paga: lista - r.ahorroSueltas };
+  }
+  const separado = porSeparadoDe(l.producto);
+  const extra = l.unitario - (l.producto.precio ?? 0);
+  const lista = separado !== null ? (separado + extra) * l.cantidad : l.subtotal;
+  return { cantidad: l.cantidad, lista, paga: l.subtotal };
+}
+
+/** Todo lo que ahorra en el pedido: combos frente a las piezas sueltas, 3x2 y demás descuentos. */
+export function ahorroTotal(t: Totales) {
+  const ch = ahorroChapitas(t.lineas);
+  const enCombos = t.lineas
+    .filter((l) => !esChapita(l.productoId))
+    .reduce((s, l) => {
+      const p = precioDeLinea(l, ch);
+      return s + (p.lista - p.paga);
+    }, 0);
+  return enCombos + t.ahorro;
 }
 
 /** Cuántas chapitas sueltas hay en el carrito (para avisar cuando falta una para el 3x2). */
