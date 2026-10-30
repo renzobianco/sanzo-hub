@@ -161,6 +161,23 @@ function chapitasDeRegalo(lineas: LineaResuelta[]): DescuentoAplicado | null {
   return monto > 0 ? { promoId: "chapitas-3x2", texto: promo.texto, monto, piezas: [chapita.id], envioGratis: false } : null;
 }
 
+/**
+ * Cuánto del 3x2 cae en cada línea de chapitas (key → monto), con el mismo reparto que `chapitasDeRegalo`:
+ * así cada línea muestra lo que de verdad paga (3 chapitas → $16.000, no $24.000).
+ */
+export function regaloPorLinea(lineas: LineaResuelta[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (!ofertaChapita.tresPorDos.activa) return out;
+  const unidades = lineas
+    .filter((l) => esChapita(l.productoId))
+    .flatMap((l) => Array.from({ length: l.cantidad }, () => ({ key: l.key, precio: l.unitario })))
+    .sort((a, b) => b.precio - a.precio);
+  unidades.forEach((u, i) => {
+    if (i % 3 === 2) out[u.key] = (out[u.key] ?? 0) + u.precio;
+  });
+  return out;
+}
+
 /** Cuántas chapitas sueltas hay en el carrito (para avisar cuando falta una para el 3x2). */
 export function chapitasEnCarrito(lineas: LineaResuelta[]) {
   return lineas.filter((l) => esChapita(l.productoId)).reduce((s, l) => s + l.cantidad, 0);

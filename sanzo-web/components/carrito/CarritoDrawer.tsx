@@ -11,7 +11,7 @@ import { esPersonalizable } from "@/lib/personalizacion";
 import { ImagenProducto } from "../ImagenProducto";
 import { IconoCerrar, IconoMas, IconoMenos } from "../Iconos";
 import { detalleEnvio, formatearPrecio, textoEnvio } from "@/lib/formato";
-import { chapitasEnCarrito, MAX_CANTIDAD } from "@/lib/carrito";
+import { chapitasEnCarrito, MAX_CANTIDAD, regaloPorLinea } from "@/lib/carrito";
 import { textoOpcion } from "@/lib/combos";
 import { ofertaChapita } from "@/data/products";
 import { esChapita, fotoDeLinea } from "@/lib/chapita";
@@ -22,6 +22,8 @@ export function CarritoDrawer() {
   const { abierto, cerrar, totales, cambiarCantidad, quitar, personalizar } = useCarrito();
   const botonCerrar = useRef<HTMLButtonElement>(null);
   const { lineas, subtotal, descuentos, envio, total, contieneKit, faltaParaGratis } = totales;
+  // 3x2 en chapitas: cada línea muestra lo que paga de verdad.
+  const regalos = regaloPorLinea(lineas);
   // Nombre del combo que arma esa pieza (para la etiquetita en la línea).
   // Cada combo a medio armar va debajo del primer producto del carrito que lo empieza (uno por producto).
   const sugerenciaDe = new Map<string, Sugerencia>();
@@ -128,7 +130,14 @@ export function CarritoDrawer() {
                           l.personalizacion && <p className="text-sm text-marron">{textoPersonalizacion(l.personalizacion)}</p>
                         )}
                       </div>
-                      <p className="whitespace-nowrap text-[15px]">{formatearPrecio(l.subtotal)}</p>
+                      {regalos[l.key] ? (
+                        <p className="whitespace-nowrap text-right text-[15px]">
+                          <s className="block text-[12px] text-tinta/45">{formatearPrecio(l.subtotal)}</s>
+                          {l.subtotal - regalos[l.key] > 0 ? formatearPrecio(l.subtotal - regalos[l.key]) : <span className="text-marron">De regalo</span>}
+                        </p>
+                      ) : (
+                        <p className="whitespace-nowrap text-[15px]">{formatearPrecio(l.subtotal)}</p>
+                      )}
                     </div>
                     <div className="mt-auto flex items-center justify-between pt-3">
                       <div className="flex items-center border border-tinta/25">

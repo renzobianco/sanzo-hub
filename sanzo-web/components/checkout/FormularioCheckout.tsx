@@ -13,7 +13,7 @@ import { chapitaConFoto, esChapita, fotoDeLinea } from "@/lib/chapita";
 import { useCarrito } from "../carrito/CarritoProvider";
 import { ImagenProducto } from "../ImagenProducto";
 import { textoOpcion } from "@/lib/combos";
-import { zonaDeUbicacion } from "@/lib/carrito";
+import { regaloPorLinea, zonaDeUbicacion } from "@/lib/carrito";
 
 type Campo = keyof DatosCheckout;
 
@@ -132,6 +132,7 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
   }
 
   const { lineas, subtotal, descuentos, envio, total } = totales;
+  const regalos = regaloPorLinea(lineas);
   const zona = zonaDeUbicacion(ubicacion);
   // Con envío "a cotizar" no hay total cerrado: el pedido se confirma y le escribimos con el link.
   const pagaAhora = pagoOnline && envio.tipo !== "cotizar";
@@ -371,7 +372,14 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
                   l.personalizacion && <p className="text-sm text-marron">{textoPersonalizacion(l.personalizacion)}</p>
                 )}
               </div>
-              <p className="text-[15px]">{formatearPrecio(l.subtotal)}</p>
+              {regalos[l.key] ? (
+                <p className="text-right text-[15px]">
+                  <s className="block text-[12px] text-tinta/45">{formatearPrecio(l.subtotal)}</s>
+                  {l.subtotal - regalos[l.key] > 0 ? formatearPrecio(l.subtotal - regalos[l.key]) : <span className="text-marron">De regalo</span>}
+                </p>
+              ) : (
+                <p className="text-[15px]">{formatearPrecio(l.subtotal)}</p>
+              )}
             </li>
           ))}
         </ul>
