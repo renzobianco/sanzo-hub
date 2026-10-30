@@ -78,10 +78,13 @@ export function piezasPersonalizables(producto: Producto): string[] {
   return ids.filter(piezaPersonalizable);
 }
 
-/** El botón de personalizar solo aparece si el producto trae arnés (suelto, en combo o en el kit). */
+/**
+ * ¿Lleva botón de personalizar? Sueltos: solo el arnés. Kit y combos: todos los que traen alguna pieza
+ * personalizable (Santi, 2026-10-30: "agregar personalizar en todos los combos").
+ */
 export function esPersonalizable(producto: Producto) {
-  const ids = producto.tipo === "individual" ? [producto.id] : producto.incluye;
-  return ids.includes("arnes");
+  if (producto.tipo === "individual") return producto.id === "arnes";
+  return piezasPersonalizables(producto).length > 0;
 }
 
 /** Lo más grande que se puede pedir para estas piezas: lo que entra en la más grande (en las chicas se achica solo). */

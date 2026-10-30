@@ -139,7 +139,7 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
     // ("Corazón · Coco" en la suelta, "M · Corazón · Coco" en el combo).
     if (llevaChapita(producto)) {
       pedirGrabado((grabado) => {
-        agregar(producto.id, valor ? `${valor} · ${grabado}` : grabado, { abrir: false });
+        agregar(producto.id, valor ? `${valor} · ${grabado}` : grabado, { abrir: false, personalizacion });
         seguir();
       });
       return;

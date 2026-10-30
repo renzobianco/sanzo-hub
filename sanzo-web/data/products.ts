@@ -799,6 +799,11 @@ export const ofertaChapita = {
   imagen: "/productos/chapitas/oferta.jpg",
   /** Lo primero que se ve: la pieza de la chapita (ya trae título y precio) y abajo el botón `agregar`. */
   cartel: "/productos/chapitas/cartel.jpg",
+  /** Cartel armado en la web (reemplaza la pieza `cartel`): foto de las 4 chapitas grabadas y textos de la marca. */
+  cartelFoto: "/productos/chapitas/cartel-chapitas.jpg",
+  cartelPrevia: "Sumala a tu compra",
+  cartelTitulo: "Su chapita, grabada",
+  cartelTexto: "Su nombre, tu teléfono o su carita. Grabada con láser, en la forma que elijas.",
   cartelAlt: "¿Le sumás una chapita personalizada? Grabá el nombre y el teléfono de tu perro. Por solo $6.000.",
   agregar: "Agregar",
   titulo: "Personalizá su chapita",
@@ -837,7 +842,7 @@ export const ofertaChapita = {
   tipos: [
     {
       id: "Huesito", texto: "Huesito", imagen: "/productos/chapitas/huesito.jpg", zona: { x: 300, y: 380, ancho: 250, alto: 120 },
-      recorte: { src: "/productos/chapitas/recortes/huesito.webp", ancho: 750, alto: 566 }, zonaRecorte: { x: 0.505, y: 0.64, ancho: 0.62, alto: 0.36 },
+      recorte: { src: "/productos/chapitas/recortes/huesito.webp", ancho: 750, alto: 566 }, zonaRecorte: { x: 0.505, y: 0.575, ancho: 0.62, alto: 0.34 },
     },
     {
       id: "Corazón", texto: "Corazón", imagen: "/productos/chapitas/corazon.jpg", zona: { x: 278, y: 350, ancho: 185, alto: 120 },

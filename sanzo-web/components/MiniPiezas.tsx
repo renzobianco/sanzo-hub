@@ -20,7 +20,7 @@ export function MiniPiezas({ incluye, columnas = "grid-cols-3" }: { incluye: str
             {p?.incluyeExtra && <Rollito texto={p.incluyeExtra} foto={p.incluyeExtraFoto} className="absolute -right-1 -top-1 z-10" />}
             {p ? (
               // Foto de la pieza; manteniéndola apretada se ve en grande con sus detalles.
-              <PiezaCirculo pieza={p} sizes="96px" className="relative aspect-square w-full ring-1 ring-tinta/5" />
+              <PiezaCirculo pieza={p} sizes="96px" className="relative aspect-square w-full" />
             ) : (
               <ImagenProducto
                 src={undefined}

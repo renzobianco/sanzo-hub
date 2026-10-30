@@ -403,3 +403,7 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Foto de la chapita en Individuales (`piezas/chapita.jpg`, 1080×1350) con el mismo fondo de lino y sombra de palmera que el resto de los ítems (el fondo sale de la foto del moño, sin el moño).
 - Portada y título de la página: "Accesorios para mascotas" (antes "para perros").
 - [ ] Moño: la foto de la web la hizo una IA y no se parece al real. Falta foto real del moño (Santi la pasa).
+
+## 2026-10-30 · Círculos de piezas: crema liso (Santi)
+- Santi eligió entre 6 opciones: **crema liso, sin sombra ni borde**, en todos los círculos (las 6 piezas, gorra, piluso y chapita). Fondo #F8F3EC: solo se recoloreó el fondo de cada foto. El de la chapita se armó con los recortes nuevos en acero.
+- "Kala" del huesito subido (estaba bajo).
