@@ -477,7 +477,7 @@ export const individuales: Producto[] = [
   {
     id: "arnes",
     miniatura: "/productos/solo/arnes/1.jpg",
-    circulo: "/productos/piezas-fondo/arnes-circ.jpg",
+    circulo: "/productos/piezas/arnes-circulo.jpg",
     nombre: "Arnés",
     tipo: "individual",
     descripcion: "Terracota, liviano y a su medida.",
@@ -498,7 +498,7 @@ export const individuales: Producto[] = [
   {
     id: "correa",
     miniatura: "/productos/solo/correa/1.jpg",
-    circulo: "/productos/piezas-fondo/correa-circ.jpg",
+    circulo: "/productos/piezas/correa-circulo.jpg",
     nombre: "Correa",
     tipo: "individual",
     descripcion: "La que combina con todo lo demás.",
@@ -513,7 +513,7 @@ export const individuales: Producto[] = [
   {
     id: "collar",
     miniatura: "/productos/solo/collar/1.jpg",
-    circulo: "/productos/piezas-fondo/collar-circ.jpg",
+    circulo: "/productos/piezas/collar-circulo.jpg",
     nombre: "Collar",
     tipo: "individual",
     descripcion: "Simple, prolijo, a su medida.",
@@ -530,7 +530,7 @@ export const individuales: Producto[] = [
   {
     id: "mono",
     miniatura: "/productos/solo/mono/1.jpg",
-    circulo: "/productos/piezas-fondo/mono-circ.jpg",
+    circulo: "/productos/piezas/mono-circulo.jpg",
     nombre: "Moño",
     tipo: "individual",
     descripcion: "El detalle que le cambia la cara al paseo.",
@@ -545,7 +545,7 @@ export const individuales: Producto[] = [
   {
     id: "bandana",
     miniatura: "/productos/solo/bandana/1.jpg",
-    circulo: "/productos/piezas-fondo/bandana-circ.jpg",
+    circulo: "/productos/piezas/bandana-circulo.jpg",
     nombre: "Bandana",
     tipo: "individual",
     descripcion: "Al cuello, sobre el pecho. Como tiene que ir.",
@@ -560,7 +560,7 @@ export const individuales: Producto[] = [
   {
     id: "poo-bag",
     miniatura: "/productos/solo/poo-bag/1.jpg",
-    circulo: "/productos/piezas-fondo/poo-bag-circ.jpg",
+    circulo: "/productos/piezas/poo-bag-circulo.jpg",
     nombre: "Poo bag",
     tipo: "individual",
     descripcion: "Porta bolsitas con un rollito adentro. Siempre a mano, en la correa.",

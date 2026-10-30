@@ -56,7 +56,7 @@ export function SeccionKit() {
           )}
 
           {/* Las piezas en una sola fila chiquita + la lista en una línea. */}
-          <ul className="mt-6 flex gap-2" aria-label={`Incluye ${kit.incluye.length} piezas`}>
+          <ul className="mt-6 flex select-none gap-2 [-webkit-touch-callout:none]" aria-label={`Incluye ${kit.incluye.length} piezas`}>
             {piezas.map((p) => (
               <li key={p.id} className="relative aspect-square flex-1">
                 <PiezaCirculo pieza={p} sizes="64px" className="absolute inset-0" />
@@ -64,7 +64,7 @@ export function SeccionKit() {
               </li>
             ))}
           </ul>
-          <p className="mt-2.5 text-[13px] text-tinta/65">{listaPiezas}.</p>
+          <p className="mt-2.5 select-none text-[13px] text-tinta/65">{listaPiezas}.</p>
 
           {restantes !== null && (
             <div className="mt-8">
