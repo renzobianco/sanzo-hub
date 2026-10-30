@@ -110,6 +110,11 @@ export function normalizarOpcionChapita(opcion?: string): string | null {
 }
 
 /** La chapita suelta o un combo que la trae (Combo Identidad). */
+/** El cartel de la chapita se ofrece solo con lo que trae collar (el collar suelto, el kit o un combo con collar). */
+export function llevaCollar(producto: Producto) {
+  return producto.id === "collar" || producto.incluye.includes("collar");
+}
+
 export function llevaChapita(producto: Producto) {
   return esChapita(producto.id) || (producto.tipo === "combo" && producto.incluye.includes(chapita.id));
 }

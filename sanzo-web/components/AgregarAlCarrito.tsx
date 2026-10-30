@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { chapita, type Producto } from "@/data/products";
 import { armarOpcion, piezasConColor } from "@/lib/combos";
-import { llevaChapita } from "@/lib/chapita";
+import { llevaChapita, llevaCollar } from "@/lib/chapita";
 import { esPersonalizable, type Personalizacion } from "@/lib/personalizacion";
 import { useCarrito } from "./carrito/CarritoProvider";
 import { Personalizar } from "./personalizar/Personalizar";
@@ -157,8 +157,9 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
       return;
     }
     agregar(producto.id, valor || undefined, { abrir: false, personalizacion });
-    // Antes de seguir (carrito o checkout) le ofrecemos la chapita personalizada.
-    ofrecerChapita(seguir);
+    // Si trae collar, antes de seguir (carrito o checkout) le ofrecemos la chapita personalizada.
+    if (llevaCollar(producto)) ofrecerChapita(seguir);
+    else seguir();
   }
 
   let texto = etiqueta;
