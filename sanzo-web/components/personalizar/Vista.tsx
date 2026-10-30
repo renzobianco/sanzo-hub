@@ -19,6 +19,8 @@ export interface DisenoParche {
   nombre: string;
   telefono: string;
   fuente: string;
+  /** Tamaño de la letra (0,5 a 1 del máximo que entra). */
+  tamLetra?: number;
   vista?: Grabado;
 }
 
@@ -59,7 +61,7 @@ function useResolverFamilia(fam: string) {
 }
 
 /** Nombre (y teléfono) grabados, achicados para que entren en la zona. */
-function TextoGrabado({ ancho, alto, dy, nombre, telefono, fuente, color }: { ancho: number; alto: number; dy: number; nombre: string; telefono: string; fuente: string; color: string }) {
+function TextoGrabado({ ancho, alto, dy, nombre, telefono, fuente, color, escala = 1 }: { ancho: number; alto: number; dy: number; nombre: string; telefono: string; fuente: string; color: string; escala?: number }) {
   const f = fuentePorId(fuente);
   const { familia: fam, peso } = familia(fuente);
   const vacio = !nombre.trim();
@@ -69,8 +71,9 @@ function TextoGrabado({ ancho, alto, dy, nombre, telefono, fuente, color }: { an
   const tel = telefono.trim();
   const medida = useAnchoTexto(texto, fam, peso, esp);
   const medidaTel = useAnchoTexto(tel || "0", fam, peso, 0.04);
-  const tamNombre = Math.min(alto * (tel ? 0.56 : 0.8), (ancho / medida) * 100);
-  const tamTel = Math.min(alto * 0.28, (ancho / medidaTel) * 100);
+  // Lo más grande que entra en la zona, por el tamaño que eligió (1 = todo).
+  const tamNombre = Math.min(alto * (tel ? 0.56 : 0.8), (ancho / medida) * 100) * escala;
+  const tamTel = Math.min(alto * 0.28, (ancho / medidaTel) * 100) * escala;
   const yNombre = dy + (tel ? -alto * 0.16 : 0);
   const yTel = dy + alto * 0.3;
 
@@ -172,6 +175,7 @@ export function Parche({ forma, w, h, color, pxCm, contenido }: { forma: string;
         telefono={contenido.telefono}
         fuente={contenido.fuente}
         color={color.grabado}
+        escala={contenido.tamLetra ?? 1}
       />
     );
   }

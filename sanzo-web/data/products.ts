@@ -130,7 +130,7 @@ export interface ColorParche {
   borde: string;
   /** Cuánto manchado/envejecido tiene la cuerina (0 = parejo, 1 = muy veteado). El grano va siempre. */
   veteado?: number;
-  /** false → se ve apagado con "No disponible" y no se puede elegir. */
+  /** false → se ve apagado con "Agotado" y no se puede elegir. */
   disponible?: boolean;
 }
 

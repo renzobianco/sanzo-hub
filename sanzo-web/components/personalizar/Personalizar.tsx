@@ -19,6 +19,8 @@ import {
   textoCorto,
   textoPersonalizacion,
   tramoTamano,
+  TAM_LETRA,
+  tamLetraValido,
   validarPersonalizacion,
   type ErroresPersonalizacion,
   type DisenoPieza,
@@ -60,6 +62,8 @@ interface Diseno {
   conLinea2: boolean;
   linea2: string;
   fuente: string;
+  /** Tamaño de la letra: 0,5 a 1 de lo más grande que entra. */
+  tamLetra: number;
   /** "Tu letra" sin escribir acá: la manda por WhatsApp. */
   letraWhatsapp: boolean;
   /** La forma que tenía con nombre (al pasar a "Tu imagen" la forma es su silueta; al volver, vuelve esta). */
@@ -86,6 +90,7 @@ function disenoDesde(p?: DisenoPieza | null): Diseno {
     conLinea2: !!p?.linea2,
     linea2: p?.linea2 ?? "",
     fuente: p?.fuente ?? config.fuentes[0].id,
+    tamLetra: p?.tamLetra ?? 1,
     letraWhatsapp: !!p?.letraWhatsapp,
     vistaImagen: p?.vista,
     imagenUrl: p?.imagenUrl,
@@ -407,6 +412,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
         telefono: !enImagen && d.conTelefono ? d.telefono.trim() : undefined,
         linea2: !enImagen && d.conLinea2 ? d.linea2.trim() : undefined,
         fuente: d.fuente,
+        tamLetra: !enImagen && d.fuente !== "propia" ? tamLetraValido(d.tamLetra) : undefined,
         letraWhatsapp: !enImagen && d.fuente === "propia" && d.letraWhatsapp ? true : undefined,
         imagenUrl: enImagen || d.fuente === "propia" ? urls[pz] ?? d.imagenUrl : undefined,
         vista: enImagen || d.fuente === "propia" ? d.vistaImagen : undefined,
@@ -501,6 +507,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
     // Segunda línea: el teléfono o el texto libre.
     telefono: conTelefono ? telefono : actual.conLinea2 ? actual.linea2 : "",
     fuente,
+    tamLetra: actual.tamLetra,
     vista: modo === "imagen" || fuente === "propia" ? vistaImagen : undefined,
   };
   const muestra = nombre.trim() || "Toto";
@@ -927,6 +934,30 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                         </div>
                       )}
                     </fieldset>
+
+                    {/* Tamaño de la letra: de la mitad a lo más grande que entra en el parche. */}
+                    {!config.fuentes.find((x) => x.id === fuente)?.propia && (
+                      <div>
+                        <label htmlFor={`${id}-tam-letra`} className="eyebrow mb-3 flex items-baseline justify-between">
+                          Tamaño de letra
+                          <span className="normal-case tracking-normal text-tinta/60">{Math.round(actual.tamLetra * 100)} %</span>
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <span aria-hidden="true" className="text-[11px] text-tinta/60">A</span>
+                          <input
+                            id={`${id}-tam-letra`}
+                            type="range"
+                            min={TAM_LETRA.min}
+                            max={TAM_LETRA.max}
+                            step={TAM_LETRA.paso}
+                            value={actual.tamLetra}
+                            onChange={(e) => cambiar({ tamLetra: Number(e.target.value) })}
+                            className="h-8 w-full cursor-pointer accent-tinta"
+                          />
+                          <span aria-hidden="true" className="text-lg leading-none text-tinta/60">A</span>
+                        </div>
+                      </div>
+                    )}
     
                     <fieldset>
                       <legend className="eyebrow mb-3">¿Sumamos otra línea abajo?</legend>
@@ -1140,7 +1171,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                             disabled={no}
                             onChange={() => setColor(c.id)}
                             className="peer sr-only"
-                            aria-label={no ? `${c.nombre} (no disponible)` : c.nombre}
+                            aria-label={no ? `${c.nombre} (agotado)` : c.nombre}
                           />
                           {/* Muestra con el mismo grano del parche; al elegirla, un aro y un pequeño salto. Sin stock: apagada y con una raya. */}
                           <span className="relative block rounded-full p-[3px] ring-1 ring-tinta/15 transition-transform duration-300 ease-suave peer-checked:scale-110 peer-checked:ring-2 peer-checked:ring-tinta peer-disabled:opacity-40 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-marron">
@@ -1151,7 +1182,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                           </span>
                           <span className={`mt-1.5 text-center text-[9px] uppercase leading-tight tracking-[0.1em] ${no ? "text-tinta/45" : "text-tinta/80"}`}>
                             {c.nombre}
-                            {no && <span className="mt-0.5 block normal-case tracking-normal">No disponible</span>}
+                            {no && <span className="mt-0.5 block normal-case tracking-normal">Agotado</span>}
                           </span>
                         </label>
                       );

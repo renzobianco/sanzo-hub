@@ -1,62 +1,62 @@
 {
   "arnes": [
-    { "x": 50, "y": 46, "tx": 66, "ty": 10, "texto": "Personalizable", "sub": "Su nombre en la tela" },
-    { "x": 15, "y": 74, "tx": 23, "ty": 92, "texto": "Traba rápida", "sub": "Se regula en pecho y cuello" }
+    { "x": 50, "y": 45, "tx": 56, "ty": 6, "texto": "Personalizable", "sub": "Su nombre en la tela" },
+    { "x": 15, "y": 77, "tx": 20, "ty": 94, "texto": "Traba rápida", "sub": "Se regula en pecho y cuello" }
   ],
   "correa": [
-    { "x": 88, "y": 4, "tx": 76, "ty": 20, "texto": "Manija de mano", "sub": "Cómoda en todo el paseo" },
-    { "x": 18, "y": 36, "tx": 26, "ty": 54, "texto": "152 cm", "sub": "Libertad para explorar" },
-    { "x": 40, "y": 92, "tx": 54, "ty": 72, "texto": "Mosquetón", "sub": "Engancha y suelta fácil" }
+    { "x": 80, "y": 6, "tx": 50, "ty": 6, "texto": "Manija de mano", "sub": "Cómoda en todo el paseo" },
+    { "x": 14, "y": 40, "tx": 30, "ty": 28, "texto": "152 cm", "sub": "Libertad para explorar" },
+    { "x": 40, "y": 95, "tx": 34, "ty": 92, "texto": "Mosquetón", "sub": "Engancha y suelta fácil" }
   ],
   "collar": [
-    { "x": 13, "y": 40, "tx": 20, "ty": 10, "texto": "Traba rápida", "sub": "Se pone en un segundo" },
-    { "x": 52, "y": 16, "tx": 66, "ty": 6, "texto": "Regulable", "sub": "De 33 a 51 cm" },
-    { "x": 19, "y": 63, "tx": 27, "ty": 88, "texto": "Argolla", "sub": "Para la correa o su chapita" }
+    { "x": 14, "y": 40, "tx": 30, "ty": 80, "texto": "Traba rápida", "sub": "Se pone en un segundo" },
+    { "x": 50, "y": 17, "tx": 52, "ty": 38, "texto": "Regulable", "sub": "De 33 a 51 cm" },
+    { "x": 18, "y": 58, "tx": 40, "ty": 93, "texto": "Argolla", "sub": "Para la correa o su chapita" }
   ],
   "mono": [
     { "x": 50, "y": 39, "tx": 62, "ty": 15, "texto": "Pasador", "sub": "Se engancha al collar" },
     { "x": 75, "y": 50, "tx": 78, "ty": 82, "texto": "Moño armado", "sub": "Siempre prolijo" }
   ],
   "bandana": [
-    { "x": 50, "y": 48, "tx": 34, "ty": 82, "texto": "Personalizable", "sub": "Su nombre en la tela" },
-    { "x": 60, "y": 22, "tx": 46, "ty": 40, "texto": "Se ata al cuello", "sub": "Un nudo y listo" }
+    { "x": 45, "y": 45, "tx": 34, "ty": 88, "texto": "Personalizable", "sub": "Su nombre en la tela" },
+    { "x": 60, "y": 10, "tx": 34, "ty": 12, "texto": "Se ata al cuello", "sub": "Un nudo y listo" }
   ],
   "poo-bag": [
-    { "x": 33, "y": 42, "tx": 25, "ty": 74, "texto": "Trae un rollito", "sub": "Lista para salir" },
-    { "x": 40, "y": 90, "tx": 54, "ty": 95, "texto": "Mosquetón", "sub": "Va colgada de la correa" },
-    { "x": 70, "y": 60, "tx": 75, "ty": 16, "texto": "Cierre", "sub": "Recargás bolsitas" }
+    { "x": 33, "y": 45, "tx": 32, "ty": 64, "texto": "Trae un rollito", "sub": "Lista para salir" },
+    { "x": 71, "y": 40, "tx": 68, "ty": 5, "texto": "Cierre", "sub": "Recargás bolsitas" },
+    { "x": 33, "y": 90, "tx": 45, "ty": 93, "texto": "Mosquetón", "sub": "Va colgada de la correa" }
   ],
   "gorra": [
-    { "x": 40, "y": 18, "tx": 26, "ty": 8, "texto": "Elástico", "sub": "Se adapta a su cabeza" },
-    { "x": 76, "y": 45, "tx": 78, "ty": 72, "texto": "Para las orejas", "sub": "Le queda cómoda" },
-    { "x": 33, "y": 74, "tx": 18, "ty": 92, "texto": "Visera", "sub": "Le da sombra" }
+    { "x": 40, "y": 18, "tx": 34, "ty": 5, "texto": "Elástico", "sub": "Se adapta a su cabeza" },
+    { "x": 75, "y": 45, "tx": 74, "ty": 5, "texto": "Para las orejas", "sub": "Le queda cómoda" },
+    { "x": 40, "y": 78, "tx": 50, "ty": 93, "texto": "Visera", "sub": "Le da sombra" }
   ],
   "piluso": [
-    { "x": 28, "y": 48, "tx": 22, "ty": 16, "texto": "Para las orejas", "sub": "Le queda cómodo" },
-    { "x": 52, "y": 70, "tx": 66, "ty": 88, "texto": "Ala redonda", "sub": "Lo cubre del sol" }
+    { "x": 40, "y": 48, "tx": 31, "ty": 14, "texto": "Para las orejas", "sub": "Le queda cómodo" },
+    { "x": 52, "y": 72, "tx": 44, "ty": 88, "texto": "Ala redonda", "sub": "Lo cubre del sol" }
   ],
 
   "arnes-circulo": [
-    { "x": 52, "y": 50, "tx": 66, "ty": 8, "texto": "Personalizable", "sub": "Su nombre en la tela" },
-    { "x": 20, "y": 70, "tx": 26, "ty": 90, "texto": "Traba rápida", "sub": "Se regula en pecho y cuello" }
+    { "x": 50, "y": 45, "tx": 56, "ty": 6, "texto": "Personalizable", "sub": "Su nombre en la tela" },
+    { "x": 18, "y": 72, "tx": 24, "ty": 92, "texto": "Traba rápida", "sub": "Se regula en pecho y cuello" }
   ],
   "correa-circulo": [
-    { "x": 66, "y": 27, "tx": 50, "ty": 10, "texto": "Manija de mano", "sub": "Cómoda en todo el paseo" },
-    { "x": 79, "y": 34, "tx": 72, "ty": 58, "texto": "Mosquetón", "sub": "Engancha y suelta fácil" },
-    { "x": 32, "y": 62, "tx": 40, "ty": 84, "texto": "152 cm", "sub": "Libertad para explorar" }
+    { "x": 72, "y": 27, "tx": 52, "ty": 12, "texto": "Manija de mano", "sub": "Cómoda en todo el paseo" },
+    { "x": 79, "y": 35, "tx": 76, "ty": 76, "texto": "Mosquetón", "sub": "Engancha y suelta fácil" },
+    { "x": 24, "y": 66, "tx": 30, "ty": 90, "texto": "152 cm", "sub": "Libertad para explorar" }
   ],
   "collar-circulo": [
-    { "x": 63, "y": 38, "tx": 50, "ty": 14, "texto": "Regulable", "sub": "De 33 a 51 cm" },
-    { "x": 47, "y": 52, "tx": 62, "ty": 72, "texto": "Personalizable", "sub": "Su nombre en la cinta" },
-    { "x": 18, "y": 72, "tx": 30, "ty": 92, "texto": "Traba rápida", "sub": "Se pone en un segundo" }
+    { "x": 64, "y": 38, "tx": 60, "ty": 14, "texto": "Regulable", "sub": "De 33 a 51 cm" },
+    { "x": 34, "y": 62, "tx": 50, "ty": 78, "texto": "Personalizable", "sub": "Su nombre en la cinta" },
+    { "x": 18, "y": 70, "tx": 24, "ty": 92, "texto": "Traba rápida", "sub": "Se pone en un segundo" }
   ],
   "mono-circulo": [
     { "x": 47, "y": 34, "tx": 60, "ty": 12, "texto": "Pasador", "sub": "Se engancha al collar" },
     { "x": 76, "y": 52, "tx": 72, "ty": 86, "texto": "Moño armado", "sub": "Siempre prolijo" }
   ],
   "bandana-circulo": [
-    { "x": 50, "y": 40, "tx": 62, "ty": 14, "texto": "Personalizable", "sub": "Su nombre en la tela" },
-    { "x": 11, "y": 31, "tx": 30, "ty": 80, "texto": "Se ata al cuello", "sub": "Un nudo y listo" }
+    { "x": 50, "y": 45, "tx": 60, "ty": 14, "texto": "Personalizable", "sub": "Su nombre en la tela" },
+    { "x": 12, "y": 31, "tx": 20, "ty": 80, "texto": "Se ata al cuello", "sub": "Un nudo y listo" }
   ],
   "poo-bag-circulo": [
     { "x": 31, "y": 42, "tx": 28.5, "ty": 74, "texto": "Trae un rollito", "sub": "Lista para salir" },

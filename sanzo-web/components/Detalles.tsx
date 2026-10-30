@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { detallesDe, type Detalle } from "@/data/detalles";
 
 /** Largo del tramo recto que entra a la etiqueta (en % de la foto). */
@@ -24,11 +24,42 @@ export function Detalles({ id, visible }: { id: string; visible: boolean }) {
   const [estado, setEstado] = useState("");
   const [barraAbajo, setBarraAbajo] = useState(false);
   const caja = useRef<HTMLDivElement>(null);
+  const etiquetas = useRef<(HTMLSpanElement | null)[]>([]);
+  // Corrimiento de cada etiqueta (px) para que nunca quede cortada por el borde de la foto.
+  const [corrido, setCorrido] = useState<number[]>([]);
+  const corridoActual = useRef<number[]>([]);
   const arrastre = useRef<{ i: number; que: "punto" | "etiqueta"; dx: number; dy: number } | null>(null);
 
   useEffect(() => {
     setEditar(process.env.NODE_ENV === "development" && new URLSearchParams(location.search).has("editar"));
   }, []);
+
+  useLayoutEffect(() => {
+    const medir = () => {
+      const c = caja.current?.getBoundingClientRect();
+      if (!c) return;
+      const margen = 4;
+      const nuevo = etiquetas.current.map((el, i) => {
+        if (!el) return 0;
+        const r = el.getBoundingClientRect();
+        const izq = r.left - (corridoActual.current[i] ?? 0);
+        const der = izq + r.width;
+        if (izq < c.left + margen) return c.left + margen - izq;
+        if (der > c.right - margen) return c.right - margen - der;
+        return 0;
+      });
+      corridoActual.current = nuevo;
+      setCorrido(nuevo);
+    };
+    medir();
+    // Otra vez cuando termina la animación de entrada (el zoom de la ventana cambia las medidas).
+    const t = window.setTimeout(medir, 450);
+    window.addEventListener("resize", medir);
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener("resize", medir);
+    };
+  }, [puntos]);
 
   if (!editar && puntos.length === 0) return null;
   const ver = visible || editar;
@@ -119,6 +150,9 @@ export function Detalles({ id, visible }: { id: string; visible: boolean }) {
           </span>
           {/* Etiqueta: título + para qué sirve, al final del tramo recto. */}
           <span
+            ref={(el) => {
+              etiquetas.current[i] = el;
+            }}
             onPointerDown={editar ? agarrar(i, "etiqueta") : undefined}
             onDoubleClick={editar ? () => textos(i) : undefined}
             className={`absolute w-max max-w-[8rem] rounded-[0.55rem] bg-crema/90 px-2 py-[5px] shadow-[0_6px_18px_-8px_rgb(var(--tinta)/0.55)] backdrop-blur-[3px] transition-[opacity,transform] duration-700 ease-suave ${
@@ -128,7 +162,7 @@ export function Detalles({ id, visible }: { id: string; visible: boolean }) {
               left: `${p.tx}%`,
               top: `${p.ty}%`,
               opacity: ver ? 1 : 0,
-              transform: `translate(${lado(p) < 0 ? "calc(-100% - 3px)" : "3px"}, ${ver ? "-50%" : "-30%"})`,
+              transform: `translate(${lado(p) < 0 ? `calc(-100% - 3px + ${corrido[i] ?? 0}px)` : `${3 + (corrido[i] ?? 0)}px`}, ${ver ? "-50%" : "-30%"})`,
               transitionDelay: editar ? "0ms" : `${850 + i * 200}ms`,
             }}
           >

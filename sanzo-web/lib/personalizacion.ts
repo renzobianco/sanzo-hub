@@ -24,6 +24,8 @@ export interface Personalizacion {
   linea2?: string;
   /** id de una letra de `personalizacion.fuentes` (solo en modo nombre). */
   fuente: string;
+  /** Tamaño de la letra, como parte del máximo que entra en el parche (0,5 a 1). Sin esto: 1, lo más grande. */
+  tamLetra?: number;
   /** "Tu letra" sin escribir en el celu: el nombre escrito a mano lo manda por WhatsApp. */
   letraWhatsapp?: boolean;
   /** La imagen original ya subida (link público de Supabase Storage). Va con el pedido y se ve en el Hub. */
@@ -185,6 +187,15 @@ export function validarPersonalizacion(p: DisenoPieza & { piezas?: Personalizaci
 const FORMA_VIEJA: Record<string, string> = { clasica: "rectangulo", redondeada: "redondeado", cinta: "banderin", hueso: "hueso" };
 const ANCHO_VIEJO: Record<string, number> = { chico: 4.5, mediano: 5.5, grande: 6.5 };
 
+/** Tamaño de letra: de la mitad a lo más grande que entra, de a 5 %. 1 (o nada) = lo más grande. */
+export const TAM_LETRA = { min: 0.5, max: 1, paso: 0.05 };
+export function tamLetraValido(v: unknown): number | undefined {
+  const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN;
+  if (!Number.isFinite(n)) return undefined;
+  const t = Math.round(Math.min(TAM_LETRA.max, Math.max(TAM_LETRA.min, n)) / TAM_LETRA.paso) * TAM_LETRA.paso;
+  return t >= TAM_LETRA.max ? undefined : Math.round(t * 100) / 100;
+}
+
 const num = (v: unknown) => (typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN);
 const redondear = (v: number) => Math.round(v * 10) / 10;
 
@@ -264,6 +275,7 @@ function normalizarDiseno(p: unknown): DisenoPieza | null {
     telefono: enImagen ? undefined : (o.telefono as string | undefined)?.trim().replace(/\s+/g, " ") || undefined,
     linea2: enImagen || typeof o.linea2 !== "string" ? undefined : o.linea2.trim().replace(/\s+/g, " ").slice(0, 40) || undefined,
     fuente: typeof o.fuente === "string" && o.fuente ? o.fuente : config.fuentes[0].id,
+    tamLetra: enImagen || conDibujo ? undefined : tamLetraValido(o.tamLetra),
     letraWhatsapp: conDibujo && o.letraWhatsapp === true ? true : undefined,
     imagenUrl: enImagen || conDibujo ? imagenUrl : undefined,
     vista: enImagen || conDibujo ? vistaValida(o.vista) : undefined,
@@ -280,7 +292,7 @@ export function clavePersonalizacion(p?: Personalizacion): string {
   }
   // Dos imágenes distintas = dos líneas distintas en el carrito.
   const huella = p.imagenUrl ?? (p.vista ? `${p.vista.grabado.length}-${p.vista.grabado.slice(-24)}` : "");
-  return [p.forma, p.formaOtra ?? "", p.material, p.color, p.ancho, p.alto, p.modo, p.nombre, p.telefono ?? "", p.linea2 ?? "", p.modo === "nombre" ? p.fuente : "", huella, JSON.stringify(p.posiciones ?? {})].join("|");
+  return [p.forma, p.formaOtra ?? "", p.material, p.color, p.ancho, p.alto, p.modo, p.nombre, p.telefono ?? "", p.linea2 ?? "", p.modo === "nombre" ? p.fuente : "", p.tamLetra ?? "", huella, JSON.stringify(p.posiciones ?? {})].join("|");
 }
 
 const cm = (v: number) => String(v).replace(".", ",");
@@ -301,7 +313,7 @@ export function textoPersonalizacion(p: Personalizacion): string {
   const grabado =
     p.modo === "imagen"
       ? ["Imagen propia"]
-      : [fuente?.propia ? (p.letraWhatsapp ? "Letra a mano: la manda por WhatsApp" : "Escrito a mano por el cliente") : `Letra ${fuente?.nombre ?? p.fuente}`, fuente?.mayusculas ? p.nombre.toUpperCase() : p.nombre, p.telefono, p.linea2];
+      : [fuente?.propia ? (p.letraWhatsapp ? "Letra a mano: la manda por WhatsApp" : "Escrito a mano por el cliente") : `Letra ${fuente?.nombre ?? p.fuente}${p.tamLetra ? ` al ${Math.round(p.tamLetra * 100)} %` : ""}`, fuente?.mayusculas ? p.nombre.toUpperCase() : p.nombre, p.telefono, p.linea2];
   return [forma, material, colorPorId(p.color)?.nombre, `${cm(p.ancho)} × ${cm(p.alto)} cm`, ...grabado].filter(Boolean).join(" · ");
 }
 

@@ -1,4 +1,5 @@
 import { chapita, ofertaChapita, personalizacion, type Producto } from "@/data/products";
+import { tamLetraValido } from "./personalizacion";
 
 /** Lo que el cliente pidió grabar en la chapita: la cara de su perro u otra imagen, el nombre, el teléfono (al menos uno). */
 export interface Grabado {
@@ -11,6 +12,8 @@ export interface Grabado {
   telefono: string;
   /** id de una letra de `personalizacion.fuentes` (la misma lista que los parches, sin "Tu letra"). Vacío = la de la marca. */
   letra?: string;
+  /** Tamaño de la letra: 0,5 a 1 de lo más grande que entra (vacío o 1 = lo más grande). */
+  tamLetra?: number;
 }
 
 export type ErroresGrabado = Partial<Record<"tipo" | "nombre" | "telefono", string>>;
@@ -26,6 +29,9 @@ const FOTO = "Con su foto";
 const IMAGEN = "Con tu imagen";
 /** Letra elegida, al final de la opción: "Placa · Coco · Letra Clásica". La de la marca no se escribe. */
 const LETRA = "Letra ";
+/** Tamaño de letra, al final de todo: "… · Tamaño 80 %". Lo más grande (100 %) no se escribe. */
+const TAM = "Tamaño ";
+const textoTam = (t?: number) => (t && t < 1 ? `${TAM}${Math.round(t * 100)} %` : "");
 
 /** Letras para grabar la chapita: las mismas de los parches, menos "Tu letra" (a mano). */
 export const letrasChapita = personalizacion.fuentes.filter((f) => !f.propia);
@@ -68,13 +74,23 @@ export function textoGrabado(g: Grabado) {
   const nombre = limpiarNombre(g.nombre);
   const tel = limpiarTelefono(g.telefono);
   const letra = g.letra && g.letra !== LETRA_BASE ? letrasChapita.find((f) => f.id === g.letra) : undefined;
-  return [g.tipo, g.foto ? FOTO : g.imagen && IMAGEN, nombre, tel && `${TEL}${tel}`, letra && `${LETRA}${letra.nombre}`].filter(Boolean).join(SEP);
+  const tam = nombre || tel ? textoTam(tamLetraValido(g.tamLetra)) : "";
+  return [g.tipo, g.foto ? FOTO : g.imagen && IMAGEN, nombre, tel && `${TEL}${tel}`, letra && `${LETRA}${letra.nombre}`, tam].filter(Boolean).join(SEP);
 }
 
 /** Revisa la opción que llega del carrito (o del pedido). Devuelve el texto limpio o null si no sirve. */
 export function normalizarOpcionChapita(opcion?: string): string | null {
   if (!opcion) return null;
-  const [tipo, ...todas] = opcion.split(SEP).map((p) => p.trim());
+  const [tipo, ...conTam] = opcion.split(SEP).map((p) => p.trim());
+  // El tamaño de letra va al final de todo ("Tamaño 80 %"); tiene que ser uno de los que se pueden elegir.
+  let tamLetra: number | undefined;
+  const ultimaTam = conTam[conTam.length - 1];
+  if (ultimaTam?.startsWith(TAM)) {
+    const m = /^Tamaño (\d+) %$/.exec(ultimaTam);
+    tamLetra = m ? tamLetraValido(Number(m[1]) / 100) : undefined;
+    if (!tamLetra || textoTam(tamLetra) !== ultimaTam) return null;
+  }
+  const todas = tamLetra ? conTam.slice(0, -1) : conTam;
   // La letra va al final; si no es una de la lista, la opción no sirve.
   const ultima = todas[todas.length - 1];
   const conLetra = !!ultima?.startsWith(LETRA);
@@ -88,7 +104,7 @@ export function normalizarOpcionChapita(opcion?: string): string | null {
   const tels = resto.filter((p) => p.startsWith(TEL));
   const nombres = resto.filter((p) => !p.startsWith(TEL));
   if (tels.length > 1 || nombres.length > 1) return null;
-  const g: Grabado = { tipo, foto, imagen, nombre: nombres[0] ?? "", telefono: tels[0]?.slice(TEL.length) ?? "", letra: letra?.id };
+  const g: Grabado = { tipo, foto, imagen, nombre: nombres[0] ?? "", telefono: tels[0]?.slice(TEL.length) ?? "", letra: letra?.id, tamLetra };
   if (Object.keys(validarGrabado(g)).length > 0) return null;
   return textoGrabado(g);
 }

@@ -7,6 +7,7 @@ import { letrasChapita, tipoChapita, textoGrabado, validarGrabado, type ErroresG
 import { familia } from "@/lib/fuentes";
 import { aGrabadoLaser } from "@/lib/laser";
 import { formatearPrecio } from "@/lib/formato";
+import { TAM_LETRA } from "@/lib/personalizacion";
 import { IconoCerrar } from "../Iconos";
 
 /** Pasos del grabado, como en el personalizador de los parches. */
@@ -38,6 +39,7 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [letra, setLetra] = useState(letrasChapita[0]?.id ?? "jost");
+  const [tamLetra, setTamLetra] = useState(1);
   const [pasoGrabado, setPasoGrabado] = useState(0);
   const [errores, setErrores] = useState<ErroresGrabado>({});
   // Si lo que compra ya trae la chapita (combo), el cartel no se muestra nunca: directo a personalizar.
@@ -74,7 +76,7 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
 
   function sumar() {
     if (!revisar()) return;
-    onSumar(textoGrabado({ tipo, foto, imagen: imagenTipo === "otra", nombre, telefono, letra }));
+    onSumar(textoGrabado({ tipo, foto, imagen: imagenTipo === "otra", nombre, telefono, letra, tamLetra }));
   }
 
   /** Cualquier foto → cómo quedaría grabada (en el navegador, al instante). */
@@ -165,7 +167,7 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
           {/* La vista queda fija arriba para ver los cambios mientras elige. */}
           <div className="shrink-0 bg-lino px-4 pt-4 sm:row-span-2 sm:flex sm:flex-col sm:justify-center sm:px-8 sm:pt-6">
             <div className="flex h-[30dvh] items-center justify-center [--alto-vista:30dvh] sm:h-[52vh] sm:[--alto-vista:52vh]">
-              <VistaChapita tipo={tipo} imagenTipo={imagenTipo} vistaImagen={vistaImagen} nombre={nombre} telefono={telefono} letra={letra} />
+              <VistaChapita tipo={tipo} imagenTipo={imagenTipo} vistaImagen={vistaImagen} nombre={nombre} telefono={telefono} letra={letra} tamLetra={tamLetra} />
             </div>
             <p className="pb-3 pt-3 text-center text-[11px] text-tinta/60">{elegido.texto} · grabado láser</p>
           </div>
@@ -348,6 +350,25 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
                       );
                     })}
                   </div>
+                  {/* Tamaño de la letra: de la mitad a lo más grande que entra en la chapita. */}
+                  <label htmlFor={`${id}-tam-letra`} className="eyebrow mb-3 mt-6 flex items-baseline justify-between">
+                    Tamaño de letra
+                    <span className="normal-case tracking-normal text-tinta/60">{Math.round(tamLetra * 100)} %</span>
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <span aria-hidden="true" className="text-[11px] text-tinta/60">A</span>
+                    <input
+                      id={`${id}-tam-letra`}
+                      type="range"
+                      min={TAM_LETRA.min}
+                      max={TAM_LETRA.max}
+                      step={TAM_LETRA.paso}
+                      value={tamLetra}
+                      onChange={(e) => setTamLetra(Number(e.target.value))}
+                      className="h-8 w-full cursor-pointer accent-tinta"
+                    />
+                    <span aria-hidden="true" className="text-lg leading-none text-tinta/60">A</span>
+                  </div>
                 </fieldset>
               )}
             </div>
@@ -398,6 +419,7 @@ function VistaChapita({
   nombre,
   telefono,
   letra,
+  tamLetra = 1,
 }: {
   tipo: string;
   imagenTipo: "" | "carita" | "otra";
@@ -405,6 +427,7 @@ function VistaChapita({
   nombre: string;
   telefono: string;
   letra: string;
+  tamLetra?: number;
 }) {
   const t = tipoChapita(tipo) ?? oferta.tipos[0];
   const { familia: fam, peso } = familia(letra);
@@ -427,8 +450,9 @@ function VistaChapita({
   const altoFoto = foto ? zAlto * (hayTexto ? 0.58 : 0.95) : 0;
   const anchoFoto = img ? Math.min(z.ancho * 0.85, altoFoto * img.proporcion) : 0;
   const altoTexto = foto ? zAlto * 0.4 : zAlto;
-  const tamNombre = Math.min(altoTexto * (lineaTel ? 0.42 : 0.55), z.ancho / (Math.max(lineaNombre.length, 3) * 0.6));
-  const tamTel = Math.min(altoTexto * (lineaNombre ? 0.2 : 0.3), z.ancho / (Math.max(lineaTel.length, 6) * 0.56));
+  // Lo más grande que entra, por el tamaño que eligió (1 = todo).
+  const tamNombre = Math.min(altoTexto * (lineaTel ? 0.42 : 0.55), z.ancho / (Math.max(lineaNombre.length, 3) * 0.6)) * tamLetra;
+  const tamTel = Math.min(altoTexto * (lineaNombre ? 0.2 : 0.3), z.ancho / (Math.max(lineaTel.length, 6) * 0.56)) * tamLetra;
   const cqw = (parte: number) => `${parte * 100}cqw`;
 
   return (
