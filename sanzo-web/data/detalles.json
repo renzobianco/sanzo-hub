@@ -59,8 +59,8 @@
     { "x": 12, "y": 31, "tx": 20, "ty": 80, "texto": "Se ata al cuello", "sub": "Un nudo y listo" }
   ],
   "poo-bag-circulo": [
-    { "x": 31, "y": 42, "tx": 28.5, "ty": 74, "texto": "Trae un rollito", "sub": "Lista para salir" },
-    { "x": 72, "y": 45, "tx": 74, "ty": 22, "texto": "Cierre", "sub": "Recargás bolsitas" },
-    { "x": 34, "y": 86, "tx": 48, "ty": 93, "texto": "Mosquetón", "sub": "Va colgada de la correa" }
+    { "x": 33, "y": 41, "tx": 28.5, "ty": 74, "texto": "Trae un rollito", "sub": "Lista para salir" },
+    { "x": 70, "y": 45, "tx": 74, "ty": 22, "texto": "Cierre", "sub": "Recargás bolsitas" },
+    { "x": 36, "y": 86, "tx": 48, "ty": 93, "texto": "Mosquetón", "sub": "Va colgada de la correa" }
   ]
 }

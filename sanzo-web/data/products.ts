@@ -777,7 +777,7 @@ export const chapita: Producto = {
   id: "chapita",
   nombre: "Chapita personalizada",
   tipo: "individual",
-  descripcion: "Grabada con láser, con su nombre y tu teléfono. Llevando 2, la tercera te la regalamos.",
+  descripcion: "Grabada con láser, con su nombre y tu teléfono. 80% más barata que en otros lados. Llevando 2, la tercera te la regalamos.",
   incluye: [],
   precio: 8000,
   miniatura: "/productos/piezas/chapita.jpg",
@@ -814,6 +814,8 @@ export const ofertaChapita = {
     /** Debajo de la chapita en el carrito, cuando le falta una para el regalo. */
     falta: "Sumá una más y te la regalamos.",
   },
+  /** Comparación de precio: una chapita grabada sale en promedio $40.000 en otros lados (Santino, 2026-10-30). */
+  comparacion: "80% más barata que en otros lados",
   cartelAlt: "¿Le sumás una chapita personalizada? Grabá el nombre y el teléfono de tu perro. Por solo $6.000.",
   agregar: "Agregar",
   titulo: "Personalizá su chapita",

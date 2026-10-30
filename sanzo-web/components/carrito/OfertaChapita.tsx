@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useId, useRef, useState } from "react";
+import { trabarScroll } from "@/lib/scroll";
 import { chapita, ofertaChapita as oferta } from "@/data/products";
 import { letrasChapita, tipoChapita, textoGrabado, validarGrabado, type ErroresGrabado } from "@/lib/chapita";
 import { familia } from "@/lib/fuentes";
@@ -28,6 +29,8 @@ interface Props {
  */
 export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
+  const liberar = useRef<(() => void) | null>(null);
+  useEffect(() => () => liberar.current?.(), []);
   const id = useId();
   const [paso, setPaso] = useState<"cartel" | "personalizar">("cartel");
   const [tipo, setTipo] = useState(oferta.tipos[0]?.id ?? "");
@@ -52,7 +55,8 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
       setErrores({});
       setPasoGrabado(0);
       setPaso(modo === "combo" ? "personalizar" : "cartel");
-      document.body.style.overflow = "hidden";
+      liberar.current?.();
+      liberar.current = trabarScroll();
       d.showModal();
     } else if (!abierta && d.open) d.close();
   }, [abierta, modo]);
@@ -106,7 +110,10 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
         e.preventDefault();
         onNo();
       }}
-      onClose={() => (document.body.style.overflow = "")}
+      onClose={() => {
+        liberar.current?.();
+        liberar.current = null;
+      }}
       className={
         verCartel
           ? "m-0 mt-auto max-h-[94dvh] w-full max-w-none overflow-y-auto rounded-t-[1.4rem] bg-crema p-0 text-tinta backdrop:bg-tinta/55 sm:m-auto sm:max-w-md sm:rounded-[1.4rem]"
@@ -141,6 +148,7 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
                 <s className="text-[14px] text-tinta/45">{formatearPrecio(chapita.precio)}</s>
               )}
             </p>
+            <p className="mt-1 text-[13px] font-medium text-marron">{oferta.comparacion}</p>
             {oferta.tresPorDos.activa && (
               <p className="mt-2 text-[12px] uppercase tracking-[0.16em] text-marron">{oferta.tresPorDos.aviso}</p>
             )}

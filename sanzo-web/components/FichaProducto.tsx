@@ -13,6 +13,7 @@ import { Detalles } from "./Detalles";
 import { FlechasGaleria } from "./FlechasGaleria";
 import { IconoCerrar } from "./Iconos";
 import { MiniPiezas } from "./MiniPiezas";
+import { trabarScroll } from "@/lib/scroll";
 
 const DURACION = 450;
 
@@ -37,6 +38,8 @@ export function FichaProducto({
   const pista = useRef<HTMLUListElement>(null);
   const [arrastre, setArrastre] = useState(0);
   const inicio = useRef<number | null>(null);
+  const liberar = useRef<(() => void) | null>(null);
+  useEffect(() => () => liberar.current?.(), []);
 
   // Abrir: se monta el dialog y en el cuadro siguiente sube (así se ve la transición).
   useEffect(() => {
@@ -44,7 +47,8 @@ export function FichaProducto({
     if (!d) return;
     if (abierta && !d.open) {
       d.showModal();
-      document.body.style.overflow = "hidden";
+      liberar.current?.();
+      liberar.current = trabarScroll();
       requestAnimationFrame(() => requestAnimationFrame(() => setArriba(true)));
     }
   }, [abierta]);
@@ -75,7 +79,8 @@ export function FichaProducto({
         cerrar();
       }}
       onClose={() => {
-        document.body.style.overflow = "";
+        liberar.current?.();
+        liberar.current = null;
         setFoto(0);
         onCerrar();
       }}

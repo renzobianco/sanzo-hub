@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { IconoCerrar } from "./Iconos";
+import { trabarScroll } from "@/lib/scroll";
 
 const MAX = 4; // acercamiento máximo
 const TOQUE = 2.5; // acercamiento al tocar
@@ -16,6 +17,8 @@ const SUAVE = "transform 340ms cubic-bezier(0.16, 1, 0.3, 1)";
 export function ConZoom({ fotos, nombre, inicial = 0, children }: { fotos: string[]; nombre: string; inicial?: number; children: React.ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null);
   const pista = useRef<HTMLUListElement>(null);
+  const liberar = useRef<(() => void) | null>(null);
+  useEffect(() => () => liberar.current?.(), []);
   const [activa, setActiva] = useState(inicial);
   const [acercada, setAcercada] = useState(false);
   // Las fotos grandes se montan recién al abrir: así no se piden todas al cargar la página.
@@ -33,7 +36,8 @@ export function ConZoom({ fotos, nombre, inicial = 0, children }: { fotos: strin
     setAcercada(false);
     setActiva(inicial);
     setAbierto(true);
-    document.body.style.overflow = "hidden";
+    liberar.current?.();
+    liberar.current = trabarScroll();
     ref.current?.showModal();
   }
 
@@ -56,7 +60,8 @@ export function ConZoom({ fotos, nombre, inicial = 0, children }: { fotos: strin
         ref={ref}
         aria-label={`Fotos de ${nombre}`}
         onClose={() => {
-          document.body.style.overflow = "";
+          liberar.current?.();
+          liberar.current = null;
           setAbierto(false);
           setAcercada(false);
         }}

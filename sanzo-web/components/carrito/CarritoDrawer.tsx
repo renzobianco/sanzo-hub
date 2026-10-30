@@ -16,6 +16,7 @@ import { textoOpcion } from "@/lib/combos";
 import { ofertaChapita } from "@/data/products";
 import { esChapita, fotoDeLinea } from "@/lib/chapita";
 import { textoPersonalizacion } from "@/lib/personalizacion";
+import { trabarScroll } from "@/lib/scroll";
 
 export function CarritoDrawer() {
   const { abierto, cerrar, totales, cambiarCantidad, quitar, personalizar } = useCarrito();
@@ -43,13 +44,12 @@ export function CarritoDrawer() {
     if (!abierto) return;
     const previo = document.activeElement as HTMLElement | null;
     botonCerrar.current?.focus();
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const liberar = trabarScroll();
     // Con el editor de personalización abierto, Escape cierra solo el editor.
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && !document.querySelector("dialog[open]") && cerrar();
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = overflow;
+      liberar();
       window.removeEventListener("keydown", onKey);
       previo?.focus?.();
     };

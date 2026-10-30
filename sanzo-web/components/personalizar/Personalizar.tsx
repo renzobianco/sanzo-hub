@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { trabarScroll } from "@/lib/scroll";
 import { getProducto, personalizacion as config, sitio, vista360, type Producto } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
 import { medidaFinal, proporcionForma } from "@/lib/formas";
@@ -239,6 +240,8 @@ const PASOS = ["Qué grabamos", "Forma y color", "Medida", "Lugar"];
 
 export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCarrito }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
+  const liberar = useRef<(() => void) | null>(null);
+  useEffect(() => () => liberar.current?.(), []);
   const id = useId();
   const piezas = piezasPersonalizables(producto);
   const max = medidaMaxima(piezas);
@@ -313,7 +316,8 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
     setPosiciones(aPixeles(valor?.posiciones));
     cargarZonas().then(setZonas);
     precargarPiezas(piezas.map((pz) => config.piezas[pz]).filter(Boolean));
-    document.body.style.overflow = "hidden";
+    liberar.current?.();
+    liberar.current = trabarScroll();
     ref.current?.showModal();
   }
 
@@ -550,7 +554,10 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
       <dialog
         ref={ref}
         aria-labelledby={`${id}-titulo`}
-        onClose={() => (document.body.style.overflow = "")}
+        onClose={() => {
+          liberar.current?.();
+          liberar.current = null;
+        }}
         className="m-0 h-[100dvh] max-h-none w-full max-w-none overflow-hidden bg-crema p-0 text-tinta backdrop:bg-tinta/50 sm:m-auto sm:h-[min(92vh,760px)] sm:w-[min(92vw,980px)] sm:rounded-[1.25rem]"
       >
         {/* Celu: vista arriba y formulario abajo. PC: vista grande a la izquierda y formulario a la derecha. */}
