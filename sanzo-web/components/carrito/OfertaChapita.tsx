@@ -125,32 +125,26 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo 
     >
       {verCartel ? (
         <>
-          {/* Cartel con la foto de las chapitas grabadas y los textos de la marca (Jost liviana, crema y marrón). */}
+          {/* La pieza del cartel (ya trae título, texto y precio) y abajo los avisos y los botones. */}
           <div className="relative">
-            <div className="relative aspect-[4/3] w-full overflow-hidden bg-lino">
-              <Image src={oferta.cartelFoto} alt={oferta.cartelAlt} fill sizes="(min-width: 640px) 448px, 100vw" className="object-cover object-[50%_45%]" priority />
-            </div>
+            <Image
+              src={oferta.cartelPieza}
+              alt={oferta.cartelAlt}
+              width={oferta.cartelPiezaTam.ancho}
+              height={oferta.cartelPiezaTam.alto}
+              sizes="(min-width: 640px) 448px, 100vw"
+              className="block h-auto w-full"
+              priority
+            />
             <button type="button" onClick={onNo} aria-label="Cerrar" className="absolute right-2 top-2 z-10 rounded-full bg-crema/85 p-2 backdrop-blur-sm">
               <IconoCerrar />
             </button>
           </div>
-          <div className="px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-6 text-center">
-            <p className="flex items-center justify-center gap-2.5 text-[11px] uppercase tracking-[0.28em] text-marron">
-              <span aria-hidden="true" className="h-px w-6 bg-marron" />
-              {oferta.cartelPrevia}
-              <span aria-hidden="true" className="h-px w-6 bg-marron" />
-            </p>
-            <h2 id={`${id}-titulo`} className="mt-3 text-[1.55rem] font-light uppercase leading-tight tracking-[0.14em]">
-              {oferta.cartelTitulo}
+          <div className="px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 text-center">
+            <h2 id={`${id}-titulo`} className="sr-only">
+              {oferta.cartelAlt}
             </h2>
-            <p className="mx-auto mt-2.5 max-w-[19rem] text-[14px] leading-relaxed text-tinta/70">{oferta.cartelTexto}</p>
-            <p className="mt-4 flex items-baseline justify-center gap-2.5">
-              <span className="text-[1.5rem] font-light tracking-wide">{formatearPrecio(oferta.precio)}</span>
-              {chapita.precio !== null && chapita.precio > oferta.precio && (
-                <s className="text-[14px] text-tinta/45">{formatearPrecio(chapita.precio)}</s>
-              )}
-            </p>
-            <p className="mt-1 text-[13px] font-medium text-marron">{oferta.comparacion}</p>
+            <p className="text-[13px] font-medium text-marron">{oferta.comparacion}</p>
             {oferta.tresPorDos.activa && (
               <p className="mt-2 text-[12px] uppercase tracking-[0.16em] text-marron">{oferta.tresPorDos.aviso}</p>
             )}

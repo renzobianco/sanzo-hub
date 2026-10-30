@@ -823,7 +823,10 @@ export const ofertaChapita = {
   imagen: "/productos/chapitas/oferta.jpg",
   /** Lo primero que se ve: la pieza de la chapita (ya trae título y precio) y abajo el botón `agregar`. */
   cartel: "/productos/chapitas/cartel.jpg",
-  /** Cartel armado en la web (reemplaza la pieza `cartel`): foto de las 4 chapitas grabadas y textos de la marca. */
+  /** Pieza del cartel (Renzo, 2026-10-30): ya trae título, texto y precio; abajo van los avisos y los botones. */
+  cartelPieza: "/productos/chapitas/cartel-pieza.jpg",
+  cartelPiezaTam: { ancho: 1672, alto: 941 },
+  /** Cartel armado en la web (antes de la pieza): foto de las 4 chapitas grabadas y textos de la marca. */
   cartelFoto: "/productos/chapitas/cartel-chapitas.jpg",
   cartelPrevia: "Sumala a tu compra",
   cartelTitulo: "Su chapita, grabada",
