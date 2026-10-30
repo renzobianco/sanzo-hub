@@ -410,4 +410,5 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 
 ## 2026-10-30 — Moño real y 3x2 en chapitas
 - Moño: la foto de Individuales y el círculo salen del moño real (IMG_9746 de "articulos reales" en el Drive), recortado y puesto sobre el fondo sábana de las otras piezas, con el tono del collar. Las fotos viejas del moño (IA) quedan fuera.
+- Moño (después): Santino eligió el moño de IMG_9407 (sarga satinada) pero sin el fondo desenfocado. La foto de Individuales se rehízo con ChatGPT a partir de ese moño, sobre fondo sábana nítido; el círculo es ese mismo moño recortado sobre crema liso.
 - 3x2 en chapitas (`ofertaChapita.tresPorDos`): cada 3 chapitas en el carrito, la más barata va de regalo. Se ve como descuento en el carrito y el checkout, en el cartel ("Llevando 2, la tercera te la regalamos") y, con 2 en el carrito, debajo de la chapita ("Sumá una más y te la regalamos").
