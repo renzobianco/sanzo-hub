@@ -407,3 +407,7 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 ## 2026-10-30 · Círculos de piezas: crema liso (Santi)
 - Santi eligió entre 6 opciones: **crema liso, sin sombra ni borde**, en todos los círculos (las 6 piezas, gorra, piluso y chapita). Fondo #F8F3EC: solo se recoloreó el fondo de cada foto. El de la chapita se armó con los recortes nuevos en acero.
 - "Kala" del huesito subido (estaba bajo).
+
+## 2026-10-30 — Moño real y 3x2 en chapitas
+- Moño: la foto de Individuales y el círculo salen del moño real (IMG_9746 de "articulos reales" en el Drive), recortado y puesto sobre el fondo sábana de las otras piezas, con el tono del collar. Las fotos viejas del moño (IA) quedan fuera.
+- 3x2 en chapitas (`ofertaChapita.tresPorDos`): cada 3 chapitas en el carrito, la más barata va de regalo. Se ve como descuento en el carrito y el checkout, en el cartel ("Llevando 2, la tercera te la regalamos") y, con 2 en el carrito, debajo de la chapita ("Sumá una más y te la regalamos").

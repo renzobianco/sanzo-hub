@@ -777,7 +777,7 @@ export const chapita: Producto = {
   id: "chapita",
   nombre: "Chapita personalizada",
   tipo: "individual",
-  descripcion: "Grabada con láser, con su nombre y tu teléfono.",
+  descripcion: "Grabada con láser, con su nombre y tu teléfono. Llevando 2, la tercera te la regalamos.",
   incluye: [],
   precio: 8000,
   miniatura: "/productos/piezas/chapita.jpg",
@@ -804,6 +804,16 @@ export const ofertaChapita = {
   cartelPrevia: "Sumala a tu compra",
   cartelTitulo: "Su chapita, grabada",
   cartelTexto: "Su nombre, tu teléfono o su carita. Grabada con láser, en la forma que elijas.",
+  /** Promo de chapitas: cada 3 en el carrito, la más barata va de regalo (lib/carrito.ts). */
+  tresPorDos: {
+    activa: true,
+    /** Línea del descuento en el carrito y el checkout. */
+    texto: "3x2 en chapitas",
+    /** Cartel y ficha de la chapita. */
+    aviso: "Llevando 2, la tercera te la regalamos.",
+    /** Debajo de la chapita en el carrito, cuando le falta una para el regalo. */
+    falta: "Sumá una más y te la regalamos.",
+  },
   cartelAlt: "¿Le sumás una chapita personalizada? Grabá el nombre y el teléfono de tu perro. Por solo $6.000.",
   agregar: "Agregar",
   titulo: "Personalizá su chapita",

@@ -1,4 +1,4 @@
-import { getProducto, ofertaChapita, type Producto } from "@/data/products";
+import { chapita, getProducto, ofertaChapita, type Producto } from "@/data/products";
 import { esChapita, llevaChapita, normalizarOpcionChapita, normalizarOpcionComboChapita } from "./chapita";
 import { envioInfo, zonaPorCP, zonaPorProvincia, type TipoEntrega, type ZonaEnvio } from "@/data/envios";
 import { clavePersonalizacion, normalizarPersonalizacion, precioPersonalizacion, type Personalizacion } from "./personalizacion";
@@ -119,6 +119,8 @@ export function calcularTotales(lineas: LineaCarrito[], ubicacion: Ubicacion): T
   for (const l of resueltas) porProducto[l.productoId] = (porProducto[l.productoId] ?? 0) + l.cantidad;
   const combosEnCarrito = resueltas.filter((l) => l.producto.tipo === "combo" || l.producto.tipo === "kit").map((l) => l.productoId);
   const { descuentos, sugerencias } = calcularPromos(porProducto, combosEnCarrito);
+  const regalo = chapitasDeRegalo(resueltas);
+  if (regalo) descuentos.push(regalo);
   const ahorro = descuentos.reduce((s, d) => s + d.monto, 0);
   // Kit armado con piezas sueltas: viaja gratis igual que el kit.
   if (descuentos.some((d) => d.envioGratis)) contieneKit = true;
@@ -142,6 +144,26 @@ export function calcularTotales(lineas: LineaCarrito[], ubicacion: Ubicacion): T
 
   const total = productos + (envio.tipo === "precio" ? envio.monto : 0);
   return { lineas: resueltas, unidades, subtotal, descuentos, ahorro, sugerencias, envio, total, contieneKit, faltaParaGratis };
+}
+
+/**
+ * 3x2 en chapitas: cada 3 chapitas del carrito (cualquier forma y grabado), la más barata va de regalo.
+ * Se ordenan de la más cara a la más barata y se regala la tercera de cada grupo de tres.
+ */
+function chapitasDeRegalo(lineas: LineaResuelta[]): DescuentoAplicado | null {
+  const promo = ofertaChapita.tresPorDos;
+  if (!promo.activa) return null;
+  const precios = lineas
+    .filter((l) => esChapita(l.productoId))
+    .flatMap((l) => Array<number>(l.cantidad).fill(l.unitario))
+    .sort((a, b) => b - a);
+  const monto = precios.filter((_, i) => i % 3 === 2).reduce((s, p) => s + p, 0);
+  return monto > 0 ? { promoId: "chapitas-3x2", texto: promo.texto, monto, piezas: [chapita.id], envioGratis: false } : null;
+}
+
+/** Cuántas chapitas sueltas hay en el carrito (para avisar cuando falta una para el 3x2). */
+export function chapitasEnCarrito(lineas: LineaResuelta[]) {
+  return lineas.filter((l) => esChapita(l.productoId)).reduce((s, l) => s + l.cantidad, 0);
 }
 
 /** Combos del carrito que entran enteros en `destino` (más chicos que él), sin pisarse entre sí. */

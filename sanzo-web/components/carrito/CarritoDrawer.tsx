@@ -11,8 +11,9 @@ import { esPersonalizable } from "@/lib/personalizacion";
 import { ImagenProducto } from "../ImagenProducto";
 import { IconoCerrar, IconoMas, IconoMenos } from "../Iconos";
 import { detalleEnvio, formatearPrecio, textoEnvio } from "@/lib/formato";
-import { MAX_CANTIDAD } from "@/lib/carrito";
+import { chapitasEnCarrito, MAX_CANTIDAD } from "@/lib/carrito";
 import { textoOpcion } from "@/lib/combos";
+import { ofertaChapita } from "@/data/products";
 import { esChapita, fotoDeLinea } from "@/lib/chapita";
 import { textoPersonalizacion } from "@/lib/personalizacion";
 
@@ -33,6 +34,9 @@ export function CarritoDrawer() {
       sugerenciaDe.set(l.key, s);
     }
   }
+  // 3x2 en chapitas: con 2 (o 5, 8…) avisa en la primera chapita que la próxima es de regalo.
+  const primeraChapita = lineas.find((l) => esChapita(l.productoId))?.key;
+  const faltaUnaChapita = ofertaChapita.tresPorDos.activa && chapitasEnCarrito(lineas) % 3 === 2;
   const enCombo = (id: string) => descuentos.find((d) => d.piezas.includes(id))?.texto.replace(/ × \d+$/, "");
 
   useEffect(() => {
@@ -107,6 +111,9 @@ export function CarritoDrawer() {
                           <p className="mt-1 inline-block rounded-full bg-tinta px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-crema">
                             {enCombo(l.productoId)}
                           </p>
+                        )}
+                        {faltaUnaChapita && l.key === primeraChapita && (
+                          <p className="mt-1 text-[13px] text-marron">{ofertaChapita.tresPorDos.falta}</p>
                         )}
                         {esPersonalizable(l.producto) ? (
                           <div className="mt-1.5">

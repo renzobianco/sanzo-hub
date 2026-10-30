@@ -139,6 +139,9 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta" }: Props
                 <s className="text-[14px] text-tinta/45">{formatearPrecio(chapita.precio)}</s>
               )}
             </p>
+            {oferta.tresPorDos.activa && (
+              <p className="mt-2 text-[12px] uppercase tracking-[0.16em] text-marron">{oferta.tresPorDos.aviso}</p>
+            )}
             <button type="button" onClick={() => setPaso("personalizar")} className="btn-primario mt-5 w-full py-4 text-sm">
               {oferta.agregar}
             </button>
