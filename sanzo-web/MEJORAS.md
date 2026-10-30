@@ -418,6 +418,17 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Personalizador: el tamaño de letra va justo debajo del nombre y llega hasta 200 % (la vista lo frena en los bordes). En kit y combos arranca solo la primera pieza y las otras se suman tocándolas ("¿Qué piezas personalizás?"). Botón Personalizar también en los sueltos que se pueden (arnés, correa, collar, bandana); gorra, piluso y moño no se personalizan.
 - Foto a grabado: al subir una foto se le saca el fondo en el celular (modelo ISNet de 8 bits en `public/modelos/isnet-q8.onnx`, motor en `public/ort`, versión de onnxruntime-web fija) y queda en líneas y relleno. Si el modelo no carga, se graba la imagen entera. El dibujo a mano ("Tu letra") no pasa por ahí.
 - Ficha de los individuales sin "Calculá el envío" (se ve en el carrito).
-- Sombra de palmera de fondo, muy suave, fija en las esquinas (`public/palma.png`, clase `sombra-palmera`).
 - Collar: el puntito de "Personalizable" va sobre la tira, no sobre el logo.
 - 3x2 en chapitas (`ofertaChapita.tresPorDos`): cada 3 chapitas en el carrito, la más barata va de regalo. Se ve como descuento en el carrito y el checkout, en el cartel ("Llevando 2, la tercera te la regalamos") y, con 2 en el carrito, debajo de la chapita ("Sumá una más y te la regalamos").
+
+## 2026-10-30 — Precios claros en chapitas y combos
+
+- Chapitas: el 3x2 y el precio con otra compra ya no se suman. 3 chapitas = $16.000 siempre (Combo Manada); las que no completan un trío, con otra compra, salen $6.000. En la línea va el precio de lista y el ahorro se resta aparte (`ahorroChapitas` en `lib/carrito.ts`).
+- Carrito y checkout: con 3 chapitas o más se juntan bajo "Combo Manada" con la foto del combo y un solo precio tachado (~~$24.000~~ $16.000, "Ahorrás $8.000 con el Combo Manada"); las chapitas van debajo sin precio. Una chapita con otra compra muestra ~~$8.000~~ $6.000.
+- Foto de la chapita en el carrito: la forma elegida sobre el lino (`productos/chapitas/linea/`, recortes de la foto de Individuales), no el recorte sin fondo.
+- Combos y kit: arriba, chico y tachado, el precio por separado; abajo, grande, "Pagás $X".
+- Combo Manada: cada chapita arranca eligiendo su forma ("pueden ser las tres iguales").
+- Aviso "a modo ilustrativo" al subir su carita u otra imagen (chapita y personalizador).
+- Círculos de las piezas: se abren con un toque (antes había que mantener apretado).
+- Sin sombra de palmera de fondo (no quedó bien).
+

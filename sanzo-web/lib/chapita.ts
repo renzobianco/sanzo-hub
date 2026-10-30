@@ -133,11 +133,11 @@ export function chapitaConFoto(producto: Producto, opcion?: string) {
   return llevaChapita(producto) && !!opcion && opcion.split(SEP).some((p) => p.trim() === FOTO || p.trim() === IMAGEN);
 }
 
-/** Foto para la línea del carrito/checkout: en la chapita, la forma elegida; en el resto, la primera foto. */
+/** Foto para la línea del carrito/checkout: en la chapita, la forma elegida sobre el lino; en el resto, la primera foto. */
 export function fotoDeLinea(producto: Producto, opcion?: string) {
   if (esChapita(producto.id) && opcion) {
     const t = tipoChapita(opcion.split(SEP)[0]);
-    if (t) return t.recorte.src;
+    if (t) return t.linea;
   }
   return producto.imagenes[0];
 }

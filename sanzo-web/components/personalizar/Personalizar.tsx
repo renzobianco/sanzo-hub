@@ -844,6 +844,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                         </span>
                       </span>
                     </label>
+                    <p className="mt-2 text-[12px] leading-relaxed text-marron">{config.ilustrativo}</p>
                     {errores.imagen && <p className="mt-1.5 text-sm text-marron">{errores.imagen}</p>}
                     {/* Ideas para que se animen: lo que imaginen se puede grabar. */}
                     {!vistaImagen && (

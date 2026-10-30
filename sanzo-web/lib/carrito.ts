@@ -91,14 +91,6 @@ export function resolverLineas(lineas: LineaCarrito[]): LineaResuelta[] {
     const unitario = producto.precio + (personalizacion ? precioPersonalizacion(producto, personalizacion) : 0);
     out.push({ ...l, opcion, personalizacion, cantidad, producto, unitario, subtotal: unitario * cantidad });
   }
-  // Chapita sumada a otra compra: sale el precio de la oferta.
-  if (out.some((l) => !esChapita(l.productoId))) {
-    for (const l of out) {
-      if (!esChapita(l.productoId)) continue;
-      l.unitario = ofertaChapita.precio;
-      l.subtotal = l.unitario * l.cantidad;
-    }
-  }
   return out;
 }
 
@@ -119,8 +111,7 @@ export function calcularTotales(lineas: LineaCarrito[], ubicacion: Ubicacion): T
   for (const l of resueltas) porProducto[l.productoId] = (porProducto[l.productoId] ?? 0) + l.cantidad;
   const combosEnCarrito = resueltas.filter((l) => l.producto.tipo === "combo" || l.producto.tipo === "kit").map((l) => l.productoId);
   const { descuentos, sugerencias } = calcularPromos(porProducto, combosEnCarrito);
-  const regalo = chapitasDeRegalo(resueltas);
-  if (regalo) descuentos.push(regalo);
+  descuentos.push(...descuentosChapitas(resueltas));
   const ahorro = descuentos.reduce((s, d) => s + d.monto, 0);
   // Kit armado con piezas sueltas: viaja gratis igual que el kit.
   if (descuentos.some((d) => d.envioGratis)) contieneKit = true;
@@ -147,34 +138,41 @@ export function calcularTotales(lineas: LineaCarrito[], ubicacion: Ubicacion): T
 }
 
 /**
- * 3x2 en chapitas: cada 3 chapitas del carrito (cualquier forma y grabado), la más barata va de regalo.
- * Se ordenan de la más cara a la más barata y se regala la tercera de cada grupo de tres.
+ * Ahorro en chapitas, por línea (key → monto) y en total:
+ * - 3x2 (Combo Manada): cada 3 chapitas del carrito (cualquier forma y grabado), una va de regalo → 3 chapitas = $16.000.
+ * - Las que no completan un trío, sumadas a otra compra, salen `ofertaChapita.precio` ($6.000).
+ * No se pisan: una chapita del trío no baja además a $6.000 (Santino, 2026-10-30: "tendría que aparecer 16").
+ * Las chapitas van a precio de lista en la línea; el ahorro se resta aparte (y la línea lo muestra tachado).
  */
-function chapitasDeRegalo(lineas: LineaResuelta[]): DescuentoAplicado | null {
-  const promo = ofertaChapita.tresPorDos;
-  if (!promo.activa) return null;
-  const precios = lineas
-    .filter((l) => esChapita(l.productoId))
-    .flatMap((l) => Array<number>(l.cantidad).fill(l.unitario))
-    .sort((a, b) => b - a);
-  const monto = precios.filter((_, i) => i % 3 === 2).reduce((s, p) => s + p, 0);
-  return monto > 0 ? { promoId: "chapitas-3x2", texto: promo.texto, monto, piezas: [chapita.id], envioGratis: false } : null;
-}
-
-/**
- * Cuánto del 3x2 cae en cada línea de chapitas (key → monto), con el mismo reparto que `chapitasDeRegalo`:
- * así cada línea muestra lo que de verdad paga (3 chapitas → $16.000, no $24.000).
- */
-export function regaloPorLinea(lineas: LineaResuelta[]): Record<string, number> {
-  const out: Record<string, number> = {};
-  if (!ofertaChapita.tresPorDos.activa) return out;
+export function ahorroChapitas(lineas: LineaResuelta[]) {
+  const porLinea: Record<string, number> = {};
   const unidades = lineas
     .filter((l) => esChapita(l.productoId))
     .flatMap((l) => Array.from({ length: l.cantidad }, () => ({ key: l.key, precio: l.unitario })))
     .sort((a, b) => b.precio - a.precio);
+  const enTrios = ofertaChapita.tresPorDos.activa ? Math.floor(unidades.length / 3) * 3 : 0;
+  const conOtraCompra = lineas.some((l) => !esChapita(l.productoId));
+  let tresPorDos = 0;
+  let conCompra = 0;
   unidades.forEach((u, i) => {
-    if (i % 3 === 2) out[u.key] = (out[u.key] ?? 0) + u.precio;
+    let monto = 0;
+    if (i < enTrios) {
+      if (i % 3 === 2) tresPorDos += monto = u.precio;
+    } else if (conOtraCompra) {
+      conCompra += monto = Math.max(0, u.precio - ofertaChapita.precio);
+    }
+    if (monto) porLinea[u.key] = (porLinea[u.key] ?? 0) + monto;
   });
+  const lista = lineas.filter((l) => esChapita(l.productoId)).reduce((t, l) => t + l.subtotal, 0);
+  // Con al menos un trío, el carrito las junta bajo "Combo Manada" con un solo precio.
+  return { porLinea, tresPorDos, conCompra, unidades: unidades.length, lista, agrupadas: enTrios > 0 };
+}
+
+function descuentosChapitas(lineas: LineaResuelta[]): DescuentoAplicado[] {
+  const { tresPorDos, conCompra } = ahorroChapitas(lineas);
+  const out: DescuentoAplicado[] = [];
+  if (tresPorDos) out.push({ promoId: "chapitas-3x2", texto: ofertaChapita.tresPorDos.texto, monto: tresPorDos, piezas: [chapita.id], envioGratis: false });
+  if (conCompra) out.push({ promoId: "chapita-con-compra", texto: ofertaChapita.textoConCompra, monto: conCompra, piezas: [chapita.id], envioGratis: false });
   return out;
 }
 

@@ -39,6 +39,12 @@ export function SeccionKit() {
 
           {kit.precio !== null && (
             <div className="mt-6">
+              {/* Arriba, tachado, lo que sale por separado; abajo, grande, lo que se paga. */}
+              {porSeparado !== null && ahorro > 0 && (
+                <p className="mb-2 text-[13px] text-tinta/50">
+                  {sitio.kit.porSeparado} <s className="decoration-tinta/60">{formatearPrecio(porSeparado)}</s>
+                </p>
+              )}
               <div className="flex items-center justify-between gap-3">
                 <p className="text-[2.75rem] font-medium leading-none tracking-tight">{formatearPrecio(kit.precio)}</p>
                 {ahorro > 0 && (
@@ -47,11 +53,6 @@ export function SeccionKit() {
                   </span>
                 )}
               </div>
-              {porSeparado !== null && ahorro > 0 && (
-                <p className="mt-2 text-[13px] text-tinta/55">
-                  {sitio.kit.porSeparado} <s>{formatearPrecio(porSeparado)}</s>
-                </p>
-              )}
             </div>
           )}
 

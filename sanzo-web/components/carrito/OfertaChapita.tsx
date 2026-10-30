@@ -205,6 +205,8 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo 
             <div key={pasoGrabado} className="mt-7 animate-entrada space-y-7">
               {PASOS[pasoGrabado] === "Forma" && (
                 <fieldset>
+                  {/* Combo Manada ("Chapita 1 de 3"…): cada una arranca eligiendo su forma. */}
+                  {titulo && <p className="mb-4 text-[13px] leading-relaxed text-marron">Elegí la forma de esta chapita. Pueden ser las tres iguales o todas distintas.</p>}
                   <legend className="eyebrow mb-3">
                     Forma <span className="ml-1 normal-case tracking-normal text-tinta/60">{elegido.texto}</span>
                   </legend>
@@ -277,6 +279,7 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo 
                             }}
                           />
                         </label>
+                        <p className="mt-2 text-[12px] leading-relaxed text-marron">{oferta.foto.ilustrativo}</p>
                       </div>
                     )}
                   </fieldset>

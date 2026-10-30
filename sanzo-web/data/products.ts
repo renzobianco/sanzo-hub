@@ -243,6 +243,8 @@ export const personalizacion: {
   /** Mensaje de WhatsApp cuando piden ayuda con el diseño u otra forma. */
   mensajeAyuda: string;
   /** Ejemplos que se muestran en "Tu imagen" para que se animen. */
+  /** Debajo de "Subir imagen": la vista es orientativa (Santino, 2026-10-30). */
+  ilustrativo: string;
   ideasImagen: string[];
   maxNombre: number;
   formas: FormaParche[];
@@ -264,6 +266,7 @@ export const personalizacion: {
   precioImagen: 100,
   avisoImagen: "Es una vista previa: la grabamos con tu imagen original, en alta calidad.",
   mensajeAyuda: "Hola sanzo! Quiero personalizar un parche y necesito ayuda con el diseño",
+  ilustrativo: "Es a modo ilustrativo, para que veas cómo se previsualiza. El grabado real puede variar y quedar todavía mejor.",
   ideasImagen: ["Una foto tuya con tu perro", "Su carita", "El escudo de tu club", "Su huellita", "Un dibujo de tus hijos", "Tu logo"],
   avisoImagenSinSubir: "No pudimos guardar la imagen original. Después del pedido mandala por WhatsApp con tu número de pedido.",
   /** Máximo de letras del nombre. */
@@ -464,7 +467,7 @@ export const combos: Producto[] = [
     id: "combo-manada",
     nombre: "Combo Manada",
     tipo: "combo",
-    descripcion: "Tres chapitas grabadas y pagás dos. Una para cada uno de la manada.",
+    descripcion: "Tres chapitas grabadas y pagás dos. Cada una con la forma y el grabado que quieras: pueden ser tres corazones.",
     incluye: ["chapita", "chapita", "chapita"],
     precio: 16000,
     chapitas: 3,
@@ -829,12 +832,14 @@ export const ofertaChapita = {
   tresPorDos: {
     activa: true,
     /** Línea del descuento en el carrito y el checkout. */
-    texto: "3x2 en chapitas",
+    texto: "Combo Manada: 3x2 en chapitas",
     /** Cartel y ficha de la chapita. */
     aviso: "Llevando 2, la tercera te la regalamos.",
     /** Debajo de la chapita en el carrito, cuando le falta una para el regalo. */
     falta: "Sumá una más y te la regalamos.",
   },
+  /** Línea del descuento cuando la chapita va con otra compra ($8.000 → $6.000). */
+  textoConCompra: "Chapita con tu compra",
   /** Comparación de precio: una chapita grabada sale en promedio $40.000 en otros lados (Santino, 2026-10-30). */
   comparacion: "80% más barata que en otros lados",
   cartelAlt: "¿Le sumás una chapita personalizada? Grabá el nombre y el teléfono de tu perro. Por solo $6.000.",
@@ -858,6 +863,8 @@ export const ofertaChapita = {
     opciones: { ninguna: "Sin imagen", carita: "Su carita", otra: "Otra imagen" },
     detalleCarita: "Subí una foto de su cara para ver cómo queda. Después de comprar nos la mandás por WhatsApp y la pasamos a grabado láser.",
     detalleOtra: "Un dibujo, un logo, lo que quieras. Subila para ver cómo queda y después de comprar nos la mandás por WhatsApp.",
+    /** Debajo del botón de subir: la vista es orientativa (Santino, 2026-10-30). */
+    ilustrativo: "Es a modo ilustrativo, para que veas cómo se previsualiza. El grabado real puede variar y quedar todavía mejor.",
     elegir: "Subir foto para ver cómo queda",
     ejemplo: "/productos/chapitas/perro-grabado.png",
     ejemploTam: { ancho: 336, alto: 263 },
@@ -870,23 +877,28 @@ export const ofertaChapita = {
    * Formas de chapita (las 4 de la foto del Combo Identidad). Se graba la foto, el nombre, el teléfono o cualquier combinación (al menos uno).
    * zona: dónde va el grabado sobre la foto, en píxeles de la foto: centro (x, y) y lo que entra (ancho, alto).
    * recorte: la chapita sin fondo (como las piezas del personalizador), con su medida en píxeles.
+   * linea: la forma sola sobre el lino (recortada de la foto de Individuales), para el carrito y el checkout.
    * zonaRecorte: dónde va el grabado sobre el recorte, en partes del ancho y alto (0 a 1): centro (x, y) y lo que entra.
    */
   tipos: [
     {
       id: "Huesito", texto: "Huesito", imagen: "/productos/chapitas/huesito.jpg", zona: { x: 300, y: 380, ancho: 250, alto: 120 },
+      linea: "/productos/chapitas/linea/huesito.jpg",
       recorte: { src: "/productos/chapitas/recortes/huesito.webp", ancho: 750, alto: 566 }, zonaRecorte: { x: 0.505, y: 0.575, ancho: 0.62, alto: 0.34 },
     },
     {
       id: "Corazón", texto: "Corazón", imagen: "/productos/chapitas/corazon.jpg", zona: { x: 278, y: 350, ancho: 185, alto: 120 },
+      linea: "/productos/chapitas/linea/corazon.jpg",
       recorte: { src: "/productos/chapitas/recortes/corazon.webp", ancho: 512, alto: 684 }, zonaRecorte: { x: 0.5, y: 0.56, ancho: 0.62, alto: 0.32 },
     },
     {
       id: "Circular", texto: "Circular", imagen: "/productos/chapitas/circular.jpg", zona: { x: 256, y: 390, ancho: 185, alto: 140 },
+      linea: "/productos/chapitas/linea/circular.jpg",
       recorte: { src: "/productos/chapitas/recortes/circular.webp", ancho: 481, alto: 716 }, zonaRecorte: { x: 0.5, y: 0.665, ancho: 0.68, alto: 0.4 },
     },
     {
       id: "Placa", texto: "Placa", imagen: "/productos/chapitas/rectangular.jpg", zona: { x: 266, y: 365, ancho: 180, alto: 200 },
+      linea: "/productos/chapitas/linea/placa.jpg",
       recorte: { src: "/productos/chapitas/recortes/placa.webp", ancho: 448, alto: 900 }, zonaRecorte: { x: 0.5, y: 0.58, ancho: 0.74, alto: 0.62 },
     },
   ] as {
@@ -894,6 +906,7 @@ export const ofertaChapita = {
     texto: string;
     imagen: string;
     zona: { x: number; y: number; ancho: number; alto: number };
+    linea: string;
     recorte: { src: string; ancho: number; alto: number };
     zonaRecorte: { x: number; y: number; ancho: number; alto: number };
   }[],

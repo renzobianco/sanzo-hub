@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { useCarrito } from "./CarritoProvider";
 import { SelectorZona } from "./SelectorZona";
 import { AvisoArmado, CombosArmados, ItemSugerencia } from "./SugerenciasPromo";
@@ -10,8 +10,10 @@ import { Personalizar } from "../personalizar/Personalizar";
 import { esPersonalizable } from "@/lib/personalizacion";
 import { ImagenProducto } from "../ImagenProducto";
 import { IconoCerrar, IconoMas, IconoMenos } from "../Iconos";
+import { CabeceraManada } from "@/components/carrito/CabeceraManada";
+import { PrecioLinea } from "@/components/carrito/PrecioLinea";
 import { detalleEnvio, formatearPrecio, textoEnvio } from "@/lib/formato";
-import { chapitasEnCarrito, MAX_CANTIDAD, regaloPorLinea } from "@/lib/carrito";
+import { chapitasEnCarrito, MAX_CANTIDAD, ahorroChapitas } from "@/lib/carrito";
 import { textoOpcion } from "@/lib/combos";
 import { ofertaChapita } from "@/data/products";
 import { esChapita, fotoDeLinea } from "@/lib/chapita";
@@ -22,8 +24,9 @@ export function CarritoDrawer() {
   const { abierto, cerrar, totales, cambiarCantidad, quitar, personalizar } = useCarrito();
   const botonCerrar = useRef<HTMLButtonElement>(null);
   const { lineas, subtotal, descuentos, envio, total, contieneKit, faltaParaGratis } = totales;
-  // 3x2 en chapitas: cada línea muestra lo que paga de verdad.
-  const regalos = regaloPorLinea(lineas);
+  // Chapitas: cada línea muestra lo que paga de verdad y cuánto ahorra.
+  const chapitas = ahorroChapitas(lineas);
+  const motivoChapita = chapitas.tresPorDos ? "con el Combo Manada" : "por sumarla a tu compra";
   // Nombre del combo que arma esa pieza (para la etiquetita en la línea).
   // Cada combo a medio armar va debajo del primer producto del carrito que lo empieza (uno por producto).
   const sugerenciaDe = new Map<string, Sugerencia>();
@@ -40,7 +43,8 @@ export function CarritoDrawer() {
   // 3x2 en chapitas: con 2 (o 5, 8…) avisa en la primera chapita que la próxima es de regalo.
   const primeraChapita = lineas.find((l) => esChapita(l.productoId))?.key;
   const faltaUnaChapita = ofertaChapita.tresPorDos.activa && chapitasEnCarrito(lineas) % 3 === 2;
-  const enCombo = (id: string) => descuentos.find((d) => d.piezas.includes(id))?.texto.replace(/ × \d+$/, "");
+  // Las chapitas no llevan la etiqueta: su precio ya dice cuánto ahorran.
+  const enCombo = (id: string) => (esChapita(id) ? undefined : descuentos.find((d) => d.piezas.includes(id))?.texto.replace(/ × \d+$/, ""));
 
   useEffect(() => {
     if (!abierto) return;
@@ -94,11 +98,17 @@ export function CarritoDrawer() {
             <AvisoArmado />
             <ul className="divide-y divide-tinta/10">
               {lineas.map((l) => (
-                <li key={l.key} className="py-5">
+                <Fragment key={l.key}>
+                {chapitas.agrupadas && l.key === primeraChapita && (
+                  <li className="py-5">
+                    <CabeceraManada unidades={chapitas.unidades} lista={chapitas.lista} ahorro={chapitas.tresPorDos + chapitas.conCompra} />
+                  </li>
+                )}
+                <li className={`py-5 ${chapitas.agrupadas && esChapita(l.productoId) ? "!border-t-0 pl-6 pt-0" : ""}`}>
                   <div className="flex gap-4">
                   <ImagenProducto
                     src={fotoDeLinea(l.producto, l.opcion)}
-                    ajuste={esChapita(l.producto.id) ? "contain" : "cover"}
+                    ajuste="cover"
                     nombre={l.producto.nombre}
                     sizes="80px"
                     className="w-20 shrink-0"
@@ -130,13 +140,8 @@ export function CarritoDrawer() {
                           l.personalizacion && <p className="text-sm text-marron">{textoPersonalizacion(l.personalizacion)}</p>
                         )}
                       </div>
-                      {regalos[l.key] ? (
-                        <p className="whitespace-nowrap text-right text-[15px]">
-                          <s className="block text-[12px] text-tinta/45">{formatearPrecio(l.subtotal)}</s>
-                          {l.subtotal - regalos[l.key] > 0 ? formatearPrecio(l.subtotal - regalos[l.key]) : <span className="text-marron">De regalo</span>}
-                        </p>
-                      ) : (
-                        <p className="whitespace-nowrap text-[15px]">{formatearPrecio(l.subtotal)}</p>
+                      {!(chapitas.agrupadas && esChapita(l.productoId)) && (
+                        <PrecioLinea subtotal={l.subtotal} ahorro={chapitas.porLinea[l.key]} motivo={motivoChapita} />
                       )}
                     </div>
                     <div className="mt-auto flex items-center justify-between pt-3">
@@ -174,6 +179,7 @@ export function CarritoDrawer() {
                   </div>
                   {sugerenciaDe.has(l.key) && <ItemSugerencia sugerencia={sugerenciaDe.get(l.key)!} />}
                 </li>
+                </Fragment>
               ))}
             </ul>
             <CombosArmados />

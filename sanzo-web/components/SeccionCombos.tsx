@@ -182,19 +182,23 @@ export function SeccionCombos() {
                       </div>
                       {combo.precio !== null && (
                         <div className="mt-3.5">
+                          {/* Con ahorro: arriba, chiquito y tachado, lo que sale por separado; abajo, grande, lo que se paga. */}
+                          {ahorroDe(combo) && (
+                            <p className="mb-1.5 text-[13px] text-tinta/50">
+                              {sitio.kit.porSeparado} <s className="decoration-tinta/60">{formatearPrecio(ahorroDe(combo)!.porSeparado)}</s>
+                            </p>
+                          )}
                           <div className="flex items-center justify-between gap-3">
-                            <p className="text-[1.3rem] font-light leading-none tracking-wide">{formatearPrecio(combo.precio)}</p>
+                            <p className="text-[1.3rem] font-light leading-none tracking-wide">
+                              {ahorroDe(combo) && <span className="eyebrow mr-2 align-middle text-[10px] text-tinta/60">Pagás</span>}
+                              {formatearPrecio(combo.precio)}
+                            </p>
                             {ahorroDe(combo) && (
-                              <span className="whitespace-nowrap rounded-full border border-marron px-2.5 py-1 text-[11px] tracking-wide text-marron">
+                              <span className="whitespace-nowrap rounded-full bg-marron px-2.5 py-1 text-[11px] tracking-wide text-crema">
                                 {sitio.kit.ahorro} {formatearPrecio(ahorroDe(combo)!.ahorro)}
                               </span>
                             )}
                           </div>
-                          {ahorroDe(combo) && (
-                            <p className="mt-1.5 text-[12px] text-tinta/55">
-                              {sitio.kit.porSeparado} <s>{formatearPrecio(ahorroDe(combo)!.porSeparado)}</s>
-                            </p>
-                          )}
                         </div>
                       )}
                       <div className="pt-4">

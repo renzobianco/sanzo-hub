@@ -56,9 +56,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           >
             Saltar al contenido
           </a>
-          {/* Sombra de palmera, muy suave, como en las fotos del fondo sábana (Santi, 2026-10-30). No se toca. */}
-          <div aria-hidden="true" className="sombra-palmera pointer-events-none fixed -right-10 -top-6 z-[5] h-[min(80vw,30rem)] w-[min(80vw,30rem)]" />
-          <div aria-hidden="true" className="sombra-palmera pointer-events-none fixed -bottom-10 -left-12 z-[5] h-[min(60vw,22rem)] w-[min(60vw,22rem)] rotate-180" />
           <BarraSuperior />
           <Header hayLogo={hayLogo} />
           <main id="contenido">{children}</main>
