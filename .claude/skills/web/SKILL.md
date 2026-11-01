@@ -37,4 +37,5 @@ Tiene que pasar antes de pushear. Si el cambio es visual, levantar `npm run dev`
 1. Sumar una línea a `sanzo-web/MEJORAS.md` con la fecha y qué se cambió (y por qué, si lo pidió alguien).
 2. Commit con el prefijo `sanzo-web: ` y una descripción corta en castellano.
 3. Push. Lo que llega a `main` y toca `sanzo-web/` se publica solo en https://sanzo-web.vercel.app.
+   Si Renzo dice "pushealo" o "subilo", está autorizado a llegar a `main`: push de la rama de trabajo y después merge a `main` (fast-forward con `git push origin HEAD:main` si se puede; si no, PR y merge). Confirmar que el deploy de Vercel arrancó.
 4. Contarle al usuario en una o dos frases qué cambió y dónde se ve.

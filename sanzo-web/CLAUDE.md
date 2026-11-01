@@ -13,5 +13,6 @@ Cada push a `main` que toque esta carpeta se publica solo.
 - Descuentos: combos que se arman solos en el carrito (`lib/promos.ts`, salen de `combos`, `kit` y los precios sueltos) y, en el kit y en cada combo, "Ahorrás $Y" en un recuadro fino marrón junto al precio y "Por separado ~~$X~~" debajo, calculados con los precios reales de las piezas (nunca un precio de referencia inventado). Chapita personalizada: en el cartel que aparece al comprar sale `ofertaChapita.precio` con el precio suelto tachado al lado (lo pidió Renzo). Nada de % off ni carteles llamativos.
 - Fotos: las de `public/productos/` salen de las piezas de IG ya aprobadas (`D:\CLAUDIO\sanzo\salidas\`, las "sin texto"). Nada de fotos de fábrica, bolsas o maniquí con fondo desprolijo.
 - Antes de pushear: `npm run build` tiene que pasar.
+- Cuando Renzo dice "pushealo" (o "subilo"), es subirlo a la web: commit, push de la rama de trabajo y merge a `main` (fast-forward o PR mergeado), así Vercel lo publica. Está autorizado de antemano, no hace falta preguntar.
 
 Cómo cargar fotos, precios y variables de entorno: ver `README.md`.
