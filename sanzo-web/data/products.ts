@@ -183,7 +183,7 @@ export const sitio = {
     boton: "Ver el kit",
     link: "#kit",
     /** Estrellas debajo del botón (0 = no se muestran), al lado va "+150 clientes satisfechos" (sale de `clientes`). */
-    estrellas: 5,
+    estrellas: 4.5, // acepta medias (4.5 → cuatro llenas y una a la mitad)
     fotos: ["/productos/hero/gato.jpg", "/productos/hero/gorra.jpg", "/productos/hero/salchicha.jpg"],
   },
   kit: {

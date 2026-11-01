@@ -49,11 +49,15 @@ export function Hero() {
         {estrellas > 0 && (
           // Valoración debajo del botón: estrellas + "+150 clientes satisfechos".
           <span className="absolute bottom-4 left-4 flex items-center gap-2 text-crema md:bottom-10 md:left-12">
-            <span aria-label={`${estrellas} de 5 estrellas`} className="flex gap-0.5">
+            <span aria-label={`${String(estrellas).replace(".", ",")} de 5 estrellas`} className="flex gap-0.5">
               {[0, 1, 2, 3, 4].map((i) => (
-                <svg key={i} viewBox="0 0 24 24" width={13} height={13} aria-hidden="true" fill="currentColor" className={i < estrellas ? "" : "opacity-35"}>
-                  <path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z" />
-                </svg>
+                // Estrella apagada de fondo y la llena encima, recortada según cuánto le toca (permite medias).
+                <span key={i} aria-hidden="true" className="relative h-[13px] w-[13px]">
+                  <Estrella className="absolute inset-0 opacity-35" />
+                  <span className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${Math.min(1, Math.max(0, estrellas - i)) * 100}%` }}>
+                    <Estrella className="h-[13px] w-[13px] max-w-none" />
+                  </span>
+                </span>
               ))}
             </span>
             {clientes.numero && (
@@ -84,5 +88,13 @@ export function Hero() {
         <LineaNeon suave />
       </div>
     </section>
+  );
+}
+
+function Estrella({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" width={13} height={13} fill="currentColor" className={className}>
+      <path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z" />
+    </svg>
   );
 }

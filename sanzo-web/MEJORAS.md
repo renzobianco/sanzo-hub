@@ -454,3 +454,4 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Combo Paseo: foto nueva segunda (perro negro cruzando la vereda, con la porta bolsitas en la correa, `combo-paseo/vereda.jpg`).
 - Clientes: 3 fotos más (perro en el banco con moño y porta bolsitas, cachorro con collar y correa, gato con moño), recortadas a 9:16.
 - Portada: debajo de "Ver el kit", 5 estrellas y "+150 clientes satisfechos" (`sitio.hero.estrellas`, 0 = no aparece; el número sale de `clientes`). Lo pidió Renzo. Botón y título subieron para hacerle lugar.
+- Portada: estrellas en 4,5 (Renzo). Ahora acepta medias.
