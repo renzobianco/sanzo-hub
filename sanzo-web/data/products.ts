@@ -529,7 +529,7 @@ export const individuales: Producto[] = [
     descripcion: "La que combina con todo lo demás.",
     incluye: [],
     precio: 12499,
-    imagenes: ["/productos/solo/correa/1.jpg", "/productos/solo/correa/2.jpg", "/productos/solo/correa/3.jpg"],
+    imagenes: ["/productos/solo/correa/1.jpg", "/productos/solo/correa/atras.jpg", "/productos/solo/correa/2.jpg", "/productos/solo/correa/3.jpg"],
     medidas: [{ texto: "Largo 152 cm · Ancho 2 cm" }],
     envioGratis: false,
     linkPago: "",
