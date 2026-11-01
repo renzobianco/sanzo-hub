@@ -62,5 +62,14 @@
     { "x": 33, "y": 41, "tx": 28.5, "ty": 74, "texto": "Trae un rollito", "sub": "Lista para salir" },
     { "x": 70, "y": 45, "tx": 74, "ty": 22, "texto": "Cierre", "sub": "Recargás bolsitas" },
     { "x": 36, "y": 86, "tx": 48, "ty": 93, "texto": "Mosquetón", "sub": "Va colgada de la correa" }
+  ],
+  "gorra-circulo": [
+    { "x": 45, "y": 21, "tx": 28, "ty": 7, "texto": "Elástico", "sub": "Se adapta a su cabeza" },
+    { "x": 74, "y": 40, "tx": 74, "ty": 7, "texto": "Para las orejas", "sub": "Le queda cómoda" },
+    { "x": 40, "y": 72, "tx": 50, "ty": 92, "texto": "Visera", "sub": "Le da sombra" }
+  ],
+  "piluso-circulo": [
+    { "x": 35, "y": 45, "tx": 30, "ty": 8, "texto": "Para las orejas", "sub": "Le queda cómodo" },
+    { "x": 55, "y": 76, "tx": 48, "ty": 92, "texto": "Ala redonda", "sub": "Lo cubre del sol" }
   ]
 }
