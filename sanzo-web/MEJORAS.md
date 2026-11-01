@@ -449,3 +449,4 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Combo Paseo: la foto del artículo vuelve a ir primera (después mate y empedrado). Fuera las otras tres (`combo-paseo/1-3.jpg`).
 - Combo Aventura: fuera la tercera foto (`combo-aventura/2.jpg`).
 - Clientes: queda solo la foto del perro con la gorra (`clientes/6.jpg`, sin ícono de video). Fuera las demás (`clientes/1-5`, `galeria/1-5`, `hero/1-4`). Con menos de 3 tarjetas no corre la tira: quedan quietas y centradas.
+- Combo Manada: fuera las dos fotos viejas (`combo-manada/1.jpg` y `2.jpg`); quedan sábana y collares.
