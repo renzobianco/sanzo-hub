@@ -19,7 +19,7 @@ const urlSitio =
     : "http://localhost:3000");
 
 const descripcion =
-  "Arnés, correa, collar, moño, bandana y porta bolsitas. Todo lo que necesita para salir. Combinado. Envío gratis en el kit completo.";
+  "Arnés, correa, collar, moño, bandana y porta bolsitas. Todo lo que necesita para salir. Combinado.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(urlSitio),

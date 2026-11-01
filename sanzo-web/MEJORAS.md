@@ -434,3 +434,8 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 
 - Carrito y checkout (después): con 3 chapitas queda una sola línea "Combo Manada" con el grabado de cada una (sin las individuales; las que sobran del trío van aparte). Todas las líneas con descuento (combos, kit, chapitas) muestran el precio por separado tachado y lo que se paga, sin "Ahorrás" en la línea. El resumen dice Subtotal (lo que se paga) y "Ahorrás con combos y promos" (todo junto). Sin el cartel negro "Armaste el combo…". Combo Sol en el carrito: gorra arriba y piluso abajo, en los colores elegidos.
 - Tarjetas de combos: flechitas para pasar las fotos (deslizar sigue moviendo el carrusel de combos).
+
+## 2026-11-01 — Sin envío gratis en el kit
+
+- El kit completo ya no tiene envío gratis (`kit.envioGratis: false`); armarlo con piezas sueltas tampoco. El envío se cobra por zona como en todo lo demás.
+- Fuera los textos que lo prometían: barra superior (vacía = no se muestra), FAQ, descripción del sitio y README.

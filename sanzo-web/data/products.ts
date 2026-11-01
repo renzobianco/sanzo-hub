@@ -167,7 +167,8 @@ const TALLES_AGOTADOS = ["L"];
 // Textos generales
 // -----------------------------------------------------------------------------
 export const sitio = {
-  barraSuperior: "ENVÍO GRATIS EN EL KIT COMPLETO",
+  /** Vacío = no se muestra la barra. */
+  barraSuperior: "",
   /**
    * Principio de la página: la frase grande arriba sobre el crema y abajo la foto con el botón.
    * Las fotos van cambiando solas con un fundido. link: a qué parte de la página lleva el botón.
@@ -395,7 +396,7 @@ export const kit: Producto = {
   incluye: ["arnes", "correa", "collar", "mono", "bandana", "poo-bag"],
   precio: 59999,
   imagenes: ["/productos/kit/1-v2.jpg", "/productos/kit/2.jpg", "/productos/kit/3.jpg", "/productos/kit/4.jpg"],
-  envioGratis: true,
+  envioGratis: false,
   linkPago: "",
   disponible: true,
   opcion: { nombre: "Talle", valores: TALLES_ARNES, agotados: TALLES_AGOTADOS },
@@ -765,7 +766,7 @@ export const preguntas: { pregunta: string; respuesta: string }[] = [
   {
     pregunta: "¿Por qué sanzo?",
     respuesta:
-      "Porque todo combina entre sí (arnés, correa, collar, moño y bandana de la misma línea), se pone en segundos y hacemos envíos a todo el país, con envío gratis en el kit completo.",
+      "Porque todo combina entre sí (arnés, correa, collar, moño y bandana de la misma línea), se pone en segundos y hacemos envíos a todo el país.",
   },
   {
     pregunta: "¿Cómo elijo el talle?",
@@ -788,7 +789,7 @@ export const preguntas: { pregunta: string; respuesta: string }[] = [
   {
     pregunta: "¿Hacen envíos a todo el país?",
     respuesta:
-      "Sí, a todo el país por Correo Argentino: a domicilio o para retirar en sucursal. El kit completo tiene envío gratis.",
+      "Sí, a todo el país por Correo Argentino: a domicilio o para retirar en sucursal.",
   },
 ];
 

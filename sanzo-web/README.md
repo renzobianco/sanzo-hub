@@ -40,7 +40,7 @@ Todo en `data/`:
 | Producto disponible o no | `data/products.ts` → `disponible: false` |
 | Precio de envío por zona | `data/envios.ts` → `zonas[].precio` (`null` = "A cotizar") |
 
-Si el carrito tiene el kit completo, el envío es gratis para todo el pedido.
+Envío gratis por producto: `envioGratis: true` en `data/products.ts` (si el carrito lo tiene, el envío es gratis para todo el pedido). Hoy ninguno lo tiene.
 
 **Cobro con Mercado Pago (Checkout Pro):** con `MP_ACCESS_TOKEN` cargado en Vercel, al confirmar el pedido el cliente va a la página de pago de Mercado Pago con el total exacto del carrito (productos, personalización y envío). Ahí paga con tarjeta de crédito, débito (sin cuenta) o con su cuenta de MP, y vuelve a `/gracias`. El número de pedido llega a MP como referencia externa. Si el envío está "a cotizar", no hay total cerrado: el pedido se registra y le escribís con el link.
 
