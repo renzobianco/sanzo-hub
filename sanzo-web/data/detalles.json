@@ -9,7 +9,7 @@
     { "x": 80, "y": 23, "tx": 64, "ty": 44, "texto": "Mosquetón", "sub": "Engancha y suelta fácil" }
   ],
   "collar": [
-    { "x": 14, "y": 40, "tx": 30, "ty": 80, "texto": "Traba rápida", "sub": "Se pone en un segundo" },
+    { "x": 14, "y": 40, "tx": 24, "ty": 8, "texto": "Traba rápida", "sub": "Se pone en un segundo" },
     { "x": 50, "y": 17, "tx": 52, "ty": 38, "texto": "Regulable", "sub": "De 33 a 51 cm" },
     { "x": 18, "y": 58, "tx": 40, "ty": 93, "texto": "Argolla", "sub": "Para la correa o su chapita" }
   ],
