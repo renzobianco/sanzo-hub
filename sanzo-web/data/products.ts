@@ -711,8 +711,13 @@ export const clientes = {
    * `esVideo`: muestra el ícono de video aunque todavía no esté cargado (lugar guardado para un video).
    */
   videos: [
-    // Renzo (2026-11-01): por ahora solo esta, la de un cliente real.
+    // Renzo (2026-11-01): las que eligió él (recortadas a 9:16).
     { video: "", foto: "/productos/clientes/6.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/gato-bandana.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/maltes-pasto.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/mate-porta.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/caniche-gorra.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/caniche-arnes.jpg", perro: "" },
   ] as { video: string; foto: string; perro: string; esVideo?: boolean }[],
 };
 
