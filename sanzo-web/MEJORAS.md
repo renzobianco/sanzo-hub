@@ -452,3 +452,4 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Combo Manada: fuera las dos fotos viejas (`combo-manada/1.jpg` y `2.jpg`); quedan sábana y collares.
 - Clientes: 5 fotos nuevas que eligió Renzo (gato con bandana, maltés en el pasto, porta bolsitas con mate, caniche con gorra, caniche con arnés), recortadas a 9:16. Con 6 tarjetas la tira vuelve a correr sola.
 - Combo Paseo: foto nueva segunda (perro negro cruzando la vereda, con la porta bolsitas en la correa, `combo-paseo/vereda.jpg`).
+- Clientes: 3 fotos más (perro en el banco con moño y porta bolsitas, cachorro con collar y correa, gato con moño), recortadas a 9:16.

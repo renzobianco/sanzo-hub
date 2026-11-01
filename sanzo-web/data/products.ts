@@ -718,6 +718,9 @@ export const clientes = {
     { video: "", foto: "/productos/clientes/mate-porta.jpg", perro: "" },
     { video: "", foto: "/productos/clientes/caniche-gorra.jpg", perro: "" },
     { video: "", foto: "/productos/clientes/caniche-arnes.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/banco-mono.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/pastor-collar.jpg", perro: "" },
+    { video: "", foto: "/productos/clientes/gato-mono.jpg", perro: "" },
   ] as { video: string; foto: string; perro: string; esVideo?: boolean }[],
 };
 
