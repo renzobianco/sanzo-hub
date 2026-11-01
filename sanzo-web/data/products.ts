@@ -473,7 +473,7 @@ export const combos: Producto[] = [
     precio: 16000,
     chapitas: 3,
     // Fotos hechas con el ChatGPT de Sanzo a partir de las chapitas reales, sobre el fondo sábana.
-    imagenes: ["/productos/combo-manada/1.jpg", "/productos/combo-manada/2.jpg"],
+    imagenes: ["/productos/combo-manada/sabana-juan.jpg", "/productos/combo-manada/collares-lila.jpg", "/productos/combo-manada/1.jpg", "/productos/combo-manada/2.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,
