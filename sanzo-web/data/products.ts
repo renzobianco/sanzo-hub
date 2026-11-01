@@ -182,6 +182,8 @@ export const sitio = {
     bajada: "Accesorios para mascotas, pensados para salir juntos.",
     boton: "Ver el kit",
     link: "#kit",
+    /** Estrellas debajo del botón (0 = no se muestran), al lado va "+150 clientes satisfechos" (sale de `clientes`). */
+    estrellas: 5,
     fotos: ["/productos/hero/gato.jpg", "/productos/hero/gorra.jpg", "/productos/hero/salchicha.jpg"],
   },
   kit: {

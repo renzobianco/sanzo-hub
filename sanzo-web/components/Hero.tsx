@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { sitio } from "@/data/products";
+import { clientes, sitio } from "@/data/products";
 import { LineaNeon } from "./LineaNeon";
 import { Palabras } from "./Palabras";
 
@@ -11,7 +11,7 @@ import { Palabras } from "./Palabras";
  * con el botón. Las fotos cambian solas con un fundido (sin deslizar).
  */
 export function Hero() {
-  const { titulo, cierre, bajada, boton, link, fotos } = sitio.hero;
+  const { titulo, cierre, bajada, boton, link, fotos, estrellas } = sitio.hero;
   const [activa, setActiva] = useState(0);
   const [cargadas, setCargadas] = useState<Record<number, boolean>>({});
 
@@ -45,10 +45,30 @@ export function Hero() {
         })}
         {/* Sombra suave abajo para que la frase se lea sobre cualquier foto. */}
         <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-tinta/55 via-transparent to-transparent" />
-        <span className="btn-claro absolute bottom-4 left-4 px-5 md:bottom-10 md:left-12 py-2.5 text-[11px]">{boton}</span>
+        <span className={`btn-claro absolute left-4 px-5 py-2.5 text-[11px] md:left-12 ${estrellas ? "bottom-10 md:bottom-[4.5rem]" : "bottom-4 md:bottom-10"}`}>{boton}</span>
+        {estrellas > 0 && (
+          // Valoración debajo del botón: estrellas + "+150 clientes satisfechos".
+          <span className="absolute bottom-4 left-4 flex items-center gap-2 text-crema md:bottom-10 md:left-12">
+            <span aria-label={`${estrellas} de 5 estrellas`} className="flex gap-0.5">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <svg key={i} viewBox="0 0 24 24" width={13} height={13} aria-hidden="true" fill="currentColor" className={i < estrellas ? "" : "opacity-35"}>
+                  <path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z" />
+                </svg>
+              ))}
+            </span>
+            {clientes.numero && (
+              <span className="text-[10px] uppercase tracking-[0.18em]">
+                +{clientes.numero} {clientes.texto}
+              </span>
+            )}
+          </span>
+        )}
       </a>
       {/* La frase va arriba de la foto, en crema; no tapa los toques del link. */}
-      <h1 id="hero-titulo" className="pointer-events-none absolute bottom-[4.25rem] left-4 uppercase text-crema md:bottom-24 md:left-12">
+      <h1
+        id="hero-titulo"
+        className={`pointer-events-none absolute left-4 uppercase text-crema md:left-12 ${estrellas ? "bottom-[6.5rem] md:bottom-[8.5rem]" : "bottom-[4.25rem] md:bottom-24"}`}
+      >
         <span className="block text-[2.6rem] font-light md:text-[4.5rem] leading-none tracking-[0.12em]">
           <Palabras texto={titulo} alCargar retraso={100} />
         </span>
