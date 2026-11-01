@@ -446,3 +446,4 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Clientes: la foto del gato (`clientes/6.jpg`) se cambió por el perro negro con la gorra en la plaza.
 - Combo Paseo: dos fotos nuevas adelante, primero la porta bolsitas colgada de la correa con el mate (`combo-paseo/mate.jpg`) y después el perro con collar y correa en el empedrado (`combo-paseo/empedrado.jpg`).
 - Combo Manada: dos fotos nuevas adelante (chapitas Juan, kala y lila sobre la sábana; después tres collares con lila, kala y la cara de un perro). Las dos de antes quedan detrás.
+- Combo Paseo: la foto del artículo vuelve a ir primera (después mate y empedrado). Fuera las otras tres (`combo-paseo/1-3.jpg`).
