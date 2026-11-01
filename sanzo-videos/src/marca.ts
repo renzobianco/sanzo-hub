@@ -10,3 +10,6 @@ export const colores = {
 export const fuente = "'Jost', ui-sans-serif, system-ui, sans-serif";
 
 export const suave = "cubic-bezier(0.16, 1, 0.3, 1)";
+
+// Grading uniforme para que fotos distintas se sientan de la misma pieza.
+export const grade = "contrast(1.1) saturate(0.88) brightness(0.96) sepia(0.08)";
