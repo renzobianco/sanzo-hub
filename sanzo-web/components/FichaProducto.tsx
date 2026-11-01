@@ -21,20 +21,25 @@ const DURACION = 450;
  * Ficha de un producto en una hoja que sube desde abajo: fotos grandes que se deslizan
  * (tocás una y se abre el zoom), descripción, pros y para agregarlo.
  * Se cierra con la X, tocando afuera, con Escape o arrastrándola hacia abajo.
+ * Con un color elegido (`color` o el que elijan en la ficha) y `opcion.galeria`, muestra solo las fotos de ese color.
  */
 export function FichaProducto({
   producto,
   abierta,
   onCerrar,
+  color,
 }: {
   producto: Producto;
   abierta: boolean;
   onCerrar: () => void;
+  /** Color elegido en la tarjeta. */
+  color?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const { abierto: carritoAbierto } = useCarrito();
   const [arriba, setArriba] = useState(false); // la hoja ya subió
   const [foto, setFoto] = useState(0);
+  const [elegido, setElegido] = useState("");
   const pista = useRef<HTMLUListElement>(null);
   const [arrastre, setArrastre] = useState(0);
   const inicio = useRef<number | null>(null);
@@ -68,7 +73,15 @@ export function FichaProducto({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [carritoAbierto]);
 
-  const fotos = producto.imagenes;
+  const valor = elegido || color || "";
+  const indices = valor ? producto.opcion?.galeria?.[valor] : undefined;
+  const fotos = indices ? indices.map((i) => producto.imagenes[i]).filter(Boolean) : producto.imagenes;
+
+  // Al cambiar de color, vuelve a la primera foto.
+  useEffect(() => {
+    pista.current?.scrollTo({ left: 0 });
+    setFoto(0);
+  }, [valor]);
 
   return (
     <dialog
@@ -82,6 +95,7 @@ export function FichaProducto({
         liberar.current?.();
         liberar.current = null;
         setFoto(0);
+        setElegido("");
         onCerrar();
       }}
       onClick={(e) => {
@@ -240,7 +254,7 @@ export function FichaProducto({
               )}
 
               <div className="mt-6">
-                <AgregarAlCarrito producto={producto} grande />
+                <AgregarAlCarrito producto={producto} grande onSeleccion={setElegido} />
               </div>
 
               {/* En los individuales no va el cálculo de envío (Santino, 2026-10-30): se ve en el carrito. */}

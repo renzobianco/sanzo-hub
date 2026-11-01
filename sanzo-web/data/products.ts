@@ -33,6 +33,7 @@ export interface Producto {
   /**
    * Opción que el cliente elige al agregar (talle o color). Opcional.
    * colores: muestra de color de cada valor (hex). fotos: índice de `imagenes` que se muestra al elegir ese valor.
+   * galeria: índices de `imagenes` que muestra la ficha con ese valor elegido (ej. adelante y atrás de ese color).
    */
   opcion?: {
     nombre: string;
@@ -41,6 +42,7 @@ export interface Producto {
     agotados?: string[];
     colores?: Record<string, string>;
     fotos?: Record<string, number>;
+    galeria?: Record<string, number[]>;
   };
   /**
    * Talle además del color (gorra, piluso): se elige aparte y va al carrito como "Beige · M".
@@ -606,7 +608,7 @@ export const individuales: Producto[] = [
     descripcion: "Para vos. Que combine con el paseo.",
     incluye: [],
     precio: 11999,
-    imagenes: ["/productos/solo/gorra/1.jpg", "/productos/solo/gorra/2.jpg", "/productos/solo/gorra/atras.jpg"],
+    imagenes: ["/productos/solo/gorra/1.jpg", "/productos/solo/gorra/2.jpg", "/productos/solo/gorra/atras.jpg", "/productos/solo/gorra/atras-oceano.jpg"],
     medidas: [
       { talle: "S", texto: "Ancho 16 cm" },
       { talle: "M", texto: "Ancho 18 cm" },
@@ -620,6 +622,7 @@ export const individuales: Producto[] = [
       valores: ["Beige", "Océano"],
       colores: { Beige: "#C9AE8B", Océano: "#A8C3DB" },
       fotos: { Beige: 0, Océano: 1 },
+      galeria: { Beige: [0, 2], Océano: [1, 3] },
     },
   },
   {
@@ -630,7 +633,7 @@ export const individuales: Producto[] = [
     descripcion: "Para el sol de la plaza.",
     incluye: [],
     precio: 11999,
-    imagenes: ["/productos/solo/piluso/1.jpg", "/productos/solo/piluso/2.jpg", "/productos/solo/piluso/atras.jpg"],
+    imagenes: ["/productos/solo/piluso/1.jpg", "/productos/solo/piluso/2.jpg", "/productos/solo/piluso/atras.jpg", "/productos/solo/piluso/atras-jade.jpg"],
     medidas: [
       { talle: "S", texto: "Ancho 21 cm" },
       { talle: "M", texto: "Ancho 23 cm" },
@@ -644,6 +647,7 @@ export const individuales: Producto[] = [
       valores: ["Granate", "Jade"],
       colores: { Granate: "#7B2331", Jade: "#8FBDB2" },
       fotos: { Granate: 0, Jade: 1 },
+      galeria: { Granate: [0, 2], Jade: [1, 3] },
     },
   },
 ];
