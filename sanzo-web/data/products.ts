@@ -428,7 +428,7 @@ export const combos: Producto[] = [
     descripcion: "Arnés, correa y poo bag: todo para salir a cualquier lado.",
     incluye: ["arnes", "correa", "poo-bag"],
     precio: 34999,
-    imagenes: ["/productos/combo-aventura/articulo-2.jpg", "/productos/combo-aventura/pasto.jpg", "/productos/combo-aventura/2.jpg"],
+    imagenes: ["/productos/combo-aventura/articulo-2.jpg", "/productos/combo-aventura/pasto.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,
