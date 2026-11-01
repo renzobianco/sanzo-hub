@@ -160,7 +160,7 @@ export function FichaProducto({
                             className={`object-cover transition-transform duration-[1.2s] ease-suave ${arriba ? "scale-100" : "scale-[1.06]"}`}
                           />
                           {/* Detalles señalados en la primera foto (se dibujan al abrir y al volver a ella). */}
-                          {i === 0 && <Detalles id={producto.id} visible={arriba && foto === 0} />}
+                          {i === 0 && src === producto.imagenes[0] && <Detalles id={producto.id} visible={arriba && foto === 0} />}
                         </div>
                       </ConZoom>
                     </li>

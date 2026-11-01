@@ -1,6 +1,6 @@
 {
   "arnes": [
-    { "x": 50, "y": 45, "tx": 56, "ty": 6, "texto": "Personalizable", "sub": "Su nombre en la tela" },
+    { "x": 50, "y": 35, "tx": 56, "ty": 6, "texto": "Personalizable", "sub": "Su nombre en la tela" },
     { "x": 15, "y": 77, "tx": 20, "ty": 94, "texto": "Traba rápida", "sub": "Se regula en pecho y cuello" }
   ],
   "correa": [
@@ -37,17 +37,17 @@
   ],
 
   "arnes-circulo": [
-    { "x": 50, "y": 45, "tx": 56, "ty": 6, "texto": "Personalizable", "sub": "Su nombre en la tela" },
+    { "x": 50, "y": 37, "tx": 56, "ty": 6, "texto": "Personalizable", "sub": "Su nombre en la tela" },
     { "x": 18, "y": 72, "tx": 24, "ty": 92, "texto": "Traba rápida", "sub": "Se regula en pecho y cuello" }
   ],
   "correa-circulo": [
-    { "x": 72, "y": 27, "tx": 52, "ty": 12, "texto": "Manija de mano", "sub": "Cómoda en todo el paseo" },
-    { "x": 79, "y": 35, "tx": 76, "ty": 76, "texto": "Mosquetón", "sub": "Engancha y suelta fácil" },
-    { "x": 24, "y": 66, "tx": 30, "ty": 90, "texto": "152 cm", "sub": "Libertad para explorar" }
+    { "x": 22, "y": 66, "tx": 28, "ty": 90, "texto": "Manija de mano", "sub": "Cómoda en todo el paseo" },
+    { "x": 79, "y": 34, "tx": 70, "ty": 12, "texto": "Mosquetón", "sub": "Engancha y suelta fácil" },
+    { "x": 50, "y": 50, "tx": 62, "ty": 76, "texto": "152 cm", "sub": "Libertad para explorar" }
   ],
   "collar-circulo": [
     { "x": 64, "y": 38, "tx": 60, "ty": 14, "texto": "Regulable", "sub": "De 33 a 51 cm" },
-    { "x": 50, "y": 51, "tx": 54, "ty": 76, "texto": "Personalizable", "sub": "Su nombre en la cinta" },
+    { "x": 43, "y": 55, "tx": 54, "ty": 80, "texto": "Personalizable", "sub": "Su nombre en la cinta" },
     { "x": 18, "y": 70, "tx": 24, "ty": 92, "texto": "Traba rápida", "sub": "Se pone en un segundo" }
   ],
   "mono-circulo": [
