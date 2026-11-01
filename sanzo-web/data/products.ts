@@ -707,21 +707,8 @@ export const clientes = {
    * `esVideo`: muestra el ícono de video aunque todavía no esté cargado (lugar guardado para un video).
    */
   videos: [
-    { video: "", foto: "/productos/clientes/1.jpg", perro: "", esVideo: true },
-    { video: "", foto: "/productos/galeria/1.jpg", perro: "" },
-    { video: "", foto: "/productos/clientes/2.jpg", perro: "" },
-    { video: "", foto: "/productos/hero/1.jpg", perro: "", esVideo: true },
-    { video: "", foto: "/productos/clientes/3.jpg", perro: "" },
-    { video: "", foto: "/productos/galeria/2.jpg", perro: "" },
-    { video: "", foto: "/productos/clientes/4.jpg", perro: "", esVideo: true },
-    { video: "", foto: "/productos/hero/2.jpg", perro: "" },
-    { video: "", foto: "/productos/galeria/3.jpg", perro: "" },
-    { video: "", foto: "/productos/clientes/5.jpg", perro: "", esVideo: true },
-    { video: "", foto: "/productos/hero/3.jpg", perro: "" },
-    { video: "", foto: "/productos/galeria/4.jpg", perro: "" },
-    { video: "", foto: "/productos/clientes/6.jpg", perro: "", esVideo: true },
-    { video: "", foto: "/productos/hero/4.jpg", perro: "" },
-    { video: "", foto: "/productos/galeria/5.jpg", perro: "" },
+    // Renzo (2026-11-01): por ahora solo esta, la de un cliente real.
+    { video: "", foto: "/productos/clientes/6.jpg", perro: "" },
   ] as { video: string; foto: string; perro: string; esVideo?: boolean }[],
 };
 

@@ -75,7 +75,18 @@ export function SeccionClientes() {
         <p className="mt-6 text-[16px] font-light text-tinta/80">{clientes.bajada}</p>
       </div>
 
-      {clientes.videos.length > 0 && (
+      {clientes.videos.length > 0 && clientes.videos.length < 3 && (
+        // Pocas tarjetas: quietas y centradas (la tira sin fin quedaría con huecos).
+        <ul className="mt-12 flex justify-center gap-3 px-4 pb-6 md:mt-16 md:gap-4">
+          {clientes.videos.map((v) => (
+            <li key={v.foto} className="w-[11rem] shrink-0 md:w-[13rem]">
+              <Reel {...v} />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {clientes.videos.length >= 3 && (
         // Tira sin fin que corre de izquierda a derecha (contenido duplicado para que no tenga corte).
         // Se frena mientras la tocás; con "reducir movimiento" queda quieta y se desliza a mano.
         <div className="sin-scrollbar mt-12 overflow-hidden motion-reduce:overflow-x-auto md:mt-16">
