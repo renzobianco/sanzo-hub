@@ -443,7 +443,7 @@ export const combos: Producto[] = [
     descripcion: "Lo justo para el paseo de todos los días.",
     incluye: ["correa", "collar", "poo-bag"],
     precio: 26999,
-    imagenes: ["/productos/combo-paseo/articulo.jpg", "/productos/combo-paseo/mate.jpg", "/productos/combo-paseo/empedrado.jpg"],
+    imagenes: ["/productos/combo-paseo/articulo.jpg", "/productos/combo-paseo/vereda.jpg", "/productos/combo-paseo/mate.jpg", "/productos/combo-paseo/empedrado.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,

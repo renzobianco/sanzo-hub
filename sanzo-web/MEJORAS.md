@@ -451,3 +451,4 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Clientes: queda solo la foto del perro con la gorra (`clientes/6.jpg`, sin ícono de video). Fuera las demás (`clientes/1-5`, `galeria/1-5`, `hero/1-4`). Con menos de 3 tarjetas no corre la tira: quedan quietas y centradas.
 - Combo Manada: fuera las dos fotos viejas (`combo-manada/1.jpg` y `2.jpg`); quedan sábana y collares.
 - Clientes: 5 fotos nuevas que eligió Renzo (gato con bandana, maltés en el pasto, porta bolsitas con mate, caniche con gorra, caniche con arnés), recortadas a 9:16. Con 6 tarjetas la tira vuelve a correr sola.
+- Combo Paseo: foto nueva segunda (perro negro cruzando la vereda, con la porta bolsitas en la correa, `combo-paseo/vereda.jpg`).
