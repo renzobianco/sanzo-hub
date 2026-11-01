@@ -439,3 +439,4 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 
 - El kit completo ya no tiene envío gratis (`kit.envioGratis: false`); armarlo con piezas sueltas tampoco. El envío se cobra por zona como en todo lo demás.
 - Fuera los textos que lo prometían: barra superior (vacía = no se muestra), FAQ, descripción del sitio y README.
+- Personalizador con "Tu imagen": el parche ahora es un círculo que sigue el del "Tu imagen" (antes quedaba con la forma y medida que tenía con nombre). Proporción 1:1, solo se elige el ancho. Al volver a "Su nombre" vuelve la forma de antes.

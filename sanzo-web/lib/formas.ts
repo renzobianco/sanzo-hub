@@ -114,9 +114,10 @@ const FORMAS: Record<string, DefForma> = {
     imagen: { ancho: 0.4, alto: 0.38, dy: 0.06 },
   },
 };
-// "Otra": se ve como redondeado mientras la describen. "Su silueta": se dibuja con su imagen (Vista.tsx).
+// "Otra": se ve como redondeado mientras la describen. "Su silueta": se dibuja con su imagen (Vista.tsx);
+// sin imagen procesada (su foto se sube tal cual) es un círculo, el mismo del "Tu imagen".
 FORMAS.otra = FORMAS.redondeado;
-FORMAS.silueta = { trazo: (w, h) => redondeado(w, h, 0.24), texto: FORMAS.redondeado.texto, imagen: { ancho: 1, alto: 1 } };
+FORMAS.silueta = { trazo: elipse, texto: FORMAS.redondeado.texto, imagen: { ancho: 1, alto: 1 } };
 
 export function defForma(id: string): DefForma {
   return FORMAS[id] ?? FORMAS.rectangulo;
@@ -129,6 +130,6 @@ export function proporcionForma(id: string): number | null {
 
 /** Ancho y alto finales en cm: las formas fijas toman su proporción a partir del ancho. */
 export function medidaFinal(forma: string, ancho: number, alto: number, proporcionSilueta?: number) {
-  const p = forma === "silueta" ? proporcionSilueta : proporcionForma(forma);
+  const p = forma === "silueta" ? proporcionSilueta ?? 1 : proporcionForma(forma);
   return p ? { ancho, alto: Math.round((ancho / p) * 10) / 10 } : { ancho, alto };
 }

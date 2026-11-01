@@ -125,7 +125,7 @@ function activasIniciales(piezas: string[], valor?: Personalizacion) {
 /** La medida final de un diseño: dentro de lo que entra y con la proporción de su forma. */
 function medidaDe(d: Diseno, max: { ancho: number; alto: number }) {
   const { minCm } = config.medidas;
-  const proporcion = d.forma === "silueta" ? d.vistaImagen?.proporcionSilueta ?? null : proporcionForma(d.forma);
+  const proporcion = d.forma === "silueta" ? d.vistaImagen?.proporcionSilueta ?? 1 : proporcionForma(d.forma);
   const anchoMax = Math.max(minCm, Math.floor((proporcion ? Math.min(max.ancho, max.alto * proporcion) : max.ancho) * 2) / 2);
   return medidaFinal(d.forma, Math.min(Math.max(d.ancho, minCm), anchoMax), Math.min(Math.max(d.alto, minCm), max.alto), d.vistaImagen?.proporcionSilueta);
 }
@@ -394,7 +394,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
   }
 
   // Proporción de la forma elegida (la silueta usa la de su imagen). null = libre.
-  const proporcion = forma === "silueta" ? vistaImagen?.proporcionSilueta ?? null : proporcionForma(forma);
+  const proporcion = forma === "silueta" ? vistaImagen?.proporcionSilueta ?? 1 : proporcionForma(forma);
   // Con forma fija, el ancho no puede pasar lo que deja el alto máximo.
   const anchoMax = Math.max(minCm, Math.floor((proporcion ? Math.min(max.ancho, max.alto * proporcion) : max.ancho) * 2) / 2);
   const anchoOk = Math.min(Math.max(ancho, minCm), anchoMax);
