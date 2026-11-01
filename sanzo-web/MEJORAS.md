@@ -440,3 +440,8 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - El kit completo ya no tiene envío gratis (`kit.envioGratis: false`); armarlo con piezas sueltas tampoco. El envío se cobra por zona como en todo lo demás.
 - Fuera los textos que lo prometían: barra superior (vacía = no se muestra), FAQ, descripción del sitio y README.
 - Personalizador con "Tu imagen": el parche ahora es un círculo que sigue el del "Tu imagen" (antes quedaba con la forma y medida que tenía con nombre). Proporción 1:1, solo se elige el ancho. Al volver a "Su nombre" vuelve la forma de antes.
+
+## 2026-11-01 — Fotos de clientes y Combo Paseo (Renzo)
+
+- Clientes: la foto del gato (`clientes/6.jpg`) se cambió por el perro negro con la gorra en la plaza.
+- Combo Paseo: dos fotos nuevas adelante, primero la porta bolsitas colgada de la correa con el mate (`combo-paseo/mate.jpg`) y después el perro con collar y correa en el empedrado (`combo-paseo/empedrado.jpg`).
