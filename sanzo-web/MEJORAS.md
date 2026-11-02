@@ -448,3 +448,20 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Portada en PC: la frase y el botón a la izquierda, la foto cuadrada a la derecha a su tamaño real (estirada a todo el ancho se veía borrosa). En el celu sigue igual.
 - Combos en PC: el carrusel ocupa todo el ancho y la tarjeta tiene ancho fijo, centrada; las de los costados se ven enteras (antes salían cortadas por la caja angosta). Se pasa tocando una de los costados o las solapas, como en el celu.
 - Comparadas las capturas del celu (390px) antes y después: iguales.
+
+## 2026-11-01 — Fotos de clientes y Combo Paseo (Renzo)
+
+- Clientes: la foto del gato (`clientes/6.jpg`) se cambió por el perro negro con la gorra en la plaza.
+- Combo Paseo: dos fotos nuevas adelante, primero la porta bolsitas colgada de la correa con el mate (`combo-paseo/mate.jpg`) y después el perro con collar y correa en el empedrado (`combo-paseo/empedrado.jpg`).
+- Combo Manada: dos fotos nuevas adelante (chapitas Juan, kala y lila sobre la sábana; después tres collares con lila, kala y la cara de un perro). Las dos de antes quedan detrás.
+- Combo Paseo: la foto del artículo vuelve a ir primera (después mate y empedrado). Fuera las otras tres (`combo-paseo/1-3.jpg`).
+- Combo Aventura: fuera la tercera foto (`combo-aventura/2.jpg`).
+- Clientes: queda solo la foto del perro con la gorra (`clientes/6.jpg`, sin ícono de video). Fuera las demás (`clientes/1-5`, `galeria/1-5`, `hero/1-4`). Con menos de 3 tarjetas no corre la tira: quedan quietas y centradas.
+- Combo Manada: fuera las dos fotos viejas (`combo-manada/1.jpg` y `2.jpg`); quedan sábana y collares.
+- Clientes: 5 fotos nuevas que eligió Renzo (gato con bandana, maltés en el pasto, porta bolsitas con mate, caniche con gorra, caniche con arnés), recortadas a 9:16. Con 6 tarjetas la tira vuelve a correr sola.
+- Combo Paseo: foto nueva segunda (perro negro cruzando la vereda, con la porta bolsitas en la correa, `combo-paseo/vereda.jpg`).
+- Clientes: 3 fotos más (perro en el banco con moño y porta bolsitas, cachorro con collar y correa, gato con moño), recortadas a 9:16.
+- Portada: debajo de "Ver el kit", 5 estrellas y "+150 clientes satisfechos" (`sitio.hero.estrellas`, 0 = no aparece; el número sale de `clientes`). Lo pidió Renzo. Botón y título subieron para hacerle lugar.
+- Portada: estrellas en 4,5 (Renzo). Ahora acepta medias.
+- Piluso (Granate y Jade): fuera la etiqueta blanca del ala en las fotos de atrás (`solo/piluso/atras.jpg`, `atras-jade.jpg`), tapada con la misma pana de al lado.
+- Portada en PC con las estrellas y "+150 clientes satisfechos" debajo de "Ver el kit", en la columna de la frase.

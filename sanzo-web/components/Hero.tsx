@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { sitio } from "@/data/products";
+import { clientes, sitio } from "@/data/products";
 import { LineaNeon } from "./LineaNeon";
 import { Palabras } from "./Palabras";
 
@@ -11,7 +11,7 @@ import { Palabras } from "./Palabras";
  * con el botón. Las fotos cambian solas con un fundido (sin deslizar).
  */
 export function Hero() {
-  const { titulo, cierre, bajada, boton, link, fotos } = sitio.hero;
+  const { titulo, cierre, bajada, boton, link, fotos, estrellas } = sitio.hero;
   const [activa, setActiva] = useState(0);
   const [cargadas, setCargadas] = useState<Record<number, boolean>>({});
 
@@ -46,12 +46,16 @@ export function Hero() {
         })}
         {/* Sombra suave abajo para que la frase se lea sobre cualquier foto. */}
         <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-tinta/55 via-transparent to-transparent md:hidden" />
-        <span className="btn-claro absolute bottom-4 left-4 px-5 py-2.5 text-[11px] md:hidden">{boton}</span>
+        <span className={`btn-claro absolute left-4 px-5 py-2.5 text-[11px] md:hidden ${estrellas ? "bottom-10" : "bottom-4"}`}>{boton}</span>
+        {estrellas > 0 && <Valoracion estrellas={estrellas} className="absolute bottom-4 left-4 text-crema md:hidden" />}
       </a>
       {/* En el celu no arma caja (`contents`): la frase queda arriba de la foto como siempre. */}
       <div className="contents md:order-1 md:block">
         {/* La frase va arriba de la foto, en crema; no tapa los toques del link. */}
-        <h1 id="hero-titulo" className="pointer-events-none absolute bottom-[4.25rem] left-4 uppercase text-crema md:pointer-events-auto md:static md:text-tinta">
+        <h1
+          id="hero-titulo"
+          className={`pointer-events-none absolute left-4 uppercase text-crema md:pointer-events-auto md:static md:text-tinta ${estrellas ? "bottom-[6.5rem]" : "bottom-[4.25rem]"}`}
+        >
           <span className="block text-[2.6rem] font-light md:text-[5.5rem] leading-none tracking-[0.12em]">
             <Palabras texto={titulo} alCargar retraso={100} />
           </span>
@@ -63,6 +67,7 @@ export function Hero() {
         <a href={link} className="btn-primario mt-10 hidden md:inline-flex">
           {boton}
         </a>
+        {estrellas > 0 && <Valoracion estrellas={estrellas} className="mt-5 hidden text-tinta md:flex" />}
       </div>
       </div>
       {/* La frase va subrayada con la línea marrón, de borde a borde. */}
@@ -71,5 +76,37 @@ export function Hero() {
         <LineaNeon suave />
       </div>
     </section>
+  );
+}
+
+/** Estrellas + "+150 clientes satisfechos" (acepta medias estrellas). */
+function Valoracion({ estrellas, className }: { estrellas: number; className: string }) {
+  return (
+    <span className={`flex items-center gap-2 ${className}`}>
+      <span aria-label={`${String(estrellas).replace(".", ",")} de 5 estrellas`} className="flex gap-0.5">
+        {[0, 1, 2, 3, 4].map((i) => (
+          // Estrella apagada de fondo y la llena encima, recortada según cuánto le toca.
+          <span key={i} aria-hidden="true" className="relative h-[13px] w-[13px]">
+            <Estrella className="absolute inset-0 opacity-35" />
+            <span className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${Math.min(1, Math.max(0, estrellas - i)) * 100}%` }}>
+              <Estrella className="h-[13px] w-[13px] max-w-none" />
+            </span>
+          </span>
+        ))}
+      </span>
+      {clientes.numero && (
+        <span className="text-[10px] uppercase tracking-[0.18em]">
+          +{clientes.numero} {clientes.texto}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function Estrella({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" width={13} height={13} fill="currentColor" className={className}>
+      <path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z" />
+    </svg>
   );
 }

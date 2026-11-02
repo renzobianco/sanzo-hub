@@ -57,7 +57,7 @@ export function TarjetaProducto({ producto }: { producto: Producto }) {
           <AgregarAlCarrito producto={producto} onSeleccion={setValor} />
         </div>
       </div>
-      <FichaProducto producto={producto} abierta={ficha} onCerrar={() => setFicha(false)} />
+      <FichaProducto producto={producto} abierta={ficha} onCerrar={() => setFicha(false)} color={valor} />
     </>
   );
 }

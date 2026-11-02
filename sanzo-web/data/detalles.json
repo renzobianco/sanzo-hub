@@ -1,16 +1,16 @@
 {
   "arnes": [
-    { "x": 50, "y": 45, "tx": 56, "ty": 6, "texto": "Personalizable", "sub": "Su nombre en la tela" },
-    { "x": 15, "y": 77, "tx": 20, "ty": 94, "texto": "Traba rápida", "sub": "Se regula en pecho y cuello" }
+    { "x": 50, "y": 35, "tx": 56, "ty": 6, "texto": "Personalizable", "sub": "Su nombre en la tela" },
+    { "x": 15, "y": 77, "tx": 22, "ty": 95, "texto": "Traba rápida", "sub": "Regula pecho y cuello" }
   ],
   "correa": [
-    { "x": 80, "y": 6, "tx": 50, "ty": 6, "texto": "Manija de mano", "sub": "Cómoda en todo el paseo" },
-    { "x": 14, "y": 40, "tx": 30, "ty": 28, "texto": "152 cm", "sub": "Libertad para explorar" },
-    { "x": 40, "y": 95, "tx": 34, "ty": 92, "texto": "Mosquetón", "sub": "Engancha y suelta fácil" }
+    { "x": 13, "y": 22, "tx": 32, "ty": 8, "texto": "Manija de mano", "sub": "Cómoda en todo el paseo" },
+    { "x": 40, "y": 60, "tx": 47, "ty": 66, "texto": "152 cm", "sub": "Libertad para explorar" },
+    { "x": 80, "y": 23, "tx": 72, "ty": 40, "texto": "Mosquetón", "sub": "Engancha y suelta fácil" }
   ],
   "collar": [
-    { "x": 14, "y": 40, "tx": 30, "ty": 80, "texto": "Traba rápida", "sub": "Se pone en un segundo" },
-    { "x": 50, "y": 17, "tx": 52, "ty": 38, "texto": "Regulable", "sub": "De 33 a 51 cm" },
+    { "x": 14, "y": 40, "tx": 20, "ty": 8, "texto": "Traba rápida", "sub": "Se pone en un segundo" },
+    { "x": 50, "y": 17, "tx": 72, "ty": 5, "texto": "Regulable", "sub": "De 33 a 51 cm" },
     { "x": 18, "y": 58, "tx": 40, "ty": 93, "texto": "Argolla", "sub": "Para la correa o su chapita" }
   ],
   "mono": [
@@ -22,7 +22,7 @@
     { "x": 60, "y": 10, "tx": 34, "ty": 12, "texto": "Se ata al cuello", "sub": "Un nudo y listo" }
   ],
   "poo-bag": [
-    { "x": 33, "y": 45, "tx": 32, "ty": 64, "texto": "Trae un rollito", "sub": "Lista para salir" },
+    { "x": 33, "y": 45, "tx": 27, "ty": 84, "texto": "Trae un rollito", "sub": "Lista para salir" },
     { "x": 71, "y": 40, "tx": 68, "ty": 5, "texto": "Cierre", "sub": "Recargás bolsitas" },
     { "x": 33, "y": 90, "tx": 45, "ty": 93, "texto": "Mosquetón", "sub": "Va colgada de la correa" }
   ],
@@ -37,17 +37,17 @@
   ],
 
   "arnes-circulo": [
-    { "x": 50, "y": 45, "tx": 56, "ty": 6, "texto": "Personalizable", "sub": "Su nombre en la tela" },
-    { "x": 18, "y": 72, "tx": 24, "ty": 92, "texto": "Traba rápida", "sub": "Se regula en pecho y cuello" }
+    { "x": 50, "y": 37, "tx": 56, "ty": 6, "texto": "Personalizable", "sub": "Su nombre en la tela" },
+    { "x": 18, "y": 72, "tx": 24, "ty": 93, "texto": "Traba rápida", "sub": "Regula pecho y cuello" }
   ],
   "correa-circulo": [
-    { "x": 72, "y": 27, "tx": 52, "ty": 12, "texto": "Manija de mano", "sub": "Cómoda en todo el paseo" },
-    { "x": 79, "y": 35, "tx": 76, "ty": 76, "texto": "Mosquetón", "sub": "Engancha y suelta fácil" },
-    { "x": 24, "y": 66, "tx": 30, "ty": 90, "texto": "152 cm", "sub": "Libertad para explorar" }
+    { "x": 22, "y": 66, "tx": 28, "ty": 90, "texto": "Manija de mano", "sub": "Cómoda en todo el paseo" },
+    { "x": 79, "y": 34, "tx": 70, "ty": 12, "texto": "Mosquetón", "sub": "Engancha y suelta fácil" },
+    { "x": 50, "y": 50, "tx": 62, "ty": 76, "texto": "152 cm", "sub": "Libertad para explorar" }
   ],
   "collar-circulo": [
     { "x": 64, "y": 38, "tx": 60, "ty": 14, "texto": "Regulable", "sub": "De 33 a 51 cm" },
-    { "x": 50, "y": 51, "tx": 54, "ty": 76, "texto": "Personalizable", "sub": "Su nombre en la cinta" },
+    { "x": 43, "y": 55, "tx": 54, "ty": 80, "texto": "Personalizable", "sub": "Su nombre en la cinta" },
     { "x": 18, "y": 70, "tx": 24, "ty": 92, "texto": "Traba rápida", "sub": "Se pone en un segundo" }
   ],
   "mono-circulo": [
@@ -59,8 +59,8 @@
     { "x": 12, "y": 31, "tx": 20, "ty": 80, "texto": "Se ata al cuello", "sub": "Un nudo y listo" }
   ],
   "poo-bag-circulo": [
-    { "x": 33, "y": 41, "tx": 28.5, "ty": 74, "texto": "Trae un rollito", "sub": "Lista para salir" },
-    { "x": 70, "y": 45, "tx": 74, "ty": 22, "texto": "Cierre", "sub": "Recargás bolsitas" },
+    { "x": 33, "y": 41, "tx": 24, "ty": 83, "texto": "Trae un rollito", "sub": "Lista para salir" },
+    { "x": 70, "y": 45, "tx": 79, "ty": 20, "texto": "Cierre", "sub": "Recargás bolsitas" },
     { "x": 36, "y": 86, "tx": 48, "ty": 93, "texto": "Mosquetón", "sub": "Va colgada de la correa" }
   ],
   "gorra-circulo": [
