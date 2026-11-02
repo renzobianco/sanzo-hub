@@ -80,7 +80,7 @@ export interface Producto {
 }
 
 /**
- * Pieza que se puede personalizar (todas menos el moño) y cómo se ve la vista previa:
+ * Pieza que se puede personalizar (todas menos el moño y la bandana) y cómo se ve la vista previa:
  * la foto del artículo con el parche elegido encima y el nombre escrito.
  * Medidas en píxeles de la foto.
  */
@@ -228,9 +228,9 @@ export const contadorKits: { restantes: number | null; total: number } = {
 // -----------------------------------------------------------------------------
 // Personalización: parche de cuerina recortado y grabado con láser, pegado a la pieza.
 // Forma, color, medida, letra y grabado (nombre o imagen propia) a elección.
-// En kits y combos el mismo parche va en todas sus piezas (menos el moño).
+// En kits y combos el mismo parche va en todas sus piezas (menos el moño y la bandana).
 // Precio por pieza personalizada = precioExtra + material + tramo de tamaño + imagen propia.
-// PRECIOS DE $100: provisorios, para acordarnos de ponerlos.
+// Renzo (2026-11-01): $5.000 fijo por pieza; tramos e imagen en 0.
 // -----------------------------------------------------------------------------
 export const personalizacion: {
   boton: string;
@@ -265,10 +265,10 @@ export const personalizacion: {
   link: { pregunta: "¿Con su nombre?", accion: "Personalizalo" },
   titulo: "Hacelo suyo",
   bajada: "Diseñá su parche: forma, color, medida y lo que quieras grabar.",
-  /** Lo que suma personalizar CADA pieza (un kit con 5 piezas personalizables suma 5 veces). PROVISORIO. */
-  precioExtra: 100,
-  /** Por grabar su propia imagen, por pieza. PROVISORIO. */
-  precioImagen: 100,
+  /** Lo que suma personalizar CADA pieza (un kit con 4 piezas personalizables suma 4 veces). */
+  precioExtra: 5000,
+  /** Por grabar su propia imagen, por pieza. 0 = nada. */
+  precioImagen: 0,
   avisoImagen: "La grabamos con tu imagen original, en alta calidad.",
   mensajeAyuda: "Hola sanzo! Quiero personalizar un parche y necesito ayuda con el diseño",
   ilustrativo: "Es a modo ilustrativo, para que veas cómo se previsualiza. El grabado real puede variar y quedar todavía mejor.",
@@ -324,9 +324,9 @@ export const personalizacion: {
   medidas: { minCm: 2, pasoCm: 0.5, inicial: { ancho: 6, alto: 3 } },
   /** Tramos de precio por tamaño (área = ancho × alto en cm²), del más chico al más grande. PROVISORIOS. */
   tamanos: [
-    { nombre: "Chico", hastaCm2: 10, precioExtra: 100 },
-    { nombre: "Mediano", hastaCm2: 20, precioExtra: 200 },
-    { nombre: "Grande", hastaCm2: Infinity, precioExtra: 300 },
+    { nombre: "Chico", hastaCm2: 10, precioExtra: 0 },
+    { nombre: "Mediano", hastaCm2: 20, precioExtra: 0 },
+    { nombre: "Grande", hastaCm2: Infinity, precioExtra: 0 },
   ],
   /**
    * Vista previa de cada pieza: la foto real sin fondo (public/productos/personalizar/). El parche se mueve
@@ -357,11 +357,9 @@ export const personalizacion: {
       pxCm: 46, inicial: { x: 660, y: 117 }, cm: { ancho: 8, alto: 2.2 },
       lugares: [{ id: "logo", nombre: "Junto al logo", x: 660, y: 117 }, { id: "hebilla", nombre: "Antes de la hebilla", x: 930, y: 117 }],
     },
-    bandana: {
-      imagen: "/productos/personalizar/bandana.webp", zona: "/productos/personalizar/bandana-zona.webp", tam: { ancho: 1616, alto: 1104 }, sinFondo: true,
-      pxCm: 27, inicial: { x: 808, y: 470 }, cm: { ancho: 10, alto: 8 },
-      lugares: [{ id: "centro", nombre: "Centro", x: 808, y: 470 }, { id: "arriba", nombre: "Arriba", x: 808, y: 320 }],
-    },
+    // Bandana: sin personalizar (Renzo, 2026-11-01). Para volver a ofrecerla, la vista era:
+    // imagen "/productos/personalizar/bandana.webp", zona "bandana-zona.webp", tam 1616×1104, pxCm 27,
+    // inicial { x: 808, y: 470 }, cm 10×8, lugares Centro (808, 470) y Arriba (808, 320).
     "poo-bag": {
       // Acostado, con el cierre arriba (como lo pidió Santi).
       imagen: "/productos/personalizar/poo-bag.webp", zona: "/productos/personalizar/poo-bag-zona.webp", tam: { ancho: 1531, alto: 881 }, sinFondo: true,

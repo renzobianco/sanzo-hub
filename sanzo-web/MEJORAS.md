@@ -471,3 +471,5 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Combo Sol: foto nueva primera (dos gorras y dos pilusos de pana sobre lino, `combo-sol/pana-cuatro.jpg`).
 - Personalizador: al deslizar de costado en el paso 1 se corría todo el panel (los radios ocultos de las letras lo estiraban a 1024 px). Panel con `overflow-x-hidden` y la fila de letras `relative`.
 - Subir imagen fallaba en producción: el bucket `sanzo-pedidos` no existe en Supabase ("Bucket not found"). Falta correr `sanzo-hub/supabase/migrations/006_imagenes_pedidos.sql` en el SQL Editor.
+- Personalizar: la bandana ya no se personaliza (sale de `personalizacion.piezas`; la vista quedó anotada en un comentario). En kits/combos el parche va en todas menos moño y bandana.
+- Personalizar: $5.000 fijo por pieza (`precioExtra`), sin extra por tamaño ni por imagen propia (Renzo). Los tramos ya no muestran "+ $0".

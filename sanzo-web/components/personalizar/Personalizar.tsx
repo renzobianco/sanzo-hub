@@ -639,7 +639,7 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
               ) : null}
             </div>
             <p className="pb-3 pt-2 text-center text-[11px] text-tinta/60">
-              {cm(final.ancho)} × {cm(final.alto)} cm{piezas.length > 1 ? ` · va en ${piezas.length} piezas, todas menos el moño` : ""}
+              {cm(final.ancho)} × {cm(final.alto)} cm{piezas.length > 1 ? ` · va en ${piezas.length} piezas, todas menos el moño y la bandana` : ""}
             </p>
           </div>
 
@@ -1243,7 +1243,9 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                           className={`flex h-14 flex-col items-center justify-center border text-[11px] uppercase tracking-[0.12em] transition-colors duration-300 ${es ? "border-tinta bg-tinta text-crema" : "border-tinta/15 text-tinta/60"}`}
                         >
                           {t.nombre}
-                          <span className="mt-0.5 text-[10px] normal-case tracking-normal opacity-80">+ {formatearPrecio(t.precioExtra)}{piezas.length > 1 ? " c/u" : ""}</span>
+                          {t.precioExtra > 0 && (
+                            <span className="mt-0.5 text-[10px] normal-case tracking-normal opacity-80">+ {formatearPrecio(t.precioExtra)}{piezas.length > 1 ? " c/u" : ""}</span>
+                          )}
                         </div>
                       );
                     })}
