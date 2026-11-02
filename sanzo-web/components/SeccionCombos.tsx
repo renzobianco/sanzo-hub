@@ -25,7 +25,7 @@ function FotosCombo({ combo }: { combo: Producto }) {
   return (
     <>
       <ConZoom fotos={combo.imagenes} nombre={combo.nombre} inicial={activa}>
-        <ImagenProducto srcs={combo.imagenes} fija={activa} nombre={combo.nombre} aspecto="aspect-[4/5]" sizes="(min-width: 768px) 28rem, 85vw" />
+        <ImagenProducto srcs={combo.imagenes} fija={activa} nombre={combo.nombre} aspecto="aspect-[4/5]" sizes="(min-width: 768px) 22rem, 85vw" />
       </ConZoom>
       <FlechasGaleria activa={activa} total={total} ir={(i) => setActiva(Math.max(0, Math.min(total - 1, i)))} />
     </>
@@ -148,8 +148,9 @@ export function SeccionCombos() {
           <ul
             ref={pista}
             aria-label="Combos"
-            className="sin-scrollbar -mx-4 flex snap-x snap-mandatory items-start overflow-x-auto px-12 pb-2"
-            style={{ gap: GAP, scrollPaddingInline: "3rem" }}
+            // En PC la pista ocupa todo el ancho de la pantalla y la tarjeta va centrada con su ancho fijo.
+            className="sin-scrollbar -mx-4 flex snap-x snap-mandatory items-start overflow-x-auto px-12 pb-2 [scroll-padding-inline:3rem] md:mx-[calc(50%-50vw)] md:w-screen md:px-[calc(50vw-11rem)] md:[scroll-padding-inline:0px]"
+            style={{ gap: GAP }}
             onScroll={(e) => {
               const p = Math.round(e.currentTarget.scrollLeft / paso());
               if (p !== pos) setPos(p);
@@ -165,7 +166,7 @@ export function SeccionCombos() {
                   key={`${combo.id}-${p}`}
                   aria-hidden={copia || undefined}
                   aria-label={copia ? undefined : `${combo.nombre}, ${i + 1} de ${N}`}
-                  className={`relative w-full shrink-0 snap-center ${
+                  className={`relative w-full shrink-0 snap-center md:w-[22rem] ${
                     saltando ? "" : "transition-[transform,filter,opacity] duration-500 ease-suave"
                   } motion-reduce:transition-none ${enfocado ? "scale-100 opacity-100" : "scale-[0.94] opacity-60 blur-[2px]"}`}
                 >

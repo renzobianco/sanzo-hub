@@ -5,7 +5,8 @@ Vive en el mismo repo que `sanzo-hub/` (panel interno) pero es otro proyecto de 
 Cada push a `main` que toque esta carpeta se publica solo.
 
 ## Reglas
-- **Exclusivamente para celular** (tráfico de IG/TikTok). Diseñar y probar a ~390px; nada que dependa de hover; fotos verticales.
+- **Celular primero** (tráfico de IG/TikTok). Diseñar y probar a ~390px; nada que dependa de hover; fotos verticales.
+- **PC**: se ajusta solo con clases `md:`/`lg:`, sin tocar cómo se ve en el celu. Después de cada cambio, comparar capturas a 390px antes y después (tienen que dar iguales) y mirar a 1440px.
 - Todo lo editable (productos, precios, fotos, links de Mercado Pago, textos, FAQ, contador de kits) va en `data/products.ts`; envíos en `data/envios.ts`. No hardcodear contenido en componentes.
 - Detalles señalados en la foto de la ficha (puntito + línea + título y para qué sirve): `data/detalles.json`. Se editan a mano en local con `npm run dev` y `?editar` en la dirección (arrastrar puntito y etiqueta, Texto, + Punto, Borrar, Guardar).
 - Marca: logo en minúscula, nunca dibujarlo ni recrearlo (imagen en `public/logo-sanzo.png`). Jost liviana con tracking. Paleta solo con los tokens `marron`, `topo`, `crema`, `lino`, `tinta` (definidos en `app/globals.css`). Sin blanco puro. Única excepción: el "Más vendido" del kit es holográfico pastel (clase `.holografico`, lo eligió Santi).

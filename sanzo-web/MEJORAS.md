@@ -442,3 +442,9 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Personalizador con "Tu imagen": el parche ahora es un círculo que sigue el del "Tu imagen" (antes quedaba con la forma y medida que tenía con nombre). Proporción 1:1, solo se elige el ancho. Al volver a "Su nombre" vuelve la forma de antes.
 - Gorra y piluso: al tocar el círculo, en grande se ve la foto sin fondo (antes salía la de la sábana), con sus puntitos (`gorra-circulo`, `piluso-circulo` en `data/detalles.json`).
 - Moño: el círculo tiene la sombrita suave de las demás piezas.
+
+## 2026-11-02 — Web para PC (sin tocar el celu)
+
+- Portada en PC: la frase y el botón a la izquierda, la foto cuadrada a la derecha a su tamaño real (estirada a todo el ancho se veía borrosa). En el celu sigue igual.
+- Combos en PC: el carrusel ocupa todo el ancho y la tarjeta tiene ancho fijo, centrada; las de los costados se ven enteras (antes salían cortadas por la caja angosta). Se pasa tocando una de los costados o las solapas, como en el celu.
+- Comparadas las capturas del celu (390px) antes y después: iguales.
