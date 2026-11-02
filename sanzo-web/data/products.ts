@@ -490,7 +490,7 @@ export const combos: Producto[] = [
     descripcion: "Gorra y piluso, para cada día de sol.",
     incluye: ["gorra", "piluso"],
     precio: 21999,
-    imagenes: ["/productos/solo/gorra/1.jpg", "/productos/solo/piluso/1.jpg", "/productos/solo/gorra/2.jpg", "/productos/solo/piluso/2.jpg"],
+    imagenes: ["/productos/combo-sol/pana-cuatro.jpg", "/productos/solo/gorra/1.jpg", "/productos/solo/piluso/1.jpg", "/productos/solo/gorra/2.jpg", "/productos/solo/piluso/2.jpg"],
     envioGratis: false,
     linkPago: "",
     disponible: true,

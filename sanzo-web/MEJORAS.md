@@ -468,3 +468,4 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Kit completo: 3 fotos nuevas al final (polaroids con flechas: arnés y correa, moño y bandana, porta bolsitas y collar).
 - Kit completo: fuera las fotos 2, 3 y 4 (`kit/2-4.jpg`); queda la principal y las tres polaroids.
 - Kit completo: la galería pasó de cuadrada a 4:5 (como las fotos), así las polaroids con flechas se ven enteras (Renzo: "no se ven completas").
+- Combo Sol: foto nueva primera (dos gorras y dos pilusos de pana sobre lino, `combo-sol/pana-cuatro.jpg`).
