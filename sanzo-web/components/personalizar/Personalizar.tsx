@@ -643,7 +643,8 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
             </p>
           </div>
 
-          <div className="relative flex-1 space-y-7 overflow-y-auto px-4 py-6 sm:col-start-2 sm:row-start-2 sm:px-6">
+          {/* overflow-x-hidden: deslizar de costado no corre el panel (antes se desfasaba en el paso 1). */}
+          <div className="relative flex-1 space-y-7 overflow-y-auto overflow-x-hidden px-4 py-6 sm:col-start-2 sm:row-start-2 sm:px-6">
             {/* Kits y combos: cada pieza con parche o sin, y con el diseño de todas o uno propio. Nada se borra. */}
             {piezas.length > 1 && (
               <div className="space-y-3 border border-tinta/15 p-3">
@@ -921,7 +922,8 @@ export function Personalizar({ producto, valor, onCambio, grande, comoLink, enCa
                         Letra
                       </legend>
                       {/* Cada letra muestra su nombre escrito con ella: se elige viendo. */}
-                      <div className="sin-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
+                      {/* relative: los radios ocultos (sr-only) quedan dentro de la fila y no estiran el panel. */}
+                      <div className="sin-scrollbar relative -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0">
                         {config.fuentes.map((f) => {
                           const { familia: fam, peso } = familia(f.id);
                           return (

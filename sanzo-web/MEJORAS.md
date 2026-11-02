@@ -469,3 +469,5 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Kit completo: fuera las fotos 2, 3 y 4 (`kit/2-4.jpg`); queda la principal y las tres polaroids.
 - Kit completo: la galería pasó de cuadrada a 4:5 (como las fotos), así las polaroids con flechas se ven enteras (Renzo: "no se ven completas").
 - Combo Sol: foto nueva primera (dos gorras y dos pilusos de pana sobre lino, `combo-sol/pana-cuatro.jpg`).
+- Personalizador: al deslizar de costado en el paso 1 se corría todo el panel (los radios ocultos de las letras lo estiraban a 1024 px). Panel con `overflow-x-hidden` y la fila de letras `relative`.
+- Subir imagen fallaba en producción: el bucket `sanzo-pedidos` no existe en Supabase ("Bucket not found"). Falta correr `sanzo-hub/supabase/migrations/006_imagenes_pedidos.sql` en el SQL Editor.
