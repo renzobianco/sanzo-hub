@@ -465,3 +465,4 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Portada: estrellas en 4,5 (Renzo). Ahora acepta medias.
 - Piluso (Granate y Jade): fuera la etiqueta blanca del ala en las fotos de atrás (`solo/piluso/atras.jpg`, `atras-jade.jpg`), tapada con la misma pana de al lado.
 - Portada en PC con las estrellas y "+150 clientes satisfechos" debajo de "Ver el kit", en la columna de la frase.
+- Kit completo: 3 fotos nuevas al final (polaroids con flechas: arnés y correa, moño y bandana, porta bolsitas y collar).
