@@ -467,3 +467,4 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Portada en PC con las estrellas y "+150 clientes satisfechos" debajo de "Ver el kit", en la columna de la frase.
 - Kit completo: 3 fotos nuevas al final (polaroids con flechas: arnés y correa, moño y bandana, porta bolsitas y collar).
 - Kit completo: fuera las fotos 2, 3 y 4 (`kit/2-4.jpg`); queda la principal y las tres polaroids.
+- Kit completo: la galería pasó de cuadrada a 4:5 (como las fotos), así las polaroids con flechas se ven enteras (Renzo: "no se ven completas").

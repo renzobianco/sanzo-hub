@@ -25,7 +25,8 @@ export function SeccionKit() {
     <section id="kit" aria-labelledby="kit-titulo" className="bg-lino pb-12 pt-8 md:py-16">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 md:grid-cols-[1.15fr_1fr] md:gap-16 md:px-8 lg:gap-24">
         <Reveal className="relative">
-          <KitGaleria imagenes={kit.imagenes} nombre={kit.nombre} etiqueta={kit.etiqueta} />
+          {/* 4:5 como las fotos del kit (las polaroids con flechas no se cortan). */}
+          <KitGaleria imagenes={kit.imagenes} nombre={kit.nombre} etiqueta={kit.etiqueta} aspecto="aspect-[4/5]" />
         </Reveal>
 
         {/* Jerarquía: dato chico en marrón → nombre bien grande → precio → piezas → talle → comprar. */}
