@@ -399,7 +399,7 @@ export const kit: Producto = {
   descripcion: "Arnés, correa, collar, moño, bandana y porta bolsitas. Todo lo que necesita para salir. Combinado.",
   incluye: ["arnes", "correa", "collar", "mono", "bandana", "poo-bag"],
   precio: 59999,
-  imagenes: ["/productos/kit/1-v2.jpg", "/productos/kit/2.jpg", "/productos/kit/3.jpg", "/productos/kit/4.jpg", "/productos/kit/arnes-correa.jpg", "/productos/kit/mono-bandana.jpg", "/productos/kit/porta-collar.jpg"],
+  imagenes: ["/productos/kit/1-v2.jpg","/productos/kit/arnes-correa.jpg", "/productos/kit/mono-bandana.jpg", "/productos/kit/porta-collar.jpg"],
   envioGratis: false,
   linkPago: "",
   disponible: true,
