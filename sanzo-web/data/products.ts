@@ -562,10 +562,10 @@ export const individuales: Producto[] = [
     tipo: "individual",
     descripcion: "El detalle que le cambia la cara al paseo.",
     incluye: [],
-    precio: 10, // PRUEBA de avisos (2026-11-03): volver a 9499
+    precio: 9499,
     imagenes: ["/productos/solo/mono/1.jpg", "/productos/solo/mono/atras.jpg"],
     medidas: [{ texto: "6 x 9 cm" }],
-    envioGratis: true, // PRUEBA: volver a false
+    envioGratis: false,
     linkPago: "",
     disponible: true,
   },
