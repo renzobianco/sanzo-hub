@@ -3,6 +3,7 @@ import { calcularTotales, type LineaCarrito, type Totales } from "@/lib/carrito"
 import { detalleEnvio, formatearPrecio, textoEnvio } from "@/lib/formato";
 import { crearPreferencia, pagoOnlineActivo, sePuedeCobrar } from "@/lib/mercadopago";
 import type { PedidoEntrada, PedidoRespuesta } from "@/lib/pedido";
+import { avisarAlCelular } from "@/lib/aviso";
 import { esImagenNuestra, guardarPedidoEnHub } from "@/lib/hub";
 import { imagenesPersonalizacion, textoPersonalizacion, type DisenoPieza, type Personalizacion } from "@/lib/personalizacion";
 import { textoOpcion } from "@/lib/combos";
@@ -250,6 +251,16 @@ export async function POST(req: Request) {
 
   // Copia en "Pedidos web" del Hub (se pasa a ventas cuando se confirma el pago).
   await guardarPedidoEnHub(numero, cliente, totales, linkPago);
+
+  // Notificación al celular (app ntfy).
+  await avisarAlCelular(
+    `Nuevo pedido ${numero} · ${formatearPrecio(totales.total)}`,
+    [
+      `${cliente.nombre} (${cliente.provincia})`,
+      ...totales.lineas.map((l) => `${l.cantidad} x ${l.producto.nombre}${l.opcion ? ` (${textoOpcion(l.producto, l.opcion)})` : ""}`),
+      linkPago ? "Pago online: falta que lo apruebe Mercado Pago." : "Pago a coordinar: escribile con el link de pago.",
+    ].join("\n"),
+  );
 
   // Sin credenciales de MP: link fijo del producto, solo si es un único producto (1 unidad), al precio
   // del link y sin envío a cobrar (el link de MP tiene precio fijo y no incluye el envío).

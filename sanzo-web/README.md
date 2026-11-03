@@ -56,6 +56,7 @@ Settings → Environment Variables:
 |---|---|
 | `RESEND_API_KEY` | API key de [Resend](https://resend.com) para mandar el mail de cada pedido |
 | `PEDIDOS_EMAIL` | Mail donde llegan los pedidos (podés poner varios separados por coma) |
+| `NTFY_TOPIC` | Opcional. Nombre del tema de la app ntfy para recibir en el celular un aviso por cada pedido y cada pago aprobado (cada socio se suscribe a ese tema en la app). Sin esto no se manda nada |
 | `PEDIDOS_FROM` | Opcional. Remitente, ej. `sanzo <pedidos@tudominio.com>`. Tiene que ser de un dominio verificado en Resend. Si no lo ponés, se usa `onboarding@resend.dev`, que **solo** manda al mail de tu cuenta de Resend |
 | `MP_ACCESS_TOKEN` | Access Token de **producción** de Mercado Pago (Tus integraciones → tu aplicación → Credenciales de producción). Activa el pago online. Después de cargarlo, hacé Redeploy |
 | `SUPABASE_URL` | Misma base que Sanzo Hub: el valor de `VITE_SUPABASE_URL` del proyecto sanzo-hub. Manda los pedidos a "Pedidos web" del Hub |

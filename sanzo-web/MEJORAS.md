@@ -473,3 +473,4 @@ Parche de cuerina recortado y grabado con láser, pegado (liso). Todo editable e
 - Subir imagen fallaba en producción: el bucket `sanzo-pedidos` no existe en Supabase ("Bucket not found"). Falta correr `sanzo-hub/supabase/migrations/006_imagenes_pedidos.sql` en el SQL Editor.
 - Personalizar: la bandana ya no se personaliza (sale de `personalizacion.piezas`; la vista quedó anotada en un comentario). En kits/combos el parche va en todas menos moño y bandana.
 - Personalizar: $5.000 fijo por pieza (`precioExtra`), sin extra por tamaño ni por imagen propia (Renzo). Los tramos ya no muestran "+ $0".
+- Avisos al celular (2026-11-03, Renzo): con cada pedido nuevo y cada pago aprobado de Mercado Pago llega una notificación con la app ntfy (`lib/aviso.ts`). Se activa con `NTFY_TOPIC` en Vercel; Renzo y Santi se suscriben a ese tema en la app.
