@@ -81,7 +81,8 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
           setUbicacion({
             provincia: data.ubicacion.provincia,
             cp: typeof data.ubicacion.cp === "string" ? data.ubicacion.cp : "",
-            entrega: data.ubicacion.entrega === "sucursal" ? "sucursal" : "domicilio",
+            entrega: data.ubicacion.entrega === "sucursal" || data.ubicacion.entrega === "retiro" ? data.ubicacion.entrega : "domicilio",
+            puntoRetiro: typeof data.ubicacion.puntoRetiro === "string" ? data.ubicacion.puntoRetiro : undefined,
           });
       }
     } catch {

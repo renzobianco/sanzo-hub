@@ -1,3 +1,4 @@
+import { puntoRetiro } from "@/data/envios";
 import { NextResponse } from "next/server";
 import { calcularTotales, type LineaCarrito, type Totales } from "@/lib/carrito";
 import { detalleEnvio, formatearPrecio, textoEnvio } from "@/lib/formato";
@@ -75,7 +76,8 @@ function limpiarCliente(c: Partial<DatosCheckout> | undefined): DatosCheckout {
     dni: str(c?.dni, 20),
     email: str(c?.email),
     celular: str(c?.celular, 40),
-    entrega: c?.entrega === "sucursal" ? "sucursal" : "domicilio",
+    entrega: c?.entrega === "sucursal" || c?.entrega === "retiro" ? c.entrega : "domicilio",
+    puntoRetiro: puntoRetiro(str(c?.puntoRetiro, 40)).id,
     calle: str(c?.calle),
     altura: str(c?.altura, 20),
     pisoDepto: str(c?.pisoDepto, 60),
@@ -88,14 +90,19 @@ function limpiarCliente(c: Partial<DatosCheckout> | undefined): DatosCheckout {
 }
 
 function armarMail(numero: string, c: DatosCheckout, t: Totales, pago: string) {
-  const entrega = c.entrega === "domicilio" ? "Envío a domicilio" : "Retiro en sucursal de Correo Argentino";
+  const entrega =
+    c.entrega === "retiro"
+      ? `RETIRA EN PERSONA en ${puntoRetiro(c.puntoRetiro).direccion} (coordinar el día por WhatsApp)`
+      : c.entrega === "domicilio"
+        ? "Envío a domicilio"
+        : "Retiro en sucursal de Correo Argentino";
   const direccion =
     c.entrega === "domicilio"
       ? [`${c.calle} ${c.altura}`, c.pisoDepto && `Piso/depto: ${c.pisoDepto}`, c.referencia && `Referencia: ${c.referencia}`]
           .filter(Boolean)
           .join(" · ")
       : "—";
-  const zona = t.envio.tipo === "precio" || t.envio.tipo === "cotizar" ? ` (${detalleEnvio(t.envio)})` : "";
+  const zona = detalleEnvio(t.envio) ? ` (${detalleEnvio(t.envio)})` : "";
   const envio = `${textoEnvio(t.envio)}${zona}`;
 
   const filas: [string, string][] = [
@@ -198,6 +205,7 @@ export async function POST(req: Request) {
     provincia: cliente.provincia,
     cp: cliente.codigoPostal,
     entrega: cliente.entrega,
+    puntoRetiro: cliente.puntoRetiro,
   });
   if (totales.lineas.length === 0) {
     return NextResponse.json<PedidoRespuesta>({ ok: false, error: "El carrito está vacío." }, { status: 400 });
@@ -256,7 +264,7 @@ export async function POST(req: Request) {
   await avisarAlCelular(
     `Nuevo pedido ${numero} · ${formatearPrecio(totales.total)}`,
     [
-      `${cliente.nombre} (${cliente.provincia})`,
+      `${cliente.nombre} (${cliente.entrega === "retiro" ? `retira en ${puntoRetiro(cliente.puntoRetiro).direccion}` : cliente.provincia})`,
       ...totales.lineas.map((l) => `${l.cantidad} x ${l.producto.nombre}${l.opcion ? ` (${textoOpcion(l.producto, l.opcion)})` : ""}`),
       linkPago ? "Pago online: falta que lo apruebe Mercado Pago." : "Pago a coordinar: escribile con el link de pago.",
     ].join("\n"),
@@ -266,7 +274,8 @@ export async function POST(req: Request) {
   // del link y sin envío a cobrar (el link de MP tiene precio fijo y no incluye el envío).
   const unica = totales.lineas.length === 1 && totales.lineas[0].cantidad === 1 ? totales.lineas[0] : null;
   const precioFijo = unica !== null && unica.unitario === unica.producto.precio;
-  const linkFijo = unica && precioFijo && totales.envio.tipo === "gratis" ? unica.producto.linkPago || undefined : undefined;
+  const sinEnvio = totales.envio.tipo === "gratis" || totales.envio.tipo === "retiro";
+  const linkFijo = unica && precioFijo && sinEnvio ? unica.producto.linkPago || undefined : undefined;
   const redirigirA = linkPago ?? linkFijo;
 
   return NextResponse.json<PedidoRespuesta>({ ok: true, numero, redirigirA });

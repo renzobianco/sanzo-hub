@@ -788,7 +788,7 @@ export const preguntas: { pregunta: string; respuesta: string }[] = [
   {
     pregunta: "¿Hacen envíos a todo el país?",
     respuesta:
-      "Sí, a todo el país por Correo Argentino: a domicilio o para retirar en sucursal.",
+      "Sí, a todo el país por Correo Argentino: a domicilio o para retirar en sucursal. En CABA también lo podés retirar gratis en Av. Scalabrini Ortiz 2083 o en Moldes 1375: miércoles a viernes de 11 a 16 h y sábados de 12 a 15 h.",
   },
 ];
 

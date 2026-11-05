@@ -33,6 +33,32 @@ export type Provincia = (typeof PROVINCIAS)[number];
 
 export type TipoEntrega = "domicilio" | "sucursal";
 
+/** Cómo lo recibe: por Correo (domicilio o sucursal) o lo retira gratis en persona. */
+export type Entrega = TipoEntrega | "retiro";
+
+export interface PuntoRetiro {
+  id: string;
+  direccion: string;
+}
+
+/** Retiro gratis en persona, en lo de Renzo o lo de Santi (Renzo, 2026-11-05). El día se coordina por WhatsApp. */
+export const retiro = {
+  activo: true,
+  texto: "Retiro gratis en CABA",
+  puntos: [
+    { id: "scalabrini", direccion: "Av. Scalabrini Ortiz 2083, CABA" },
+    { id: "moldes", direccion: "Moldes 1375, CABA" },
+  ] as PuntoRetiro[],
+  horarios: "Miércoles, jueves y viernes de 11 a 16 h. Sábados de 12 a 15 h.",
+  aviso: "Después de comprar coordinamos el día y la hora por WhatsApp.",
+  /** Mensaje que se arma en /gracias ({numero} y {direccion}). */
+  mensajeWhatsapp: "Hola sanzo! Hice el pedido {numero} y lo quiero retirar en {direccion}. ¿Qué día y horario puedo pasar?",
+};
+
+export function puntoRetiro(id?: string): PuntoRetiro {
+  return retiro.puntos.find((p) => p.id === id) ?? retiro.puntos[0];
+}
+
 /**
  * Lo que se cotizó y con qué paquete. Cuando midan el peso real del paquete o abran la cuenta
  * comercial de MiCorreo (ahí suelen bajar los precios), se recotiza y se cambian las tarifas de abajo.
@@ -84,7 +110,7 @@ export const zonas: ZonaEnvio[] = [
 
 export const envioInfo = {
   correo: "Correo Argentino",
-  texto: "Enviamos a todo el país por Correo Argentino. Elegí entrega a domicilio o retiro en sucursal.",
+  texto: "Enviamos a todo el país por Correo Argentino, a domicilio o a sucursal. En CABA también lo podés retirar gratis.",
   /** Envío gratis para pedidos desde este monto (en pesos). null → solo el kit viaja gratis. */
   gratisDesde: null as number | null,
 };

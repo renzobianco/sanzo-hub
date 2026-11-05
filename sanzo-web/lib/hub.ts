@@ -130,7 +130,7 @@ export function esImagenNuestra(url: string) {
 /** Guarda el pedido en "Pedidos web" del Hub. Si falla, solo queda en los logs: el pedido ya salió por mail. */
 export async function guardarPedidoEnHub(numero: string, c: DatosCheckout, t: Totales, linkPago?: string) {
   if (!hubActivo()) return;
-  const zona = t.envio.tipo === "precio" || t.envio.tipo === "cotizar" ? ` (${detalleEnvio(t.envio)})` : "";
+  const zona = detalleEnvio(t.envio) ? ` (${detalleEnvio(t.envio)})` : "";
   const payload = {
     numero,
     createdAt: new Date().toISOString(),

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { PROVINCIAS } from "@/data/envios";
+import { PROVINCIAS, puntoRetiro, retiro } from "@/data/envios";
 import { LineaManada } from "@/components/carrito/LineaManada";
 import { MiniaturaLinea } from "@/components/carrito/MiniaturaLinea";
 import { PrecioLinea } from "@/components/carrito/PrecioLinea";
@@ -27,6 +27,7 @@ const ORDEN: Campo[] = [
   "celular",
   "calle",
   "altura",
+  "puntoRetiro",
   "provincia",
   "localidad",
   "codigoPostal",
@@ -48,7 +49,7 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
   useEffect(() => {
     if (!listo || inicializado.current) return;
     inicializado.current = true;
-    setD((prev) => ({ ...prev, provincia: ubicacion.provincia, codigoPostal: ubicacion.cp, entrega: ubicacion.entrega }));
+    setD((prev) => ({ ...prev, provincia: ubicacion.provincia, codigoPostal: ubicacion.cp, entrega: ubicacion.entrega, puntoRetiro: ubicacion.puntoRetiro ?? prev.puntoRetiro }));
   }, [listo, ubicacion]);
 
   const errores = useMemo(() => validarCheckout(d), [d]);
@@ -57,8 +58,10 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
   function set<C extends Campo>(c: C, v: DatosCheckout[C]) {
     const next = { ...d, [c]: v };
     setD(next);
-    if (c === "provincia" || c === "codigoPostal" || c === "entrega") {
-      setUbicacion({ provincia: next.provincia, cp: next.codigoPostal, entrega: next.entrega });
+    // Retira en persona: arranca con el primer punto elegido (se puede cambiar).
+    if (c === "entrega" && v === "retiro" && !next.puntoRetiro) next.puntoRetiro = retiro.puntos[0].id;
+    if (c === "provincia" || c === "codigoPostal" || c === "entrega" || c === "puntoRetiro") {
+      setUbicacion({ provincia: next.provincia, cp: next.codigoPostal, entrega: next.entrega, puntoRetiro: next.puntoRetiro });
     }
   }
 
@@ -99,7 +102,9 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
       try {
         // fotoPerro: en /gracias le pedimos la foto por WhatsApp (solo si no la pudo subir).
         const fotoPerro = totales.lineas.some((l) => chapitaConFoto(l.producto, l.opcion) && !l.imagen);
-        window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ numero: data.numero, nombre: d.nombre, pago: data.redirigirA, fotoPerro }));
+        // retiro: en /gracias le armamos el WhatsApp para coordinar el día.
+        const retiraEn = d.entrega === "retiro" ? puntoRetiro(d.puntoRetiro).direccion : undefined;
+        window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ numero: data.numero, nombre: d.nombre, pago: data.redirigirA, fotoPerro, retiraEn }));
       } catch {
         // sin almacenamiento: /gracias igual recibe el número por la URL
       }
@@ -210,6 +215,7 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
               [
                 ["domicilio", "Envío a domicilio"],
                 ["sucursal", "Retiro en sucursal de Correo Argentino"],
+                ...(retiro.activo ? ([["retiro", retiro.texto]] as const) : []),
               ] as const
             ).map(([valor, texto]) => (
               <label key={valor} className="cursor-pointer">
@@ -229,14 +235,48 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
                     }`}
                   />
                   <span className="flex-1">{texto}</span>
-                  {zona?.precio[valor] != null && envio.tipo !== "gratis" && <span className="text-tinta/70">{formatearPrecio(zona.precio[valor]!)}</span>}
+                  {valor === "retiro" ? (
+                    <span className="text-marron">Gratis</span>
+                  ) : (
+                    zona?.precio[valor] != null && envio.tipo !== "gratis" && <span className="text-tinta/70">{formatearPrecio(zona.precio[valor]!)}</span>
+                  )}
                 </span>
               </label>
             ))}
           </div>
         </fieldset>
 
-        <Grupo titulo={d.entrega === "domicilio" ? "Dirección de entrega" : "¿Dónde retirás?"}>
+        {d.entrega === "retiro" && (
+          <fieldset id="f-puntoRetiro" tabIndex={-1}>
+            <legend className="titulo-form">¿Dónde lo retirás?</legend>
+            <div className="grid gap-3">
+              {retiro.puntos.map((p) => (
+                <label key={p.id} className="cursor-pointer">
+                  <input
+                    type="radio"
+                    name="puntoRetiro"
+                    value={p.id}
+                    checked={d.puntoRetiro === p.id}
+                    onChange={() => set("puntoRetiro", p.id)}
+                    className="peer sr-only"
+                  />
+                  <span className="flex items-center gap-3 rounded-lg border border-tinta/30 px-4 py-4 text-[15px] transition-colors peer-checked:border-tinta peer-checked:bg-lino/60 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-marron">
+                    <span
+                      aria-hidden="true"
+                      className={`h-4 w-4 shrink-0 rounded-full border border-tinta ${d.puntoRetiro === p.id ? "bg-tinta shadow-[inset_0_0_0_3px_rgb(var(--crema))]" : ""}`}
+                    />
+                    {p.direccion}
+                  </span>
+                </label>
+              ))}
+            </div>
+            {mostrar("puntoRetiro") && <p className="mt-2 text-sm text-marron">{mostrar("puntoRetiro")}</p>}
+            <p className="mt-4 text-[14px] leading-relaxed text-tinta/75">{retiro.horarios}</p>
+            <p className="mt-1 text-[14px] leading-relaxed text-tinta/75">{retiro.aviso}</p>
+          </fieldset>
+        )}
+
+        <Grupo titulo={d.entrega === "domicilio" ? "Dirección de entrega" : d.entrega === "retiro" ? "Algo más" : "¿Dónde retirás?"}>
           {d.entrega === "domicilio" && (
             <>
               <Campo id="calle" label="Calle" error={mostrar("calle")}>
@@ -284,6 +324,8 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
             </>
           )}
 
+          {d.entrega !== "retiro" && (
+            <>
           <Campo id="provincia" label="Provincia" error={mostrar("provincia")}>
             <select
               id="f-provincia"
@@ -330,6 +372,8 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
               aria-describedby={mostrar("codigoPostal") ? "e-codigoPostal" : undefined}
             />
           </Campo>
+            </>
+          )}
           <Campo id="notas" label="Notas del pedido" opcional className="sm:col-span-2">
             <textarea
               id="f-notas"
@@ -401,12 +445,10 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
           <div className="flex justify-between gap-4">
             <dt>
               Envío
-              {(envio.tipo === "precio" || envio.tipo === "cotizar") && (
-                <span className="block text-xs text-tinta/70">{detalleEnvio(envio)}</span>
-              )}
+              {detalleEnvio(envio) && <span className="block text-xs text-tinta/70">{detalleEnvio(envio)}</span>}
               {envio.tipo === "gratis" && <span className="block text-xs text-tinta/70">{totales.contieneKit ? "Incluido con el kit completo" : "Por el monto de tu pedido"}</span>}
             </dt>
-            <dd className={envio.tipo === "gratis" ? "text-marron" : ""}>{textoEnvio(envio)}</dd>
+            <dd className={envio.tipo === "gratis" || envio.tipo === "retiro" ? "text-marron" : ""}>{textoEnvio(envio)}</dd>
           </div>
           <div className="flex justify-between border-t border-tinta/15 pt-3 text-lg">
             <dt>Total</dt>

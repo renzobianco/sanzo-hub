@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ofertaChapita, sitio } from "@/data/products";
+import { retiro } from "@/data/envios";
 import { CLAVE_ULTIMO_PEDIDO } from "@/lib/pedido";
 import { IconoWhatsapp } from "../Iconos";
 
@@ -36,6 +37,7 @@ export function ContenidoGracias() {
   const [numero, setNumero] = useState(params.get("pedido") ?? "");
   const [linkPago, setLinkPago] = useState("");
   const [fotoPerro, setFotoPerro] = useState(false);
+  const [retiraEn, setRetiraEn] = useState("");
   const estado = params.get("estado") ?? "aprobado";
   const t = TEXTOS[estado] ?? TEXTOS.aprobado;
 
@@ -47,6 +49,7 @@ export function ContenidoGracias() {
       if (!numero) setNumero(guardado?.numero ?? "");
       if (typeof guardado?.pago === "string" && guardado.pago.startsWith("https://")) setLinkPago(guardado.pago);
       setFotoPerro(guardado?.fotoPerro === true);
+      setRetiraEn(typeof guardado?.retiraEn === "string" ? guardado.retiraEn : "");
     } catch {
       // sin almacenamiento
     }
@@ -63,6 +66,23 @@ export function ContenidoGracias() {
       )}
       <p className="mt-8 text-lg font-light leading-relaxed text-tinta/85">{t.texto}</p>
       <p className="mt-3 text-[15px] text-tinta/75">Gracias por elegir sanzo para sus paseos.</p>
+      {/* Retira en persona: coordinamos el día por WhatsApp, con el pedido y el lugar ya escritos. */}
+      {retiraEn && estado !== "rechazado" && sitio.whatsapp.numero && (
+        <div className="mt-10 w-full border border-tinta/20 px-5 py-6">
+          <p className="eyebrow">Coordiná el retiro</p>
+          <p className="mt-3 text-[15px] leading-relaxed text-tinta/85">Lo retirás en {retiraEn}.</p>
+          <p className="mt-1 text-[14px] leading-relaxed text-tinta/70">{retiro.horarios}</p>
+          <a
+            href={`https://wa.me/${sitio.whatsapp.numero}?text=${encodeURIComponent(retiro.mensajeWhatsapp.replace("{numero}", numero || "").replace("{direccion}", retiraEn))}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primario mt-5 inline-flex items-center gap-2"
+          >
+            <IconoWhatsapp width={18} height={18} />
+            Coordinar por WhatsApp
+          </a>
+        </div>
+      )}
       {/* Chapita con la foto de su perro: la pedimos acá, con el número de pedido ya escrito. */}
       {fotoPerro && estado !== "rechazado" && sitio.whatsapp.numero && (
         <div className="mt-10 w-full border border-tinta/20 px-5 py-6">

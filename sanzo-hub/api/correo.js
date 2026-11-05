@@ -123,6 +123,7 @@ function validarPaquete(p) {
 
 function armarOrden(pedido, remitente, paquete, agencyId) {
   const c = pedido.cliente || {}
+  if (c.entrega === 'retiro') throw new ErrorUsuario('Este pedido lo retira en persona: no va por Correo.')
   const sucursal = c.entrega === 'sucursal'
   if (sucursal && !agencyId) throw new ErrorUsuario('Elegí la sucursal donde retira.')
   const provDestino = PROVINCIAS[c.provincia]

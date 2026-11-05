@@ -212,11 +212,9 @@ export function CarritoDrawer() {
                     {envio.tipo === "gratis" && (
                       <span className="text-tinta/70"> · {contieneKit ? "con el kit completo" : "por monto"}</span>
                     )}
-                    {(envio.tipo === "precio" || envio.tipo === "cotizar") && (
-                      <span className="text-tinta/70"> · {detalleEnvio(envio)}</span>
-                    )}
+                    {detalleEnvio(envio) && <span className="text-tinta/70"> · {detalleEnvio(envio)}</span>}
                   </dt>
-                  <dd className={envio.tipo === "gratis" ? "text-marron" : ""}>{textoEnvio(envio)}</dd>
+                  <dd className={envio.tipo === "gratis" || envio.tipo === "retiro" ? "text-marron" : ""}>{textoEnvio(envio)}</dd>
                 </div>
                 <div className="flex justify-between border-t border-tinta/15 pt-3 text-lg">
                   <dt>Total</dt>

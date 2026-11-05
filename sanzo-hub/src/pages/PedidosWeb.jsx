@@ -308,12 +308,17 @@ function Stat({ label, value, sub }) {
   )
 }
 
+// Retiro en persona (sanzo-web/data/envios.ts → retiro.puntos): el pedido trae el id del lugar.
+const PUNTOS_RETIRO = { scalabrini: 'Av. Scalabrini Ortiz 2083', moldes: 'Moldes 1375' }
+
 function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenerarEnvio }) {
   const c = o.cliente || {}
   const est = ESTADOS[o.estado] || ESTADOS.a_coordinar
   const wa = linkWhatsapp(c.celular)
   const direccion =
-    c.entrega === 'sucursal'
+    c.entrega === 'retiro'
+      ? `Retira en persona en ${PUNTOS_RETIRO[c.puntoRetiro] || 'uno de los puntos'} (coordinar por WhatsApp)`
+      : c.entrega === 'sucursal'
       ? 'Retira en sucursal de Correo Argentino'
       : [`${c.calle || ''} ${c.altura || ''}`.trim(), c.pisoDepto].filter(Boolean).join(', ')
   const lugar = [c.localidad, c.provincia, c.codigoPostal && `CP ${String(c.codigoPostal).toUpperCase()}`].filter(Boolean).join(' · ')
@@ -404,7 +409,7 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenera
 
       {c.notas && <p className="muted small">“{c.notas}”</p>}
 
-      {o.estado !== 'cancelado' && o.estado !== 'rechazado' && <EnvioCorreo order={o} onGenerar={onGenerarEnvio} />}
+      {o.estado !== 'cancelado' && o.estado !== 'rechazado' && c.entrega !== 'retiro' && <EnvioCorreo order={o} onGenerar={onGenerarEnvio} />}
 
       <div className="row between" style={{ marginTop: 'auto' }}>
         <div className="small muted">

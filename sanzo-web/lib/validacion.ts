@@ -1,13 +1,15 @@
-import { PROVINCIAS, type TipoEntrega } from "@/data/envios";
+import { PROVINCIAS, retiro, type Entrega, type TipoEntrega } from "@/data/envios";
 
-export type { TipoEntrega };
+export type { Entrega, TipoEntrega };
 
 export interface DatosCheckout {
   nombre: string;
   dni: string;
   email: string;
   celular: string;
-  entrega: TipoEntrega;
+  entrega: Entrega;
+  /** Retiro en persona: id del punto (`retiro.puntos`). */
+  puntoRetiro: string;
   calle: string;
   altura: string;
   pisoDepto: string;
@@ -24,6 +26,7 @@ export const datosVacios: DatosCheckout = {
   email: "",
   celular: "",
   entrega: "domicilio",
+  puntoRetiro: "",
   calle: "",
   altura: "",
   pisoDepto: "",
@@ -61,6 +64,12 @@ export function validarCheckout(d: DatosCheckout): ErroresCheckout {
     if (!d.calle.trim()) e.calle = "Ingresá la calle.";
     if (!d.altura.trim()) e.altura = "Ingresá la altura.";
     else if (!/^\d{1,6}$/.test(d.altura.trim())) e.altura = "La altura tiene que ser un número.";
+  }
+
+  // Si lo retira en persona no hace falta su dirección: solo dónde lo retira.
+  if (d.entrega === "retiro") {
+    if (!retiro.puntos.some((p) => p.id === d.puntoRetiro)) e.puntoRetiro = "Elegí dónde lo retirás.";
+    return e;
   }
 
   if (!d.provincia) e.provincia = "Elegí tu provincia.";

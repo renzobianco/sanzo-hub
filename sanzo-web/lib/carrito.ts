@@ -1,6 +1,6 @@
 import { chapita, getProducto, ofertaChapita, type Producto } from "@/data/products";
 import { esChapita, llevaChapita, normalizarOpcionChapita, normalizarOpcionComboChapita } from "./chapita";
-import { envioInfo, zonaPorCP, zonaPorProvincia, type TipoEntrega, type ZonaEnvio } from "@/data/envios";
+import { envioInfo, puntoRetiro, retiro, zonaPorCP, zonaPorProvincia, type Entrega, type PuntoRetiro, type TipoEntrega, type ZonaEnvio } from "@/data/envios";
 import { clavePersonalizacion, normalizarPersonalizacion, precioPersonalizacion, type Personalizacion } from "./personalizacion";
 import { armables, calcularPromos, type DescuentoAplicado, type Sugerencia } from "./promos";
 import { armarOpcion, opcionesValidas, piezasConColor, porSeparadoDe } from "./combos";
@@ -21,7 +21,9 @@ export interface LineaCarrito {
 export interface Ubicacion {
   provincia: string;
   cp: string;
-  entrega: TipoEntrega;
+  entrega: Entrega;
+  /** Si retira en persona: dónde (`retiro.puntos`). */
+  puntoRetiro?: string;
 }
 
 export function zonaDeUbicacion(u: Ubicacion) {
@@ -32,7 +34,8 @@ export type EstadoEnvio =
   | { tipo: "gratis" }
   | { tipo: "sin-zona" }
   | { tipo: "cotizar"; zona: ZonaEnvio; entrega: TipoEntrega }
-  | { tipo: "precio"; zona: ZonaEnvio; entrega: TipoEntrega; monto: number };
+  | { tipo: "precio"; zona: ZonaEnvio; entrega: TipoEntrega; monto: number }
+  | { tipo: "retiro"; punto: PuntoRetiro };
 
 export interface LineaResuelta extends LineaCarrito {
   producto: Producto;
@@ -125,11 +128,13 @@ export function calcularTotales(lineas: LineaCarrito[], ubicacion: Ubicacion): T
   const llegaAlMonto = umbral !== null && productos >= umbral;
   const faltaParaGratis = umbral !== null && !contieneKit && !llegaAlMonto && productos > 0 ? umbral - productos : null;
 
-  if (contieneKit || llegaAlMonto) {
+  if (ubicacion.entrega === "retiro" && retiro.activo) {
+    envio = { tipo: "retiro", punto: puntoRetiro(ubicacion.puntoRetiro) };
+  } else if (contieneKit || llegaAlMonto) {
     envio = { tipo: "gratis" };
   } else {
     const zona = zonaDeUbicacion(ubicacion);
-    const { entrega } = ubicacion;
+    const entrega: TipoEntrega = ubicacion.entrega === "retiro" ? "domicilio" : ubicacion.entrega;
     const monto = zona?.precio[entrega];
     if (!zona) envio = { tipo: "sin-zona" };
     else if (monto == null) envio = { tipo: "cotizar", zona, entrega };

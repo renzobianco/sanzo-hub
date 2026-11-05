@@ -14,6 +14,7 @@ export function formatearPrecio(monto: number) {
 export function textoEnvio(envio: EstadoEnvio) {
   switch (envio.tipo) {
     case "gratis":
+    case "retiro":
       return "Gratis";
     case "sin-zona":
       return "Elegí tu provincia";
@@ -24,8 +25,9 @@ export function textoEnvio(envio: EstadoEnvio) {
   }
 }
 
-/** "Patagonia · a sucursal": zona y tipo de entrega del envío, si ya se sabe la zona. */
+/** "Patagonia · a sucursal" o "Retiro en Moldes 1375, CABA": cómo llega, si ya se sabe. */
 export function detalleEnvio(envio: EstadoEnvio) {
+  if (envio.tipo === "retiro") return `Retiro en ${envio.punto.direccion}`;
   if (envio.tipo !== "precio" && envio.tipo !== "cotizar") return "";
   return `${envio.zona.nombre} · ${envio.entrega === "sucursal" ? "a sucursal" : "a domicilio"}`;
 }

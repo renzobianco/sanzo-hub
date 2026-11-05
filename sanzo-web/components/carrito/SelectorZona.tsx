@@ -1,6 +1,6 @@
 "use client";
 
-import { cotizacion, PROVINCIAS, type TipoEntrega } from "@/data/envios";
+import { cotizacion, PROVINCIAS, retiro, type TipoEntrega } from "@/data/envios";
 import { zonaDeUbicacion } from "@/lib/carrito";
 import { formatearPrecio } from "@/lib/formato";
 import { useCarrito } from "./CarritoProvider";
@@ -81,6 +81,23 @@ export function SelectorZona({ elegir = true }: { elegir?: boolean }) {
           </p>
         </div>
       )}
+
+      {/* Retiro en persona: no depende de la zona. En el carrito se elige; en la ficha solo se cuenta. */}
+      {retiro.activo &&
+        (elegir ? (
+          <button
+            type="button"
+            role="radio"
+            aria-checked={ubicacion.entrega === "retiro"}
+            onClick={() => setUbicacion({ ...ubicacion, entrega: "retiro" })}
+            className={`flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left transition-colors ${ubicacion.entrega === "retiro" ? "border-tinta bg-crema" : "border-tinta/20"}`}
+          >
+            <span className="text-[13px]">{retiro.texto}</span>
+            <span className="text-[15px] text-marron">Gratis</span>
+          </button>
+        ) : (
+          <p className="text-xs text-tinta/60">O retiralo gratis en CABA: {retiro.puntos.map((p) => p.direccion.replace(", CABA", "")).join(" o ")}.</p>
+        ))}
     </div>
   );
 }

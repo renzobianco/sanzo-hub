@@ -11,7 +11,7 @@ export function pagoOnlineActivo() {
 
 /** Se puede cobrar online si el envío tiene precio definido (o es gratis). "A cotizar" → le escribimos. */
 export function sePuedeCobrar(t: Totales) {
-  return t.envio.tipo === "gratis" || t.envio.tipo === "precio";
+  return t.envio.tipo === "gratis" || t.envio.tipo === "precio" || t.envio.tipo === "retiro";
 }
 
 /**
