@@ -21,11 +21,22 @@ const cerrado = (o) => o.aplicado || o.estado === 'cancelado' || o.estado === 'r
 const fmtCuando = (iso) =>
   iso ? new Date(iso).toLocaleString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'
 
-function linkWhatsapp(celular) {
+/** `texto`: mensaje que ya queda escrito al abrir el chat. */
+function linkWhatsapp(celular, texto) {
   let d = String(celular || '').replace(/\D/g, '')
   if (!d) return null
   if (!d.startsWith('54')) d = '549' + d.replace(/^0/, '')
-  return `https://wa.me/${d}`
+  return `https://wa.me/${d}${texto ? `?text=${encodeURIComponent(texto)}` : ''}`
+}
+
+// Mismos horarios que la web (sanzo-web/data/envios.ts → retiro.horarios).
+const HORARIOS_RETIRO = 'miércoles, jueves y viernes de 11 a 16 h, o sábados de 12 a 15 h'
+
+/** Mensaje para coordinar el retiro en persona. */
+function mensajeRetiro(o, c) {
+  const nombre = String(c.nombre || '').trim().split(/\s+/)[0]
+  const lugar = PUNTOS_RETIRO[c.puntoRetiro] || 'Av. Scalabrini Ortiz 2083 o Moldes 1375'
+  return `Hola${nombre ? ` ${nombre}` : ''}! Te escribimos de sanzo por tu pedido ${o.numero || o.id}. Lo podés retirar en ${lugar}, ${HORARIOS_RETIRO}. ¿Qué día y horario te queda mejor?`
 }
 
 export default function PedidosWeb() {
@@ -314,7 +325,8 @@ const PUNTOS_RETIRO = { scalabrini: 'Av. Scalabrini Ortiz 2083', moldes: 'Moldes
 function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenerarEnvio }) {
   const c = o.cliente || {}
   const est = ESTADOS[o.estado] || ESTADOS.a_coordinar
-  const wa = linkWhatsapp(c.celular)
+  // Si retira en persona, el chat se abre con el mensaje para coordinar el día y la hora.
+  const wa = linkWhatsapp(c.celular, c.entrega === 'retiro' ? mensajeRetiro(o, c) : undefined)
   const direccion =
     c.entrega === 'retiro'
       ? `Retira en persona en ${PUNTOS_RETIRO[c.puntoRetiro] || 'uno de los puntos'} (coordinar por WhatsApp)`
