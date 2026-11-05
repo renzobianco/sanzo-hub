@@ -3157,3 +3157,25 @@ table.table {
     margin-left: 0;
   }
 }
+
+/* Pedidos web: WhatsApp de los que retiran en persona (verde WhatsApp, llamativo a propósito para no olvidarse). */
+.wa-retiro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #25d366;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 6px 18px -8px rgba(37, 211, 102, 0.9);
+  animation: wa-latido 2.2s ease-in-out infinite;
+}
+.wa-retiro:hover { background: #1fbd5a; }
+.wa-retiro-titulo { display: block; font-weight: 700; font-size: 15px; letter-spacing: 0.01em; }
+.wa-retiro-texto { display: block; font-size: 12.5px; opacity: 0.92; margin-top: 2px; }
+@keyframes wa-latido {
+  0%, 100% { box-shadow: 0 6px 18px -8px rgba(37, 211, 102, 0.9); }
+  50% { box-shadow: 0 6px 26px -4px rgba(37, 211, 102, 1); }
+}
+@media (prefers-reduced-motion: reduce) { .wa-retiro { animation: none; } }

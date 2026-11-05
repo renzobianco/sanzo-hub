@@ -326,6 +326,7 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenera
   const c = o.cliente || {}
   const est = ESTADOS[o.estado] || ESTADOS.a_coordinar
   // Si retira en persona, el chat se abre con el mensaje para coordinar el día y la hora.
+  const retira = c.entrega === 'retiro' && o.estado !== 'cancelado' && o.estado !== 'rechazado'
   const wa = linkWhatsapp(c.celular, c.entrega === 'retiro' ? mensajeRetiro(o, c) : undefined)
   const direccion =
     c.entrega === 'retiro'
@@ -423,6 +424,17 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenera
 
       {o.estado !== 'cancelado' && o.estado !== 'rechazado' && c.entrega !== 'retiro' && <EnvioCorreo order={o} onGenerar={onGenerarEnvio} />}
 
+      {/* Retira en persona: recuadro verde bien visible para no olvidarse de escribirle y coordinar el día. */}
+      {retira && wa && (
+        <a className="wa-retiro" href={wa} target="_blank" rel="noreferrer">
+          <IconPhone style={{ width: 22, height: 22, flexShrink: 0 }} />
+          <span>
+            <span className="wa-retiro-titulo">Escribile sí o sí por WhatsApp</span>
+            <span className="wa-retiro-texto">Retira en persona: coordiná el día y el horario. El mensaje ya va escrito.</span>
+          </span>
+        </a>
+      )}
+
       <div className="row between" style={{ marginTop: 'auto' }}>
         <div className="small muted">
           {o.aplicado ? (
@@ -439,7 +451,7 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenera
           )}
         </div>
         <div className="row" style={{ gap: 6 }}>
-          {wa && (
+          {wa && !retira && (
             <a className="btn btn-ghost btn-sm" href={wa} target="_blank" rel="noreferrer">
               <IconPhone /> WhatsApp
             </a>
