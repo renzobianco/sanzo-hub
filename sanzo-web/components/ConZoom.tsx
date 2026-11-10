@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { IconoCerrar } from "./Iconos";
+import { VideoProducto } from "./VideoProducto";
 import { trabarScroll } from "@/lib/scroll";
 
 const MAX = 4; // acercamiento máximo
@@ -12,9 +13,21 @@ const SUAVE = "transform 340ms cubic-bezier(0.16, 1, 0.3, 1)";
 /**
  * Envuelve una foto: al tocarla se abre a pantalla completa con todas las fotos del producto.
  * Tocás la foto y se acerca justo donde tocaste; con el dedo la arrastrás; pellizcando acercás o alejás;
- * otro toque la aleja.
+ * otro toque la aleja. Con `video`, va al final como una foto más (con sonido y controles).
  */
-export function ConZoom({ fotos, nombre, inicial = 0, children }: { fotos: string[]; nombre: string; inicial?: number; children: React.ReactNode }) {
+export function ConZoom({
+  fotos,
+  nombre,
+  inicial = 0,
+  video,
+  children,
+}: {
+  fotos: string[];
+  nombre: string;
+  inicial?: number;
+  video?: string;
+  children: React.ReactNode;
+}) {
   const ref = useRef<HTMLDialogElement>(null);
   const pista = useRef<HTMLUListElement>(null);
   const liberar = useRef<(() => void) | null>(null);
@@ -30,7 +43,8 @@ export function ConZoom({ fotos, nombre, inicial = 0, children }: { fotos: strin
     if (abierto && el) el.scrollLeft = inicial * el.clientWidth;
   }, [abierto, inicial]);
 
-  if (fotos.length === 0) return <>{children}</>;
+  const total = fotos.length + (video ? 1 : 0);
+  if (total === 0) return <>{children}</>;
 
   function abrir() {
     setAcercada(false);
@@ -71,7 +85,7 @@ export function ConZoom({ fotos, nombre, inicial = 0, children }: { fotos: strin
           <div className="flex items-center justify-between px-4 py-3">
             <p className="text-[11px] uppercase tracking-marca text-tinta/70">
               {nombre}
-              {fotos.length > 1 && <span className="ml-2 tabular-nums">{activa + 1} / {fotos.length}</span>}
+              {total > 1 && <span className="ml-2 tabular-nums">{activa + 1} / {total}</span>}
             </p>
             <button type="button" onClick={() => ref.current?.close()} aria-label="Cerrar" className="-mr-2 p-2">
               <IconoCerrar />
@@ -92,10 +106,19 @@ export function ConZoom({ fotos, nombre, inicial = 0, children }: { fotos: strin
                   <FotoZoom src={src} alt={`${nombre}, foto ${i + 1}`} visible={i === activa} onAcercada={setAcercada} />
                 </li>
               ))}
+            {abierto && video && (
+              <li className="relative h-full w-full shrink-0 snap-center overflow-hidden bg-tinta">
+                <VideoProducto src={video} activo={activa === fotos.length} controles ajuste="contain" />
+              </li>
+            )}
           </ul>
 
           <p className="px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 text-center text-[11px] uppercase tracking-amplio text-tinta/55">
-            {acercada ? "Arrastrala para recorrerla · tocá para alejar" : "Tocá o pellizcá la foto para verla de cerca"}
+            {video && activa === fotos.length
+              ? "Así te llega"
+              : acercada
+                ? "Arrastrala para recorrerla · tocá para alejar"
+                : "Tocá o pellizcá la foto para verla de cerca"}
           </p>
         </div>
       </dialog>

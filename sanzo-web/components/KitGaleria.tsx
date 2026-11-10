@@ -4,15 +4,19 @@ import { useRef, useState } from "react";
 import { ConZoom } from "./ConZoom";
 import { FlechasGaleria } from "./FlechasGaleria";
 import { ImagenProducto } from "./ImagenProducto";
+import { VideoProducto } from "./VideoProducto";
 
-/** Galería del kit: se desliza con el dedo, con puntitos que muestran en qué foto estás. */
+/** Galería del kit: se desliza con el dedo, con puntitos que muestran en qué foto estás. Con `video`, va al final. */
 export function KitGaleria({
   imagenes,
   nombre,
   aspecto = "aspect-square",
   etiqueta,
+  video,
 }: {
   imagenes: string[];
+  /** Video de cómo llega, después de las fotos. */
+  video?: string;
   nombre: string;
   /** Cartelito sobre la foto, abajo a la izquierda (ej. "Más vendido"). */
   etiqueta?: string;
@@ -22,7 +26,9 @@ export function KitGaleria({
   const [activa, setActiva] = useState(0);
   const pista = useRef<HTMLUListElement>(null);
 
-  if (imagenes.length <= 1) {
+  const total = imagenes.length + (video ? 1 : 0);
+
+  if (total <= 1) {
     return (
       <ImagenProducto
         src={imagenes[0]}
@@ -63,7 +69,7 @@ export function KitGaleria({
         >
           {imagenes.map((src, i) => (
             <li key={src} className="w-full shrink-0 snap-center">
-              <ConZoom fotos={imagenes} nombre={nombre} inicial={i}>
+              <ConZoom fotos={imagenes} video={video} nombre={nombre} inicial={i}>
                 <ImagenProducto
                   src={src}
                   nombre={`${nombre}, foto ${i + 1}`}
@@ -74,19 +80,28 @@ export function KitGaleria({
               </ConZoom>
             </li>
           ))}
+          {video && (
+            <li className="w-full shrink-0 snap-center">
+              <ConZoom fotos={imagenes} video={video} nombre={nombre} inicial={imagenes.length}>
+                <div className={`relative overflow-hidden bg-lino ${aspecto}`}>
+                  {activa >= imagenes.length - 1 && <VideoProducto src={video} activo={activa === imagenes.length} />}
+                </div>
+              </ConZoom>
+            </li>
+          )}
         </ul>
-        <FlechasGaleria activa={activa} total={imagenes.length} ir={ir} />
+        <FlechasGaleria activa={activa} total={total} ir={ir} />
       </div>
       <p className="pointer-events-none absolute right-3 top-3 rounded-full bg-crema/85 px-2.5 py-1 text-[10px] tracking-[0.2em] backdrop-blur-sm">
-        {activa + 1} / {imagenes.length}
+        {activa + 1} / {total}
       </p>
       <div className="mt-4 flex justify-center gap-2">
-        {imagenes.map((_, i) => (
+        {Array.from({ length: total }, (_, i) => (
           <button
             key={i}
             type="button"
             onClick={() => ir(i)}
-            aria-label={`Ver foto ${i + 1} de ${imagenes.length}`}
+            aria-label={video && i === imagenes.length ? "Ver el video" : `Ver foto ${i + 1} de ${total}`}
             aria-current={i === activa}
             className={`h-[3px] rounded-full transition-all duration-500 ${i === activa ? "w-7 bg-tinta" : "w-3 bg-tinta/25"}`}
           />

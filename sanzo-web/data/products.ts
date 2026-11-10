@@ -21,6 +21,11 @@ export interface Producto {
   precio: number | null;
   imagenes: string[];
   /**
+   * Video vertical de cómo viene (el unboxing), al final de la galería, después de las fotos.
+   * Ruta al .mp4; la tapa es el .jpg con el mismo nombre.
+   */
+  video?: string;
+  /**
    * Foto del artículo solo (fondo claro, sin logo) para las miniaturas redondas de "Incluye X piezas".
    * Vacío → usa la primera de `imagenes`. Se reemplaza por la foto definitiva cuando esté.
    */
@@ -398,6 +403,7 @@ export const kit: Producto = {
   incluye: ["arnes", "correa", "collar", "mono", "bandana", "poo-bag"],
   precio: 59999,
   imagenes: ["/productos/kit/1-v2.jpg","/productos/kit/arnes-correa.jpg", "/productos/kit/mono-bandana.jpg", "/productos/kit/porta-collar.jpg"],
+  video: "/productos/videos/kit.mp4",
   envioGratis: false,
   linkPago: "",
   disponible: true,
@@ -418,6 +424,7 @@ export const combos: Producto[] = [
     incluye: ["collar", "mono", "bandana"],
     precio: 24499,
     imagenes: ["/productos/combo-estilo/articulo-2.jpg", "/productos/combo-estilo/banco.jpg", "/productos/combo-estilo/playa.jpg"],
+    video: "/productos/videos/estilo.mp4",
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -431,6 +438,7 @@ export const combos: Producto[] = [
     incluye: ["arnes", "correa", "poo-bag"],
     precio: 34999,
     imagenes: ["/productos/combo-aventura/articulo-2.jpg", "/productos/combo-aventura/pasto.jpg"],
+    video: "/productos/videos/aventura.mp4",
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -459,6 +467,7 @@ export const combos: Producto[] = [
     incluye: ["collar", "chapita"],
     precio: 14499,
     imagenes: ["/productos/combo-identidad/1-v2.jpg"],
+    video: "/productos/videos/identidad.mp4",
     envioGratis: false,
     linkPago: "",
     disponible: true,
@@ -489,6 +498,7 @@ export const combos: Producto[] = [
     incluye: ["gorra", "piluso"],
     precio: 21999,
     imagenes: ["/productos/combo-sol/pana-cuatro.jpg", "/productos/solo/gorra/1.jpg", "/productos/solo/piluso/1.jpg", "/productos/solo/gorra/2.jpg", "/productos/solo/piluso/2.jpg"],
+    video: "/productos/videos/sol.mp4",
     envioGratis: false,
     linkPago: "",
     disponible: true,

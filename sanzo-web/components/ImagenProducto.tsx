@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { VideoProducto } from "./VideoProducto";
 
 interface Props {
   src?: string;
@@ -21,6 +22,8 @@ interface Props {
   fija?: number;
   /** "contain": la foto entra entera (piezas sin fondo, ej. la chapita en el carrito). */
   ajuste?: "cover" | "contain";
+  /** Video al final, después de las fotos (se ve con `fija` = cantidad de fotos). */
+  video?: string;
 }
 
 /**
@@ -40,15 +43,18 @@ export function ImagenProducto({
   fondo = "bg-lino",
   fija,
   ajuste = "cover",
+  video,
 }: Props) {
   const fotos = (srcs && srcs.length > 0 ? srcs : src ? [src] : []).filter(Boolean);
+  const total = fotos.length + (video ? 1 : 0);
   const [activa, setActiva] = useState(0);
   const [cargadas, setCargadas] = useState<Record<number, boolean>>({});
   const [fallo, setFallo] = useState(false);
+  const enVideo = !!video && activa === fotos.length;
 
   useEffect(() => {
-    setActiva(fija === undefined ? 0 : Math.min(fija, fotos.length - 1));
-  }, [fija, fotos.length]);
+    setActiva(fija === undefined ? 0 : Math.min(fija, total - 1));
+  }, [fija, total]);
 
   return (
     <div className={`img-revelar relative overflow-hidden ${fondo} ${aspecto} ${className}`}>
@@ -83,9 +89,15 @@ export function ImagenProducto({
           <span className={`font-light uppercase tracking-marca text-tinta/60 ${tamTexto}`}>{nombre}</span>
         </div>
       )}
-      {fotos.length > 1 && (
+      {video && (
+        // Montado desde que se llega a la última foto, para que la tapa ya esté cuando le toque.
+        <div className={`absolute inset-0 transition-opacity duration-700 ease-suave ${enVideo ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+          {activa >= fotos.length - 1 && <VideoProducto src={video} activo={enVideo} />}
+        </div>
+      )}
+      {total > 1 && (
         <div aria-hidden="true" className="pointer-events-none absolute bottom-2.5 left-1/2 flex -translate-x-1/2 gap-1">
-          {fotos.map((f, i) => (
+          {[...fotos, ...(video ? [video] : [])].map((f, i) => (
             <span key={f} className={`h-[3px] rounded-full bg-crema transition-all duration-700 ease-suave ${i === activa ? "w-4 opacity-100" : "w-1.5 opacity-60"}`} />
           ))}
         </div>

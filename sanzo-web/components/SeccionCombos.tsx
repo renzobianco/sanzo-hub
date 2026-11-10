@@ -18,14 +18,14 @@ const N = combos.length;
 // (después de Sol asoma Paseo, y antes de Paseo, Sol).
 const VUELTAS = [0, 1, 2];
 /** Lo que salen las piezas sueltas y cuánto se ahorra con el combo (con precios reales; null si falta alguno). */
-/** Fotos del combo: se pasan con las flechitas (deslizar mueve el carrusel de combos, no las fotos). */
+/** Fotos del combo y, al final, el video de cómo llega: se pasan con las flechitas (deslizar mueve el carrusel de combos, no las fotos). */
 function FotosCombo({ combo }: { combo: Producto }) {
   const [activa, setActiva] = useState(0);
-  const total = combo.imagenes.length;
+  const total = combo.imagenes.length + (combo.video ? 1 : 0);
   return (
     <>
-      <ConZoom fotos={combo.imagenes} nombre={combo.nombre} inicial={activa}>
-        <ImagenProducto srcs={combo.imagenes} fija={activa} nombre={combo.nombre} aspecto="aspect-[4/5]" sizes="(min-width: 768px) 22rem, 85vw" />
+      <ConZoom fotos={combo.imagenes} video={combo.video} nombre={combo.nombre} inicial={activa}>
+        <ImagenProducto srcs={combo.imagenes} video={combo.video} fija={activa} nombre={combo.nombre} aspecto="aspect-[4/5]" sizes="(min-width: 768px) 22rem, 85vw" />
       </ConZoom>
       <FlechasGaleria activa={activa} total={total} ir={(i) => setActiva(Math.max(0, Math.min(total - 1, i)))} />
     </>
@@ -37,20 +37,34 @@ function ahorroDe(combo: Producto) {
   return porSeparado !== null && combo.precio !== null ? { porSeparado, ahorro: porSeparado - combo.precio } : null;
 }
 
-const tarjetas = VUELTAS.flatMap((v) => combos.map((combo, i) => ({ combo, i, pos: v * N + i })));
 
 /**
  * Combos en carrusel circular: la tarjeta del medio enfocada y las de los costados asomando, más chicas
  * y desenfocadas, para que se note que hay más (idea de Santi). Se desliza con el dedo, tocando
  * una de los costados o con las solapas de arriba (van sincronizadas). Nunca termina.
- * Las fotos de cada combo van cambiando solas (no se deslizan, para no pelear con el carrusel).
+ * Las fotos de cada combo se pasan con las flechitas.
+ * En la compu se ven varias a la vez: ahí no da la vuelta (si no, Sol aparecía a la izquierda de Estilo
+ * y parecía otro orden). Arranca en Estilo y a la derecha siguen en el mismo orden que en el celu.
  */
 export function SeccionCombos() {
   const [pos, setPos] = useState(N); // posición en la pista (arranca en la vuelta del medio)
   const [saltando, setSaltando] = useState(false);
+  const [pc, setPc] = useState(false);
   const pista = useRef<HTMLUListElement>(null);
   const fin = useRef<number | undefined>(undefined);
   const activo = pos % N;
+  // En la compu solo está la vuelta del medio: la tarjeta N es la primera de la pista.
+  const vueltas = pc ? [1] : VUELTAS;
+  const corrido = pc ? N : 0;
+  const tarjetas = vueltas.flatMap((v) => combos.map((combo, i) => ({ combo, i, pos: v * N + i })));
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const cambiar = () => setPc(mq.matches);
+    cambiar();
+    mq.addEventListener("change", cambiar);
+    return () => mq.removeEventListener("change", cambiar);
+  }, []);
 
   const paso = () => {
     const primera = pista.current?.firstElementChild as HTMLElement | null;
@@ -58,26 +72,27 @@ export function SeccionCombos() {
   };
   const suave = () => (window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
 
-  // Arranca en la vuelta del medio, sin animación.
+  // Arranca en Estilo (la vuelta del medio), sin animación. También al pasar de celu a compu.
   useLayoutEffect(() => {
     const el = pista.current;
-    if (el) el.scrollLeft = N * paso();
-  }, []);
+    if (el) el.scrollLeft = (N - corrido) * paso();
+    setPos(N);
+  }, [corrido]);
 
   function irA(p: number) {
-    pista.current?.scrollTo({ left: p * paso(), behavior: suave() });
+    pista.current?.scrollTo({ left: (p - corrido) * paso(), behavior: suave() });
   }
 
   /** Solapa: va a la copia de ese combo más cercana (para el lado más corto). */
   function irCombo(i: number) {
-    const cercana = VUELTAS.map((v) => v * N + i).sort((a, b) => Math.abs(a - pos) - Math.abs(b - pos))[0];
+    const cercana = vueltas.map((v) => v * N + i).sort((a, b) => Math.abs(a - pos) - Math.abs(b - pos))[0];
     irA(cercana);
   }
 
   // Si quedó en la primera o la última vuelta, salta a la misma tarjeta de la vuelta del medio (no se nota).
   function alTerminar() {
     const el = pista.current;
-    if (!el) return;
+    if (!el || corrido) return;
     const p = Math.round(el.scrollLeft / paso());
     if (p >= N && p < 2 * N) return;
     const medio = (((p % N) + N) % N) + N;
@@ -96,7 +111,7 @@ export function SeccionCombos() {
         if (!e.isIntersecting) return;
         io.disconnect();
         window.setTimeout(() => {
-          const base = N * paso();
+          const base = (N - (window.matchMedia("(min-width: 768px)").matches ? N : 0)) * paso();
           if (Math.abs(el.scrollLeft - base) > 4) return; // ya lo movió
           el.scrollTo({ left: base + 56, behavior: "smooth" });
           window.setTimeout(() => el.scrollTo({ left: base, behavior: "smooth" }), 450);
@@ -152,7 +167,7 @@ export function SeccionCombos() {
             className="sin-scrollbar -mx-4 flex snap-x snap-mandatory items-start overflow-x-auto px-12 pb-2 [scroll-padding-inline:3rem] md:mx-[calc(50%-50vw)] md:w-screen md:px-[calc(50vw-11rem)] md:[scroll-padding-inline:0px]"
             style={{ gap: GAP }}
             onScroll={(e) => {
-              const p = Math.round(e.currentTarget.scrollLeft / paso());
+              const p = Math.round(e.currentTarget.scrollLeft / paso()) + corrido;
               if (p !== pos) setPos(p);
               window.clearTimeout(fin.current);
               fin.current = window.setTimeout(alTerminar, 140);
