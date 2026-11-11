@@ -1,0 +1,7 @@
+[
+ {"nombre": "bolsa-asmr", "texto": "ASMR close-up of hands opening and crinkling clear plastic ziplock bags with products inside, continuous soft crisp plastic crinkles, binaural, no talking, no music", "duracion": 4.0, "influencia": 0.6},
+ {"nombre": "ziploc-abre", "texto": "ASMR opening a ziplock plastic bag seal, crisp zip tear sound, very close mic", "duracion": 1.0, "influencia": 0.8},
+ {"nombre": "hebilla-suelta", "texto": "pressing and releasing a plastic side release buckle, two quick plastic snaps as it unclips, close mic", "duracion": 0.6, "influencia": 0.8},
+ {"nombre": "carton-asmr", "texto": "ASMR hands tapping and sliding on a kraft cardboard box, soft scratchy cardboard texture, close mic, no music", "duracion": 2.0, "influencia": 0.6},
+ {"nombre": "bolsa-negra-rasga", "texto": "ASMR sliding a cardboard box out of a black polyethylene mailer bag, loud crinkly plastic rustle and stretch, very close mic, no music", "duracion": 2.5, "influencia": 0.6}
+]

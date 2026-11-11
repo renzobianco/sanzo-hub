@@ -1,0 +1,10 @@
+[
+ {"nombre": "bolsa-negra", "texto": "pulling a box out of a black plastic polyethylene mailer bag, loud crinkly plastic sliding and rustling, close mic, no music", "duracion": 2.0, "influencia": 0.6},
+ {"nombre": "caja-gira", "texto": "turning a small cardboard box over on a wooden table, soft cardboard scrape and light tap, close mic", "duracion": 1.0, "influencia": 0.6},
+ {"nombre": "revela", "texto": "short soft elegant pop with tiny airy shimmer, clean UI reveal sound for a product appearing, subtle, no music", "duracion": 0.6, "influencia": 0.7},
+ {"nombre": "clic-hebilla", "texto": "plastic side release buckle clicking shut, one crisp click, close mic", "duracion": 0.5, "influencia": 0.8},
+ {"nombre": "mosqueton", "texto": "small metal leash snap hook clip opening and closing, light metallic clink, close mic", "duracion": 0.6, "influencia": 0.7},
+ {"nombre": "tela", "texto": "a soft cotton bandana fabric being unfolded and shaken out quickly, gentle cloth flap, close mic", "duracion": 0.8, "influencia": 0.6},
+ {"nombre": "chapita", "texto": "a small engraved metal dog tag jingling softly in a hand, delicate bright metallic tinkle", "duracion": 0.8, "influencia": 0.7},
+ {"nombre": "completo", "texto": "satisfying soft success chime, two warm bell notes, checklist completed, elegant, no music", "duracion": 1.0, "influencia": 0.7}
+]

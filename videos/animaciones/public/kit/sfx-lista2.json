@@ -1,0 +1,14 @@
+[
+ {"nombre": "tarjeta-gira", "texto": "flipping over a small thick kraft paper business card between fingers, quick soft paper flick, close mic", "duracion": 0.5, "influencia": 0.7},
+ {"nombre": "tarjeta-saca", "texto": "picking up a small cardboard card from a plastic bag, light paper slide and tiny plastic crinkle, close mic", "duracion": 0.6, "influencia": 0.6},
+ {"nombre": "caja-apoya", "texto": "setting a small cardboard box down on a wooden table, soft hollow cardboard tap, close mic", "duracion": 0.5, "influencia": 0.7},
+ {"nombre": "tela-suave", "texto": "small soft fabric bow tie being handled and adjusted, gentle cloth rustle, close mic", "duracion": 0.7, "influencia": 0.6},
+ {"nombre": "cinta", "texto": "nylon webbing dog collar strap sliding through fingers, soft synthetic strap rustle, close mic", "duracion": 0.8, "influencia": 0.6},
+ {"nombre": "correa-desenrolla", "texto": "unrolling a dog leash, nylon webbing slapping softly and a small metal clip rattling, close mic", "duracion": 1.0, "influencia": 0.6},
+ {"nombre": "arnes-hebillas", "texto": "turning over a padded dog harness, small plastic buckles and adjusters lightly rattling, soft mesh fabric, close mic", "duracion": 1.0, "influencia": 0.6},
+ {"nombre": "cuero", "texto": "small faux leather pouch being squeezed and turned in hands, soft leather creak, close mic", "duracion": 0.7, "influencia": 0.6},
+ {"nombre": "panel", "texto": "very soft subtle paper slide UI sound, a card sliding in, minimal, no music", "duracion": 0.5, "influencia": 0.7},
+ {"nombre": "adelanta", "texto": "subtle fast forward tape whir, soft high pitched mechanical spin up, short, no music", "duracion": 0.6, "influencia": 0.6},
+ {"nombre": "brillo-logo", "texto": "soft elegant warm shimmer chime for a logo reveal, gentle, short, no music", "duracion": 1.2, "influencia": 0.6},
+ {"nombre": "ambiente-casa", "texto": "quiet indoor room tone of a calm living room in the daytime, very faint distant birds outside an open window, no voices, no music", "duracion": 10.0, "influencia": 0.5, "loop": true}
+]

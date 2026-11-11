@@ -6,3 +6,14 @@ dist
 *.log
 **/supabase/.temp
 .tmp-*
+
+# videos: el material pesado queda sólo en la compu
+videos/1-crudos/
+videos/2-material/musica/
+videos/3-listos/
+videos/2-referencias/
+videos/2-material/*.mp4
+videos/recursos/
+
+# clave de ElevenLabs (nunca subirla)
+videos/herramientas/.elevenlabs-key
