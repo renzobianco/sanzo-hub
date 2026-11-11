@@ -361,7 +361,10 @@ export function VistaPieza({
   posicion,
   onMover,
   oculto,
+  fija,
 }: {
+  /** Solo para mirar (vista del pedido en el Hub): no se arrastra. */
+  fija?: boolean;
   pieza: PiezaPersonalizable;
   nombrePieza: string;
   diseno: DisenoParche;
@@ -418,7 +421,7 @@ export function VistaPieza({
   }
 
   function empezar(e: React.PointerEvent<HTMLDivElement>, escala: number, ox: number, oy: number) {
-    if (!escala || oculto) return;
+    if (!escala || oculto || fija) return;
     const r = e.currentTarget.getBoundingClientRect();
     const p = { x: (e.clientX - r.left) / escala + ox, y: (e.clientY - r.top) / escala + oy };
     try {
@@ -458,7 +461,7 @@ export function VistaPieza({
     onPointerUp: soltar,
     onPointerCancel: soltar,
   });
-  const cursor = arrastrando ? "cursor-grabbing" : "cursor-grab";
+  const cursor = fija ? "" : arrastrando ? "cursor-grabbing" : "cursor-grab";
 
   return (
     <div role="img" aria-label={`Vista previa: ${nombrePieza}. Arrastrá el parche para moverlo.`} className="relative w-full">
@@ -473,7 +476,7 @@ export function VistaPieza({
           {sl > 0 && (
             <Escena pieza={pieza} diseno={diseno} lugar={lugar} s={sl} ox={l0.x} oy={l0.y} arrastrando={arrastrando} capaParche={capaParcheLupa} capaFoto={capaFotoLupa} oculto={oculto} />
           )}
-          <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-crema/90 px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] text-tinta/60">De cerca · arrastralo acá</span>
+          <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-crema/90 px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] text-tinta/60">{fija ? "De cerca" : "De cerca · arrastralo acá"}</span>
         </div>
       )}
       <div
@@ -489,7 +492,7 @@ export function VistaPieza({
           Acá va a {String(Math.round(ancho * lugar.k * 10) / 10).replace(".", ",")} cm: lo máximo que entra
         </p>
       )}
-      {!movio && lugar.k >= 0.99 && (
+      {!fija && !movio && lugar.k >= 0.99 && (
         <p className="pointer-events-none mt-3 text-center text-[10px] uppercase tracking-[0.12em] text-tinta/50">También podés arrastrarlo</p>
       )}
     </div>

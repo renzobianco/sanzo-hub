@@ -2,7 +2,7 @@ import { getProducto, personalizacion, type Producto } from "@/data/products";
 import type { Totales } from "./carrito";
 import { textoOpcion } from "./combos";
 import { detalleEnvio, textoEnvio } from "./formato";
-import { imagenesPersonalizacion, textoPersonalizacion } from "./personalizacion";
+import { imagenesPersonalizacion, sinImagen, textoPersonalizacion, type Personalizacion } from "./personalizacion";
 import type { DatosCheckout } from "./validacion";
 
 // Sanzo Hub (la app interna) comparte una base Supabase. Cada pedido de la web se guarda en
@@ -36,6 +36,12 @@ function urlSitio() {
     process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "https://sanzo-web.vercel.app")
   ).replace(/\/+$/, "");
+}
+
+/** Link a /vista-pedido con la personalización (sin la vista de la imagen, que pesa). */
+function urlVista(producto: string, p: Personalizacion) {
+  const d = Buffer.from(JSON.stringify({ producto, personalizacion: sinImagen(p) })).toString("base64url");
+  return `${urlSitio()}/vista-pedido?d=${d}`;
 }
 
 export function hubActivo() {
@@ -153,6 +159,8 @@ export async function guardarPedidoEnHub(numero: string, c: DatosCheckout, t: To
         x: Math.round(x * 1000) / 10,
         y: Math.round(y * 1000) / 10,
       })),
+      // Vista previa de cómo queda (la misma del personalizador, fija): el Hub la muestra adentro del pedido.
+      vista: l.personalizacion ? urlVista(l.producto.id, l.personalizacion) : "",
       cantidad: l.cantidad,
       subtotal: l.subtotal,
     })),

@@ -39,6 +39,35 @@ function mensajeRetiro(o, c) {
   return `Hola${nombre ? ` ${nombre}` : ''}! Te escribimos de sanzo por tu pedido ${o.numero || o.id}. Lo podés retirar en ${lugar}, ${HORARIOS_RETIRO}. ¿Qué día y horario te queda mejor?`
 }
 
+/**
+ * Cómo queda el personalizado: la vista previa de la web (parche con su forma, color, medida, letra y nombre,
+ * en el lugar que eligió), embebida. La página avisa su alto con postMessage para que no quede con scroll.
+ */
+function VistaParche({ url }) {
+  const [alto, setAlto] = useState(420)
+  useEffect(() => {
+    const oir = (e) => {
+      if (e.data?.sanzoVista && e.data.url === url && e.data.alto > 0) setAlto(e.data.alto)
+    }
+    window.addEventListener('message', oir)
+    return () => window.removeEventListener('message', oir)
+  }, [url])
+  return (
+    <div style={{ marginTop: 8, maxWidth: 520 }}>
+      <div className="muted small" style={{ marginBottom: 4 }}>Cómo queda (lo que vio al pedir)</div>
+      <iframe
+        src={url}
+        title="Vista del personalizado"
+        loading="lazy"
+        style={{ display: 'block', width: '100%', height: alto, border: '1px solid rgba(0,0,0,.08)', borderRadius: 8, background: '#f4ede3' }}
+      />
+      <a href={url} target="_blank" rel="noreferrer" className="small" style={{ textDecoration: 'underline', display: 'inline-block', marginTop: 4 }}>
+        Abrir en grande
+      </a>
+    </div>
+  )
+}
+
 export default function PedidosWeb() {
   const { state, confirmWebOrder, setWebOrderStatus, removeItem, removeSale, notify } = useApp()
   const orders = state.webOrders
@@ -381,7 +410,9 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenera
               )}
               {/* Dónde va el parche en cada pieza (lo eligió arrastrándolo en la web). La foto va entera,
                   sin recortar, así se ve en qué parte de la pieza cae el punto. */}
-              {it.ubicacion?.length > 0 && (
+              {it.vista ? (
+                <VistaParche url={it.vista} />
+              ) : it.ubicacion?.length > 0 && (
                 <div style={{ display: 'grid', gap: 10, marginTop: 8 }}>
                   {it.ubicacion.map((u) => (
                     <div key={u.pieza} className="small">
