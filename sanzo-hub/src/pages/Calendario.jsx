@@ -791,6 +791,11 @@ function DetailModal({ post, onClose, onEdit, onDuplicate, onDelete, onCopy, onS
           <IconCheck style={{ width: 12, height: 12 }} /> Programada en Buffer: {post.bufferPostIds.map((bp) => networkLabel(bp.network)).join(', ')}
         </div>
       )}
+      {post.reminder && (
+        <div className="chip" style={{ marginBottom: 14, marginLeft: buffered ? 6 : 0 }}>
+          Recordatorio en el celu (para agregar música)
+        </div>
+      )}
 
       <div style={{ marginBottom: 18 }}>
         <ContentCover post={post} height={140} />
@@ -1130,6 +1135,10 @@ function PostForm({ post, initialDate, pillars, onClose, onSave, onUnschedule })
     assetUrls: [],
     thumbnailUrl: '',
     bufferPostIds: [],
+    // Recordatorio en el celu (Buffer "notification"): no publica solo, avisa para
+    // terminar desde la app de Instagram y poder agregarle música. undefined = todavía
+    // no lo tocaron: se usa el default (tildado en carruseles de Instagram).
+    reminder: undefined,
     ...(post || {}),
   }))
   const [err, setErr] = useState('')
@@ -1141,6 +1150,7 @@ function PostForm({ post, initialDate, pillars, onClose, onSave, onUnschedule })
     thumbnailUrl: post?.thumbnailUrl || '',
   })
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }))
+  const reminderOn = f.reminder ?? (f.format === 'Carrusel' && f.networks.includes('instagram'))
   const toggleNetwork = (key) => setF((x) => ({ ...x, networks: x.networks.includes(key) ? x.networks.filter((n) => n !== key) : [...x.networks, key] }))
 
   // Si subieron un archivo nuevo y cierran sin guardar, no lo dejamos huérfano en el storage.
@@ -1183,6 +1193,7 @@ function PostForm({ post, initialDate, pillars, onClose, onSave, onUnschedule })
         assetUrl: f.format === 'Carrusel' ? '' : f.assetUrl.trim(),
         assetUrls: f.format === 'Carrusel' ? f.assetUrls : [],
         thumbnailUrl: f.thumbnailUrl.trim(),
+        reminder: f.networks.includes('instagram') ? reminderOn : false,
       },
       post?.id,
     )
@@ -1251,6 +1262,14 @@ function PostForm({ post, initialDate, pillars, onClose, onSave, onUnschedule })
               ))}
             </div>
           </Field>
+          {f.networks.includes('instagram') && (
+            <Field label="Instagram" full>
+              <label className="checkbox">
+                <input type="checkbox" checked={reminderOn} onChange={(e) => set('reminder', e.target.checked)} />
+                Recordatorio en el celu (para agregar música)
+              </label>
+            </Field>
+          )}
         </div>
 
         <div className="divider" />

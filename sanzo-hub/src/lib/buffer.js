@@ -203,7 +203,7 @@ export async function scheduleChannelPost({ channelId, service, text, dueAtISO, 
       createPost(input: {
         channelId: ${JSON.stringify(channelId)}
         text: ${JSON.stringify(text)}
-        schedulingType: automatic
+        schedulingType: ${post?.reminder ? 'notification' : 'automatic'}
         mode: customScheduled
         dueAt: ${JSON.stringify(dueAtISO)}
         ${assetsField(post)}
