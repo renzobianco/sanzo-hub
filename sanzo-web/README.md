@@ -62,5 +62,7 @@ Settings → Environment Variables:
 | `SUPABASE_URL` | Misma base que Sanzo Hub: el valor de `VITE_SUPABASE_URL` del proyecto sanzo-hub. Manda los pedidos a "Pedidos web" del Hub |
 | `SUPABASE_ANON_KEY` | El valor de `VITE_SUPABASE_ANON_KEY` del proyecto sanzo-hub (la llave pública, nunca la secret) |
 | `NEXT_PUBLIC_SITE_URL` | Opcional. URL final del sitio (ej. `https://sanzo.com.ar`) para las previews en redes |
+| `GMAIL_USUARIO` | Gmail desde el que le llega al cliente el mail "Recibimos tu pago" cuando Mercado Pago aprueba el pago: `sanzopets@gmail.com` |
+| `GMAIL_CLAVE_APP` | Contraseña de aplicación de ese Gmail (Cuenta de Google → Seguridad → Verificación en 2 pasos activada → [Contraseñas de aplicaciones](https://myaccount.google.com/apppasswords)). Son 16 letras; no es la clave del mail. Sin esto no se manda la confirmación |
 
 Si el mail falla, el pedido igual queda en los logs de Vercel (Runtime Logs).

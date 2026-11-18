@@ -31,7 +31,7 @@ interface VentaHub {
 }
 
 /** Dirección pública de la web (para que el Hub muestre las fotos de las piezas). */
-function urlSitio() {
+export function urlSitio() {
   return (
     process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "https://sanzo-web.vercel.app")
@@ -195,4 +195,26 @@ export async function aplicarPedidoEnHub(numero: string, pago: PagoMP): Promise<
 
 export async function estadoPedidoEnHub(numero: string, estado: EstadoPedidoWeb, pago: PagoMP): Promise<string> {
   return supabase("rpc/estado_pedido_web", { p_id: numero, p_estado: estado, p_pago: pago });
+}
+
+/** Pedido tal cual quedó guardado en "Pedidos web" (lo que arma guardarPedidoEnHub). null si no está. */
+export async function leerPedidoEnHub(numero: string): Promise<PedidoGuardado | null> {
+  if (!hubActivo()) return null;
+  const key = process.env.SUPABASE_ANON_KEY!.trim();
+  const res = await fetch(`${baseSupabase()}/rest/v1/sanzo_web_orders?id=eq.${encodeURIComponent(numero)}&select=payload`, {
+    headers: { apikey: key, Authorization: `Bearer ${key}` },
+  });
+  if (!res.ok) throw new Error(`Supabase ${res.status}: ${await res.text()}`);
+  const filas = (await res.json()) as { payload: PedidoGuardado }[];
+  return filas[0]?.payload ?? null;
+}
+
+export interface PedidoGuardado {
+  numero: string;
+  cliente: DatosCheckout;
+  items: { nombre: string; opcion: string; personalizacion: string; cantidad: number; subtotal: number }[];
+  subtotal: number;
+  ahorro: number;
+  envio: string;
+  total: number;
 }

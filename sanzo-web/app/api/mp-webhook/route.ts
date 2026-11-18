@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { avisarAlCelular } from "@/lib/aviso";
 import { formatearPrecio } from "@/lib/formato";
-import { aplicarPedidoEnHub, estadoPedidoEnHub, hubActivo, type PagoMP } from "@/lib/hub";
+import { aplicarPedidoEnHub, estadoPedidoEnHub, hubActivo, leerPedidoEnHub, type PagoMP } from "@/lib/hub";
+import { mandarConfirmacionAlCliente } from "@/lib/mailCliente";
 
 export const runtime = "nodejs";
 
@@ -59,7 +60,12 @@ export async function POST(req: Request) {
   try {
     const r = estado === "pagado" ? await aplicarPedidoEnHub(numero, pago) : await estadoPedidoEnHub(numero, estado, pago);
     // Primera vez que se aprueba: aviso al celular (los reintentos de MP dan "ya_aplicado").
-    if (estado === "pagado" && r === "ok") await avisarAlCelular(`Pago aprobado ${numero}`, `Mercado Pago aprobó ${formatearPrecio(p.transaction_amount)}. Ya pasó a ventas en el Hub.`, "pago");
+    if (estado === "pagado" && r === "ok") {
+      await avisarAlCelular(`Pago aprobado ${numero}`, `Mercado Pago aprobó ${formatearPrecio(p.transaction_amount)}. Ya pasó a ventas en el Hub.`, "pago");
+      // Mail de confirmación al cliente (una sola vez: los reintentos no entran acá).
+      const pedido = await leerPedidoEnHub(numero).catch((err) => (console.error(`[mp-webhook] No se pudo leer el pedido ${numero}`, err), null));
+      if (pedido) await mandarConfirmacionAlCliente(pedido);
+    }
     if (estado === "pagado" && r === "monto_distinto")
       await avisarAlCelular(`Revisar pago ${numero}`, `Mercado Pago aprobó ${formatearPrecio(p.transaction_amount)} pero no coincide con el total del pedido. Revisalo en el Hub.`, "pago");
     if (r !== "ok" && r !== "ya_aplicado") console.warn(`[mp-webhook] Pedido ${numero} (pago ${p.id}, ${p.status}): ${r}`);
