@@ -26,7 +26,7 @@ import {
 import { CONTENT_FORMATS, CONTENT_RESPONSIBLES, CONTENT_STATUSES, NETWORKS } from '../data/defaults.js'
 import { fmtDate, todayISO, monthKey, monthGrid, addMonths, addDays, fmtMonthLong } from '../utils/format.js'
 import { nextContentSeq, contentCode, sortContent, contentStreak, weekCoverage, contentMonthSummary } from '../utils/calc.js'
-import { bufferReady, getStoredChannels, channelForNetwork, scheduleChannelPost, deleteBufferPost } from '../lib/buffer.js'
+import { bufferReady, getStoredChannels, channelForNetwork, scheduleChannelPost, deleteBufferPost, bufferCaption } from '../lib/buffer.js'
 import { uploadContentMedia, deleteContentMedia } from '../lib/supabase.js'
 import InstagramPreviewPanel from '../components/ui/InstagramPreview.jsx'
 
@@ -67,7 +67,7 @@ function useBufferScheduling({ updateItem, notify, navigate }) {
       return null
     }
     setScheduling(post.id)
-    const text = [post.title, post.hashtags].filter(Boolean).join('\n\n')
+    const text = bufferCaption(post)
     const dueAtISO = new Date(`${post.date}T${post.time}:00`).toISOString()
     const results = []
     for (const netKey of pending) {
@@ -213,7 +213,7 @@ export default function Calendario({ navigate }) {
   }
 
   const copyForBuffer = async (post) => {
-    const text = [post.title, post.hashtags].filter(Boolean).join('\n\n')
+    const text = bufferCaption(post)
     if (!text.trim()) {
       notify('Todavía no hay título ni hashtags cargados', 'error')
       return

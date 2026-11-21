@@ -153,6 +153,33 @@ function isVideoAsset(post) {
   return isVideoUrl(post.assetUrl, post.format === 'Reel' || post.format === 'Historia')
 }
 
+// Texto que se manda a Buffer (y que copia "Copiar para Buffer"): título limpio + hashtags
+// en un párrafo aparte. Si el título trae hashtags escritos adentro (p. ej. "…segundo.🐾 #Sanzo"),
+// se sacan de ahí y se suman a los del campo hashtags sin repetir (comparando en minúsculas),
+// para que nunca queden pegados al final de la frase. No cambia cómo se guarda el post.
+const HASHTAG_RE = /[ \t]*#[\p{L}\p{N}_]+/gu
+
+export function bufferCaption(post) {
+  const rawTitle = post?.title || ''
+  const fromTitle = (rawTitle.match(HASHTAG_RE) || []).map((t) => t.trim())
+  const title = rawTitle
+    .replace(HASHTAG_RE, '')
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .join('\n')
+    .trim()
+  const fromField = String(post?.hashtags || '').split(/[\s,]+/).filter(Boolean)
+  const seen = new Set()
+  const tags = []
+  for (const t of [...fromTitle, ...fromField]) {
+    const key = t.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    tags.push(t)
+  }
+  return [title, tags.join(' ')].filter(Boolean).join('\n\n')
+}
+
 // Un carrusel manda VARIAS imágenes/videos en un solo post (Instagram y Facebook lo
 // soportan así). Para el resto de los formatos seguimos mandando un único asset.
 function assetsField(post) {

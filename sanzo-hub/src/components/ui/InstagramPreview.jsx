@@ -13,6 +13,7 @@ import {
   IconMusicNote,
   BrandMark,
 } from './Icons.jsx'
+import { bufferCaption } from '../../lib/buffer.js'
 
 const VIDEO_EXT_RE = /\.(mp4|mov|webm|m4v|avi|mkv)(\?|#|$)/i
 const isVideoUrl = (url) => VIDEO_EXT_RE.test(url || '')
@@ -21,7 +22,7 @@ const HANDLE = 'sanzo_pets'
 // La leyenda real que se manda a Buffer es título + hashtags (ver copyForBuffer/doSchedule
 // en Calendario.jsx). La mostramos igual acá para que la vista previa sea fiel a lo que se publica.
 function captionOf(post) {
-  return [post.title, post.hashtags].filter(Boolean).join('\n\n')
+  return bufferCaption(post)
 }
 
 function CaptionText({ text }) {
