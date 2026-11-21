@@ -15,6 +15,20 @@ export function sumUnits(sales) {
   return sales.reduce((a, s) => a + num(s.qty), 0)
 }
 
+// Una "venta" es una compra de una persona en un día, no cada producto cargado:
+// un combo de 3 cosas cuenta 1, y si la misma persona vuelve otro día son 2.
+// Sin cliente cargado: las líneas de un mismo pedido web cuentan 1; si no, cada línea es su propia venta.
+export function purchaseKey(s) {
+  const c = clientKey(s.clientName, s.clientHandle)
+  if (c) return `${c}|${s.date}`
+  if (s.webOrderId) return `o:${s.webOrderId}`
+  return `s:${s.id}`
+}
+
+export function countPurchases(sales) {
+  return new Set(sales.map(purchaseKey)).size
+}
+
 // ---------- Gastos ----------
 // Valor histórico: lo que REALMENTE se pagó, al tipo de cambio del día del gasto
 // (e.rate). Si un gasto viejo no lo tiene guardado, usamos el vigente como estimación.
@@ -202,9 +216,11 @@ export function byChannel(sales, channels) {
     if (!map.has(s.channel)) map.set(s.channel, { name: s.channel, total: 0, ventas: 0 })
     const row = map.get(s.channel)
     row.total += saleTotal(s)
-    row.ventas += 1
+    if (!row.keys) row.keys = new Set()
+    row.keys.add(purchaseKey(s))
+    row.ventas = row.keys.size
   }
-  return [...map.values()].filter((r) => r.ventas > 0).sort((a, b) => b.total - a.total)
+  return [...map.values()].map(({ keys, ...r }) => r).filter((r) => r.ventas > 0).sort((a, b) => b.total - a.total)
 }
 
 export function expensesByCategory(expenses, rate) {
@@ -250,14 +266,17 @@ export const normalizeHandle = (h) =>
     .replace(/^@/, '')
     .toLowerCase()
 
+// Identifica a la persona: primero por @usuario, si no por nombre.
+export function clientKey(name, handle) {
+  const h = normalizeHandle(handle)
+  if (h) return `h:${h}`
+  const n = String(name || '').trim().toLowerCase()
+  return n ? `n:${n}` : null
+}
+
 export function aggregateClients(sales, manualClients) {
   const map = new Map()
-  const keyFor = (name, handle) => {
-    const h = normalizeHandle(handle)
-    if (h) return `h:${h}`
-    const n = String(name || '').trim().toLowerCase()
-    return n ? `n:${n}` : null
-  }
+  const keyFor = clientKey
   for (const c of manualClients) {
     const k = keyFor(c.name, c.handle) || `id:${c.id}`
     map.set(k, {
@@ -270,6 +289,7 @@ export function aggregateClients(sales, manualClients) {
       status: c.status || 'interesado',
       manual: true,
       purchases: 0,
+      days: new Set(),
       spent: 0,
       lastPurchase: null,
       sales: [],
@@ -289,6 +309,7 @@ export function aggregateClients(sales, manualClients) {
         status: 'cliente',
         manual: false,
         purchases: 0,
+        days: new Set(),
         spent: 0,
         lastPurchase: null,
         sales: [],
@@ -297,13 +318,15 @@ export function aggregateClients(sales, manualClients) {
     const c = map.get(k)
     if (!c.handle && s.clientHandle) c.handle = s.clientHandle
     if ((!c.name || c.name.startsWith('@')) && s.clientName) c.name = s.clientName
-    c.purchases += 1
+    // Varias cosas el mismo día = 1 compra; otro día = otra compra.
+    c.days.add(s.date)
+    c.purchases = c.days.size
     c.spent += saleTotal(s)
     c.sales.push(s)
     if (!c.lastPurchase || s.date > c.lastPurchase) c.lastPurchase = s.date
   }
   return [...map.values()]
-    .map((c) => ({ ...c, status: c.purchases > 0 ? 'cliente' : c.status }))
+    .map(({ days, ...c }) => ({ ...c, status: c.purchases > 0 ? 'cliente' : c.status }))
     .sort((a, b) => b.spent - a.spent || (b.lastPurchase || '') > (a.lastPurchase || '') ? 1 : -1)
 }
 

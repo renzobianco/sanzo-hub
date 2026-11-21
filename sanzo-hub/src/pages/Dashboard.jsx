@@ -6,7 +6,7 @@ import { ChartTooltip, EmptyState, ProgressBar, ContentStatus, ContentThumb } fr
 import { ExchangeRate, DolarTodayCard } from '../components/ui/ExchangeRate.jsx'
 import { IconPaw, IconTag, IconReceipt, IconTrendUp, IconBox, IconCoins, IconWallet, IconCalendar, IconChevronRight, IconAlert, IconCheck } from '../components/ui/Icons.jsx'
 import { fmtARS, fmtNum, fmtPct, fmtDate, todayISO, fmtMonthLong, fmtDecimal, daysBetween } from '../utils/format.js'
-import { sumSales, sumExpenses, sumUnits, inRange, thisMonthRange, dailySeries, recovery, currentPhase, saleTotal, expenseARS, contentTodayAlert, contentCode, sortNotes, noteProgress } from '../utils/calc.js'
+import { sumSales, sumExpenses, sumUnits, inRange, thisMonthRange, dailySeries, recovery, countPurchases, currentPhase, saleTotal, expenseARS, contentTodayAlert, contentCode, sortNotes, noteProgress } from '../utils/calc.js'
 import { NOTE_COLORS, SANZO_FOUNDED_DATE } from '../data/defaults.js'
 
 export default function Dashboard({ navigate }) {
@@ -21,7 +21,7 @@ export default function Dashboard({ navigate }) {
     const me = expenses.filter((e) => inRange(e.date, from, to))
     const ventas = sumSales(ms)
     const gastos = sumExpenses(me, settings.exchangeRate)
-    return { ventas, gastos, neto: ventas - gastos, unidades: sumUnits(ms), cant: ms.length }
+    return { ventas, gastos, neto: ventas - gastos, unidades: sumUnits(ms), cant: countPurchases(ms) }
   }, [sales, expenses, settings.exchangeRate, today])
 
   const kit = products.find((p) => p.isKit)

@@ -4,7 +4,7 @@ import { PageHeader, Modal, ConfirmDialog, EmptyState, Field, MoneyInput, SaleSt
 import { IconPlus, IconEdit, IconTrash, IconSearch, IconAlert, IconX } from '../components/ui/Icons.jsx'
 import { CHANNELS, PAYMENT_METHODS, SALE_STATUSES } from '../data/defaults.js'
 import { fmtARS, fmtDate, fmtNum, todayISO } from '../utils/format.js'
-import { saleTotal, sumSales, sumUnits, inRange, normalizeHandle } from '../utils/calc.js'
+import { saleTotal, sumSales, sumUnits, inRange, normalizeHandle, countPurchases } from '../utils/calc.js'
 
 const emptyForm = (products) => ({
   date: todayISO(),
@@ -49,7 +49,8 @@ export default function Ventas() {
 
   const total = sumSales(filtered)
   const units = sumUnits(filtered)
-  const ticket = filtered.length ? total / filtered.length : 0
+  const compras = countPurchases(filtered)
+  const ticket = compras ? total / compras : 0
   const hasFilters = Object.values(filters).some(Boolean)
 
   const onSave = (data, id) => {
@@ -74,7 +75,7 @@ export default function Ventas() {
       <div className="grid grid-4 mb-16">
         <Stat label={hasFilters ? 'Total del período filtrado' : 'Total vendido'} value={fmtARS(total)} tone="pos" />
         <Stat label="Ticket promedio" value={fmtARS(ticket)} />
-        <Stat label="Ventas" value={fmtNum(filtered.length)} />
+        <Stat label="Ventas" value={fmtNum(compras)} />
         <Stat label="Unidades" value={fmtNum(units)} />
       </div>
 
