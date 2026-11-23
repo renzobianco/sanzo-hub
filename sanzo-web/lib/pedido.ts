@@ -18,3 +18,7 @@ export interface PedidoRespuesta {
 }
 
 export const CLAVE_ULTIMO_PEDIDO = "sanzo-ultimo-pedido";
+/** Datos del checkout guardados en el navegador del cliente, para no tener que cargarlos de nuevo. */
+export const CLAVE_DATOS_CHECKOUT = "sanzo-datos-checkout";
+/** Hasta cuándo ofrecemos "Terminar de pagar" un pedido que quedó sin pagar. */
+export const DIAS_PEDIDO_PENDIENTE = 7;

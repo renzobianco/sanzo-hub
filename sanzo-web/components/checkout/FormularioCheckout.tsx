@@ -8,7 +8,7 @@ import { LineaManada } from "@/components/carrito/LineaManada";
 import { MiniaturaLinea } from "@/components/carrito/MiniaturaLinea";
 import { PrecioLinea } from "@/components/carrito/PrecioLinea";
 import { detalleEnvio, formatearPrecio, textoEnvio } from "@/lib/formato";
-import { CLAVE_ULTIMO_PEDIDO, type PedidoEntrada, type PedidoRespuesta } from "@/lib/pedido";
+import { CLAVE_DATOS_CHECKOUT, CLAVE_ULTIMO_PEDIDO, DIAS_PEDIDO_PENDIENTE, type PedidoEntrada, type PedidoRespuesta } from "@/lib/pedido";
 import { esPersonalizable, sinImagen, textoPersonalizacion } from "@/lib/personalizacion";
 import { Personalizar } from "../personalizar/Personalizar";
 import { datosVacios, validarCheckout, type DatosCheckout } from "@/lib/validacion";
@@ -18,6 +18,35 @@ import { textoOpcion } from "@/lib/combos";
 import { ahorroChapitas, ahorroTotal, precioDeLinea, zonaDeUbicacion } from "@/lib/carrito";
 
 type Campo = keyof DatosCheckout;
+
+/** Datos que el cliente ya cargó en una compra anterior (o antes de irse a pagar). Las notas no se guardan. */
+function datosGuardados(): Partial<DatosCheckout> {
+  try {
+    const raw = window.localStorage.getItem(CLAVE_DATOS_CHECKOUT);
+    const g = raw ? JSON.parse(raw) : null;
+    if (!g || typeof g !== "object") return {};
+    const out: Partial<DatosCheckout> = {};
+    for (const k of Object.keys(datosVacios) as Campo[]) {
+      if (k !== "notas" && typeof g[k] === "string") (out as Record<string, string>)[k] = g[k];
+    }
+    if (out.entrega !== "domicilio" && out.entrega !== "sucursal" && out.entrega !== "retiro") delete out.entrega;
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+/** Pedido que se mandó a Mercado Pago y todavía no volvió aprobado (para ofrecer "Terminar de pagar"). */
+function pedidoSinPagar(): { numero: string; pago: string } | null {
+  try {
+    const g = JSON.parse(window.localStorage.getItem(CLAVE_ULTIMO_PEDIDO) || "null");
+    if (!g || g.pagado || typeof g.pago !== "string" || !g.pago.startsWith("https://") || typeof g.fecha !== "number") return null;
+    if (Date.now() - g.fecha > DIAS_PEDIDO_PENDIENTE * 864e5) return null;
+    return { numero: String(g.numero || ""), pago: g.pago };
+  } catch {
+    return null;
+  }
+}
 
 // Orden para enfocar el primer campo con error.
 const ORDEN: Campo[] = [
@@ -43,14 +72,35 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
   const [enviando, setEnviando] = useState(false);
   const [errorEnvio, setErrorEnvio] = useState("");
   const [empresa, setEmpresa] = useState("");
+  const [sinPagar, setSinPagar] = useState<{ numero: string; pago: string } | null>(null);
   const inicializado = useRef(false);
 
-  // Traer lo que ya eligieron en el carrito (provincia, código postal, domicilio o sucursal).
+  // Completar con lo que ya cargó antes (queda guardado en su navegador) y con lo que eligió en el
+  // carrito (provincia, código postal, domicilio o sucursal), que manda porque define el envío.
   useEffect(() => {
     if (!listo || inicializado.current) return;
     inicializado.current = true;
-    setD((prev) => ({ ...prev, provincia: ubicacion.provincia, codigoPostal: ubicacion.cp, entrega: ubicacion.entrega, puntoRetiro: ubicacion.puntoRetiro ?? prev.puntoRetiro }));
-  }, [listo, ubicacion]);
+    setSinPagar(pedidoSinPagar());
+    const g = datosGuardados();
+    if (ubicacion.provincia) {
+      setD({ ...datosVacios, ...g, provincia: ubicacion.provincia, codigoPostal: ubicacion.cp, entrega: ubicacion.entrega, puntoRetiro: ubicacion.puntoRetiro ?? g.puntoRetiro ?? "" });
+    } else {
+      const next = { ...datosVacios, ...g };
+      setD(next);
+      if (next.provincia) setUbicacion({ provincia: next.provincia, cp: next.codigoPostal, entrega: next.entrega, puntoRetiro: next.puntoRetiro || undefined });
+    }
+  }, [listo, ubicacion, setUbicacion]);
+
+  // Guardar lo que va cargando, así si vuelve (por ejemplo desde Mercado Pago) no lo escribe de nuevo.
+  useEffect(() => {
+    if (!inicializado.current) return;
+    try {
+      const { notas: _notas, ...resto } = d;
+      window.localStorage.setItem(CLAVE_DATOS_CHECKOUT, JSON.stringify(resto));
+    } catch {
+      // sin almacenamiento
+    }
+  }, [d]);
 
   const errores = useMemo(() => validarCheckout(d), [d]);
   const mostrar = (c: Campo) => (intentado || tocados[c] ? errores[c] : undefined);
@@ -104,7 +154,7 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
         const fotoPerro = totales.lineas.some((l) => chapitaConFoto(l.producto, l.opcion) && !l.imagen);
         // retiro: en /gracias le armamos el WhatsApp para coordinar el día.
         const retiraEn = d.entrega === "retiro" ? puntoRetiro(d.puntoRetiro).direccion : undefined;
-        window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ numero: data.numero, nombre: d.nombre, pago: data.redirigirA, fotoPerro, retiraEn }));
+        window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ numero: data.numero, nombre: d.nombre, pago: data.redirigirA, fotoPerro, retiraEn, fecha: Date.now() }));
       } catch {
         // sin almacenamiento: /gracias igual recibe el número por la URL
       }
@@ -131,10 +181,25 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
   if (totales.lineas.length === 0 && !enviando) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-6 text-center">
-        <p className="text-xl font-light">Tu carrito está vacío.</p>
-        <Link href="/#kit" className="btn-primario">
-          Ver el kit
-        </Link>
+        {sinPagar ? (
+          <>
+            <p className="text-xl font-light">Tu pedido{sinPagar.numero ? ` ${sinPagar.numero}` : ""} quedó guardado.</p>
+            <p className="max-w-sm font-light text-topo">Ya tenemos tus datos. Solo falta el pago: lo terminás desde acá.</p>
+            <a href={sinPagar.pago} className="btn-primario">
+              Terminar de pagar
+            </a>
+            <Link href="/#kit" className="btn-borde">
+              Ver la tienda
+            </Link>
+          </>
+        ) : (
+          <>
+            <p className="text-xl font-light">Tu carrito está vacío.</p>
+            <Link href="/#kit" className="btn-primario">
+              Ver el kit
+            </Link>
+          </>
+        )}
       </div>
     );
   }
