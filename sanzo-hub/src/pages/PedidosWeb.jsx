@@ -36,7 +36,7 @@ const HORARIOS_RETIRO = 'miércoles, jueves y viernes de 11 a 16 h, o sábados d
 function mensajeRetiro(o, c) {
   const nombre = String(c.nombre || '').trim().split(/\s+/)[0]
   const lugar = PUNTOS_RETIRO[c.puntoRetiro] || 'Av. Scalabrini Ortiz 2083 o Moldes 1375'
-  return `Hola${nombre ? ` ${nombre}` : ''}! Te escribimos de sanzo por tu pedido ${o.numero || o.id}. Lo podés retirar en ${lugar}, ${HORARIOS_RETIRO}. ¿Qué día y horario te queda mejor?`
+  return `Hola${nombre ? ` ${nombre}` : ''}! Te escribimos de Sanzo por tu pedido ${o.numero || o.id}. Lo podés retirar en ${lugar}, ${HORARIOS_RETIRO}. ¿Qué día y horario te queda mejor?`
 }
 
 /** Qué compró, para el mensaje: "el Kit Paseo Sanzo (Talle S)" o "tu pedido SZ-…" si son varias cosas. */
@@ -49,7 +49,7 @@ function queCompro(o) {
 /** Se quedó antes de pagar (o el pago no pasó): mensaje para ayudarlo a terminar, con el link de su pedido si lo tenemos. */
 function mensajeSinPagar(o, c) {
   const nombre = String(c.nombre || '').trim().split(/\s+/)[0]
-  const hola = `Hola${nombre ? ` ${nombre}` : ''}! Te escribimos de sanzo 🐾`
+  const hola = `Hola${nombre ? ` ${nombre}` : ''}! Te escribimos de Sanzo.`
   const pedido = `tu pedido ${queCompro(o)}`
   const situacion =
     o.estado === 'rechazado'
