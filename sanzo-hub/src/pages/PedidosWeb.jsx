@@ -36,29 +36,30 @@ const HORARIOS_RETIRO = 'miércoles, jueves y viernes de 11 a 16 h, o sábados d
 function mensajeRetiro(o, c) {
   const nombre = String(c.nombre || '').trim().split(/\s+/)[0]
   const lugar = PUNTOS_RETIRO[c.puntoRetiro] || 'Av. Scalabrini Ortiz 2083 o Moldes 1375'
-  return `Hola${nombre ? ` ${nombre}` : ''}! Te escribimos de Sanzo por tu pedido ${o.numero || o.id}. Lo podés retirar en ${lugar}, ${HORARIOS_RETIRO}. ¿Qué día y horario te queda mejor?`
+  return `¡Hola${nombre ? ` ${nombre}` : ''}! Te escribimos de Sanzo por tu pedido ${o.numero || o.id}. Lo podés retirar en ${lugar}, ${HORARIOS_RETIRO}. ¿Qué día y horario te queda mejor?`
 }
 
-/** Qué compró, para el mensaje: "el Kit Paseo Sanzo (Talle S)" o "tu pedido SZ-…" si son varias cosas. */
+/** Qué compró, para el mensaje: "del Kit Paseo Sanzo (talle S)" o "de tu pedido SZ-…" si son varias cosas. */
 function queCompro(o) {
   const items = o.items || []
-  if (items.length === 1 && Number(items[0].cantidad) === 1) return `del ${items[0].nombre}${items[0].opcion ? ` (${items[0].opcion})` : ''}`
-  return o.numero || o.id
+  if (items.length === 1 && Number(items[0].cantidad) === 1) {
+    const opcion = items[0].opcion ? ` (${items[0].opcion.charAt(0).toLowerCase()}${items[0].opcion.slice(1)})` : ''
+    return `del ${items[0].nombre}${opcion}`
+  }
+  return `de tu pedido ${o.numero || o.id}`
 }
 
 /** Se quedó antes de pagar (o el pago no pasó): mensaje para ayudarlo a terminar, con el link de su pedido si lo tenemos. */
 function mensajeSinPagar(o, c) {
   const nombre = String(c.nombre || '').trim().split(/\s+/)[0]
-  const hola = `Hola${nombre ? ` ${nombre}` : ''}! Te escribimos de Sanzo.`
-  const pedido = `tu pedido ${queCompro(o)}`
+  const hola = `¡Hola${nombre ? ` ${nombre}` : ''}! ¿Cómo estás? Te escribimos de Sanzo.`
   const situacion =
     o.estado === 'rechazado'
-      ? `Vimos que el pago de ${pedido} no pasó. ¿Te podemos ayudar con algo?`
-      : `Vimos que armaste ${pedido} pero te quedaste antes de pagar. ¿Te podemos ayudar con algo?`
-  const link = String(o.linkPago || '').startsWith('https://')
-    ? ` Si querés terminarlo, te dejo el link para pagar: ${o.linkPago} Ya tenemos todos tus datos, no tenés que cargar nada de nuevo.`
-    : ' Si querés terminarlo, te pasamos el link de pago por acá y listo: ya tenemos todos tus datos, no tenés que cargar nada de nuevo.'
-  return `${hola} ${situacion}${link}`
+      ? `Nuestro equipo detectó que el pago ${queCompro(o)} no se pudo completar.`
+      : `Nuestro equipo detectó que te quedó pendiente el pago ${queCompro(o)}.`
+  const ayuda = '¿Te surgió alguna duda con el talle, el envío o el pago? Contanos y lo resolvemos.'
+  const link = String(o.linkPago || '').startsWith('https://') ? ` Si querés retomarlo, podés terminar el pago desde acá: ${o.linkPago}` : ''
+  return `${hola} ${situacion} ${ayuda}${link}`
 }
 
 /**
