@@ -39,6 +39,28 @@ function mensajeRetiro(o, c) {
   return `Hola${nombre ? ` ${nombre}` : ''}! Te escribimos de sanzo por tu pedido ${o.numero || o.id}. Lo podés retirar en ${lugar}, ${HORARIOS_RETIRO}. ¿Qué día y horario te queda mejor?`
 }
 
+/** Qué compró, para el mensaje: "el Kit Paseo Sanzo (Talle S)" o "tu pedido SZ-…" si son varias cosas. */
+function queCompro(o) {
+  const items = o.items || []
+  if (items.length === 1 && Number(items[0].cantidad) === 1) return `del ${items[0].nombre}${items[0].opcion ? ` (${items[0].opcion})` : ''}`
+  return o.numero || o.id
+}
+
+/** Se quedó antes de pagar (o el pago no pasó): mensaje para ayudarlo a terminar, con el link de su pedido si lo tenemos. */
+function mensajeSinPagar(o, c) {
+  const nombre = String(c.nombre || '').trim().split(/\s+/)[0]
+  const hola = `Hola${nombre ? ` ${nombre}` : ''}! Te escribimos de sanzo 🐾`
+  const pedido = `tu pedido ${queCompro(o)}`
+  const situacion =
+    o.estado === 'rechazado'
+      ? `Vimos que el pago de ${pedido} no pasó. ¿Te podemos ayudar con algo?`
+      : `Vimos que armaste ${pedido} pero te quedaste antes de pagar. ¿Te podemos ayudar con algo?`
+  const link = String(o.linkPago || '').startsWith('https://')
+    ? ` Si querés terminarlo, te dejo el link para pagar: ${o.linkPago} Ya tenemos todos tus datos, no tenés que cargar nada de nuevo.`
+    : ' Si querés terminarlo, te pasamos el link de pago por acá y listo: ya tenemos todos tus datos, no tenés que cargar nada de nuevo.'
+  return `${hola} ${situacion}${link}`
+}
+
 /**
  * Cómo queda el personalizado: la vista previa de la web (parche con su forma, color, medida, letra y nombre,
  * en el lugar que eligió), embebida. La página avisa su alto con postMessage para que no quede con scroll.
@@ -356,7 +378,9 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenera
   const est = ESTADOS[o.estado] || ESTADOS.a_coordinar
   // Si retira en persona, el chat se abre con el mensaje para coordinar el día y la hora.
   const retira = c.entrega === 'retiro' && o.estado !== 'cancelado' && o.estado !== 'rechazado'
-  const wa = linkWhatsapp(c.celular, c.entrega === 'retiro' ? mensajeRetiro(o, c) : undefined)
+  // Se quedó antes de pagar o el pago no pasó: recuadro para escribirle con el mensaje ya armado.
+  const sinPagar = !o.aplicado && (o.estado === 'pendiente_pago' || o.estado === 'rechazado')
+  const wa = linkWhatsapp(c.celular, sinPagar ? mensajeSinPagar(o, c) : c.entrega === 'retiro' ? mensajeRetiro(o, c) : undefined)
   const direccion =
     c.entrega === 'retiro'
       ? `Retira en persona en ${PUNTOS_RETIRO[c.puntoRetiro] || 'uno de los puntos'} (coordinar por WhatsApp)`
@@ -460,7 +484,19 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenera
       {o.estado !== 'cancelado' && o.estado !== 'rechazado' && c.entrega !== 'retiro' && <EnvioCorreo order={o} onGenerar={onGenerarEnvio} />}
 
       {/* Retira en persona: recuadro verde bien visible para no olvidarse de escribirle y coordinar el día. */}
-      {retira && wa && (
+      {sinPagar && wa && (
+        <a className="wa-retiro" href={wa} target="_blank" rel="noreferrer">
+          <IconPhone style={{ width: 22, height: 22, flexShrink: 0 }} />
+          <span>
+            <span className="wa-retiro-titulo">{o.estado === 'rechazado' ? 'El pago no pasó: escribile' : 'Se quedó antes de pagar: escribile'}</span>
+            <span className="wa-retiro-texto">
+              El mensaje ya va escrito con su nombre{String(o.linkPago || '').startsWith('https://') ? ' y el link para terminar de pagar' : ''}. Revisalo y mandalo.
+            </span>
+          </span>
+        </a>
+      )}
+
+      {retira && !sinPagar && wa && (
         <a className="wa-retiro" href={wa} target="_blank" rel="noreferrer">
           <IconPhone style={{ width: 22, height: 22, flexShrink: 0 }} />
           <span>
@@ -486,7 +522,7 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenera
           )}
         </div>
         <div className="row" style={{ gap: 6 }}>
-          {wa && !retira && (
+          {wa && !retira && !sinPagar && (
             <a className="btn btn-ghost btn-sm" href={wa} target="_blank" rel="noreferrer">
               <IconPhone /> WhatsApp
             </a>

@@ -143,6 +143,8 @@ export async function guardarPedidoEnHub(numero: string, c: DatosCheckout, t: To
     estado: (linkPago ? "pendiente_pago" : "a_coordinar") satisfies EstadoPedidoWeb,
     aplicado: false,
     pagoOnline: !!linkPago,
+    // Link de Mercado Pago de este pedido: el Hub lo manda por WhatsApp si se quedó antes de pagar.
+    linkPago: linkPago ?? "",
     cliente: c,
     items: t.lineas.map((l) => ({
       nombre: l.producto.nombre,

@@ -50,10 +50,13 @@ export function ContenidoGracias() {
       if (typeof guardado?.pago === "string" && guardado.pago.startsWith("https://")) setLinkPago(guardado.pago);
       setFotoPerro(guardado?.fotoPerro === true);
       setRetiraEn(typeof guardado?.retiraEn === "string" ? guardado.retiraEn : "");
+      // Pago aprobado o en proceso: ya no le ofrecemos "Terminar de pagar" en el checkout.
+      if ((estado === "aprobado" || estado === "pendiente") && !guardado?.pagado)
+        window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ ...guardado, pagado: true }));
     } catch {
       // sin almacenamiento
     }
-  }, [numero]);
+  }, [numero, estado]);
 
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center text-center">
