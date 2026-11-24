@@ -14,9 +14,18 @@ import { Suspense } from "react";
 import { EventosMeta } from "@/components/meta/EventosMeta";
 import { META_PIXEL_ID } from "@/lib/meta/datos";
 
-// Código base del Pixel de Meta (sin el PageView: lo manda EventosMeta con event_id, para deduplicar con el
-// servidor). external_id = la cookie sz_uid (la pone middleware.ts), igual que en la API de Conversiones.
+// Código base del Pixel de Meta. NO dispara ningún PageView: el único es el de EventosMeta, con event_id
+// (el mismo que va por el servidor, así Meta los junta).
+// - disablePushState: sin esto, el Pixel manda solo un PageView sin id en cada cambio de ruta (pushState) y,
+//   como ya vio esa URL, descarta el nuestro con id: quedaba el del servidor sin pareja.
+// - allowDuplicatePageViews true: con disablePushState el Pixel no ve el cambio de URL y tomaba nuestro PageView
+//   de la ruta nueva por "repetido" (no lo mandaba). Repetidos no hay: EventosMeta manda uno solo por ruta.
+// - autoConfig false: sin SubscribedButtonClick ni lectura automática de la página.
+// - external_id = la cookie sz_uid (la pone middleware.ts); el servidor manda el SHA-256 del mismo valor.
 const codigoPixel = `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq.disablePushState=true;
+fbq.allowDuplicatePageViews=true;
+fbq('set','autoConfig',false,${JSON.stringify(META_PIXEL_ID)});
 var m=document.cookie.match(/(?:^|; )sz_uid=([^;]+)/);
 fbq('init',${JSON.stringify(META_PIXEL_ID)},m?{external_id:decodeURIComponent(m[1])}:{});`;
 
