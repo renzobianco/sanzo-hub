@@ -1,6 +1,6 @@
 "use client";
 
-import { cotizacion, PROVINCIAS, retiro, type TipoEntrega } from "@/data/envios";
+import { cotizacion, envioInfo, esGBA, PROVINCIAS, retiro, type TipoEntrega } from "@/data/envios";
 import { zonaDeUbicacion } from "@/lib/carrito";
 import { formatearPrecio } from "@/lib/formato";
 import { useCarrito } from "./CarritoProvider";
@@ -79,6 +79,10 @@ export function SelectorZona({ elegir = true }: { elegir?: boolean }) {
           <p className="mt-1.5 text-xs text-tinta/60">
             {zona.nombre} · Correo Argentino, {cotizacion.plazo}
           </p>
+          {/* Provincia de Buenos Aires sin código postal del GBA: sale como Interior hasta que lo pongan. */}
+          {ubicacion.provincia === "Buenos Aires" && !esGBA(ubicacion.cp) && (
+            <p className="mt-1 text-xs text-marron">{envioInfo.avisoBuenosAires}</p>
+          )}
         </div>
       )}
 

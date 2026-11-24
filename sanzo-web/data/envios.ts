@@ -60,88 +60,127 @@ export function puntoRetiro(id?: string): PuntoRetiro {
 }
 
 /**
- * Lo que se cotizó y con qué paquete. Cuando midan el peso real del paquete o abran la cuenta
- * comercial de MiCorreo (ahí suelen bajar los precios), se recotiza y se cambian las tarifas de abajo.
+ * De dónde salen las tarifas. Son valores de referencia cargados a mano: no hay cotización en vivo
+ * (la integración con la API de Correo Argentino del Hub genera envíos, pero no cotiza).
+ * Cuando cambien las tarifas de Fácil Uno, se actualizan los números de `zonas`.
  */
 export const cotizacion = {
-  /** Peso del paquete con el que se cotizó (kg). 0,6 es estimado: falta pesar un pedido armado. */
-  pesoKg: 0.6,
+  /**
+   * Franja de peso que se cobra hoy (kg). Todos los pedidos van a la tarifa de hasta 1 kg hasta que
+   * se carguen los pesos reales de cada producto (Renzo, 2026-11-24). Ahí se usan los escalones de `porPeso`.
+   */
+  pesoKg: 1,
   /** Desde dónde despachamos. */
   cpOrigen: "1414",
-  fuente: "Tarifas públicas de MiCorreo (PAQ.AR Clásico), octubre 2026",
-  /** Lo que tarda PAQ.AR Clásico (se muestra en el cotizador). */
+  fuente: "Correo Argentino vía Fácil Uno, despachando desde CABA, vigentes desde noviembre 2026",
+  /** Lo que tarda el Correo (se muestra en el cotizador). */
   plazo: "2 a 5 días hábiles",
 };
 
 export interface ZonaEnvio {
-  id: 1 | 2 | 3 | 4;
+  /** Las tres zonas de Fácil Uno. */
+  id: 1 | 2 | 3;
   nombre: string;
   detalle: string;
-  /** Precio en pesos por tipo de entrega; null → "A cotizar". */
+  /** Precio en pesos por tipo de entrega, paquete de hasta 1 kg (`cotizacion.pesoKg`); null → "A cotizar". */
   precio: Record<TipoEntrega, number | null>;
+  /**
+   * Escalones para pedidos más pesados (hasta 3 kg y hasta 5 kg). Todavía NO se usan: falta el peso de
+   * cada producto. Fácil Uno pasó solo la tarifa a domicilio; la de sucursal queda en null hasta tenerla.
+   */
+  porPeso: { hastaKg: number; domicilio: number; sucursal: number | null }[];
 }
 
 export const zonas: ZonaEnvio[] = [
   {
     id: 1,
-    nombre: "CABA",
-    detalle: "Ciudad de Buenos Aires.",
-    precio: { domicilio: 8046, sucursal: 5428 },
+    nombre: "AMBA",
+    detalle: "Ciudad de Buenos Aires y Gran Buenos Aires.",
+    precio: { domicilio: 7830, sucursal: 5510 },
+    porPeso: [
+      { hastaKg: 3, domicilio: 12179, sucursal: null },
+      { hastaKg: 5, domicilio: 16096, sucursal: null },
+    ],
   },
   {
     id: 2,
-    nombre: "Buenos Aires",
-    detalle: "Gran Buenos Aires y el resto de la provincia de Buenos Aires.",
-    precio: { domicilio: 9648, sucursal: 6739 },
+    nombre: "Interior",
+    detalle: "El resto del país, incluido el interior de la provincia de Buenos Aires (sin Patagonia).",
+    precio: { domicilio: 10226, sucursal: 7526 },
+    porPeso: [
+      { hastaKg: 3, domicilio: 15842, sucursal: null },
+      { hastaKg: 5, domicilio: 23942, sucursal: null },
+    ],
   },
   {
     id: 3,
-    nombre: "Centro y Norte",
-    detalle: "Todas las provincias que no son Buenos Aires ni Patagonia.",
-    precio: { domicilio: 9648, sucursal: 6739 },
-  },
-  {
-    id: 4,
     nombre: "Patagonia",
     detalle: "Neuquén, Río Negro, Chubut, Santa Cruz y Tierra del Fuego.",
-    precio: { domicilio: 10586, sucursal: 7745 },
+    precio: { domicilio: 10301, sucursal: 7862 },
+    porPeso: [
+      { hastaKg: 3, domicilio: 16901, sucursal: null },
+      { hastaKg: 5, domicilio: 26411, sucursal: null },
+    ],
   },
 ];
+
+const [AMBA, INTERIOR, PATAGONIA_ZONA] = zonas;
 
 export const envioInfo = {
   correo: "Correo Argentino",
   texto: "Enviamos a todo el país por Correo Argentino, a domicilio o a sucursal. En CABA también lo podés retirar gratis.",
   /** Envío gratis para pedidos desde este monto (en pesos). null → solo el kit viaja gratis. */
   gratisDesde: null as number | null,
+  /** Si eligen la provincia de Buenos Aires sin código postal (se cobra Interior hasta saber si es GBA). */
+  avisoBuenosAires: "¿Estás en el Gran Buenos Aires? Poné tu código postal y te sale más barato.",
 };
 
 const PATAGONIA: string[] = ["Neuquén", "Río Negro", "Chubut", "Santa Cruz", "Tierra del Fuego"];
 
-export function zonaPorProvincia(provincia: string): ZonaEnvio | null {
-  if (provincia === "Ciudad Autónoma de Buenos Aires") return zonas[0];
-  if (provincia === "Buenos Aires") return zonas[1];
-  if (PATAGONIA.includes(provincia)) return zonas[3];
-  if ((PROVINCIAS as readonly string[]).includes(provincia)) return zonas[2];
+/**
+ * Gran Buenos Aires por código postal (los 4 números, o el CPA B1636ABC): 1600–1899 (Vicente López,
+ * San Isidro, Tigre, Pilar, Moreno, Merlo, La Matanza, Lomas, Quilmes, Berazategui, Varela, Ezeiza…).
+ * Es aproximado: La Plata (1900) y el resto de la provincia van como Interior.
+ */
+export function esGBA(cp: string) {
+  const m = /^B?(\d{4})(?:[A-Z]{3})?$/.exec(cp.trim().toUpperCase());
+  const n = m ? Number(m[1]) : NaN;
+  return n >= 1600 && n < 1900;
+}
+
+/**
+ * Zona según la provincia. Provincia de Buenos Aires: AMBA si el código postal es del GBA; si no hay
+ * código postal (o es del interior), Interior.
+ */
+export function zonaPorProvincia(provincia: string, cp = ""): ZonaEnvio | null {
+  if (provincia === "Ciudad Autónoma de Buenos Aires") return AMBA;
+  if (provincia === "Buenos Aires") return esGBA(cp) ? AMBA : INTERIOR;
+  if (PATAGONIA.includes(provincia)) return PATAGONIA_ZONA;
+  if ((PROVINCIAS as readonly string[]).includes(provincia)) return INTERIOR;
   return null;
 }
 
-/** Letra de provincia del CPA (C1425ABC) → zona. */
-const LETRA_ZONA: Record<string, number> = { C: 0, B: 1, Q: 3, R: 3, U: 3, Z: 3, V: 3 };
+/** Letra de provincia del CPA (C1425ABC) → zona. B (provincia de Buenos Aires) depende de los números. */
+const LETRA_PATAGONIA = ["Q", "R", "U", "Z", "V"];
 
 /**
- * Zona según el código postal. Con el CPA (C1425ABC) es exacta por la letra. Con los 4 números es
- * aproximada: 1000–1499 CABA; 1500–1999, 6000–8199 provincia de Buenos Aires; 8300–8599 y
- * 9000–9999 Patagonia; el resto Centro y Norte. Buenos Aires y Centro hoy cuestan lo mismo.
+ * Zona según el código postal. Con el CPA (C1425ABC) es exacta por la letra (y los números para
+ * Buenos Aires). Con los 4 números es aproximada: 1000–1499 CABA y 1600–1899 GBA → AMBA;
+ * 8300–8599 y 9000–9999 → Patagonia; el resto → Interior.
  */
 export function zonaPorCP(cp: string): ZonaEnvio | null {
   const t = cp.trim().toUpperCase();
   const cpa = /^([A-HJ-NP-Z])\d{4}[A-Z]{3}$/.exec(t);
-  if (cpa) return zonas[LETRA_ZONA[cpa[1]] ?? 2];
+  if (cpa) {
+    const letra = cpa[1];
+    if (letra === "C") return AMBA;
+    if (letra === "B") return esGBA(t) ? AMBA : INTERIOR;
+    return LETRA_PATAGONIA.includes(letra) ? PATAGONIA_ZONA : INTERIOR;
+  }
   if (!/^\d{4}$/.test(t)) return null;
   const n = Number(t);
   if (n < 1000) return null;
-  if (n < 1500) return zonas[0];
-  if (n < 2000 || (n >= 6000 && n < 8200)) return zonas[1];
-  if ((n >= 8300 && n < 8600) || n >= 9000) return zonas[3];
-  return zonas[2];
+  if (n < 1500 || esGBA(t)) return AMBA;
+  if ((n >= 8300 && n < 8600) || n >= 9000) return PATAGONIA_ZONA;
+  return INTERIOR;
 }

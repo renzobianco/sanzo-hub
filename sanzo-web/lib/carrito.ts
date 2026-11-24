@@ -26,8 +26,9 @@ export interface Ubicacion {
   puntoRetiro?: string;
 }
 
+/** La provincia manda; en la de Buenos Aires el código postal dice si es GBA (AMBA) o interior. */
 export function zonaDeUbicacion(u: Ubicacion) {
-  return u.provincia ? zonaPorProvincia(u.provincia) : zonaPorCP(u.cp);
+  return u.provincia ? zonaPorProvincia(u.provincia, u.cp) : zonaPorCP(u.cp);
 }
 
 export type EstadoEnvio =
