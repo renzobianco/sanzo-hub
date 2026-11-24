@@ -9,6 +9,7 @@ import { esImagenNuestra, guardarPedidoEnHub } from "@/lib/hub";
 import { imagenesPersonalizacion, textoPersonalizacion, type DisenoPieza, type Personalizacion } from "@/lib/personalizacion";
 import { textoOpcion } from "@/lib/combos";
 import { validarCheckout, type DatosCheckout } from "@/lib/validacion";
+import { metaDelPedido } from "@/lib/meta/capi";
 
 export const runtime = "nodejs";
 
@@ -258,7 +259,9 @@ export async function POST(req: Request) {
   }
 
   // Copia en "Pedidos web" del Hub (se pasa a ventas cuando se confirma el pago).
-  await guardarPedidoEnHub(numero, cliente, totales, linkPago);
+  // Con el bloque meta (cookies de Meta, IP, UTM, event_id) para mandar la compra cuando se apruebe el pago.
+  const meta = metaDelPedido(req, numero, totales);
+  await guardarPedidoEnHub(numero, cliente, totales, linkPago, meta);
 
   // Notificación al celular (app ntfy).
   await avisarAlCelular(
@@ -278,5 +281,10 @@ export async function POST(req: Request) {
   const linkFijo = unica && precioFijo && sinEnvio ? unica.producto.linkPago || undefined : undefined;
   const redirigirA = linkPago ?? linkFijo;
 
-  return NextResponse.json<PedidoRespuesta>({ ok: true, numero, redirigirA });
+  return NextResponse.json<PedidoRespuesta>({
+    ok: true,
+    numero,
+    redirigirA,
+    meta: { eventId: meta.eventId, value: meta.valor, contents: meta.contents, num_items: meta.numItems, personalizado: meta.personalizado },
+  });
 }

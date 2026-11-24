@@ -16,6 +16,8 @@ import { chapitaConFoto, esChapita } from "@/lib/chapita";
 import { useCarrito } from "../carrito/CarritoProvider";
 import { textoOpcion } from "@/lib/combos";
 import { ahorroChapitas, ahorroTotal, precioDeLinea, zonaDeUbicacion } from "@/lib/carrito";
+import { trackMeta } from "@/lib/meta/cliente";
+import { datosDeContenidos, datosDeLineas } from "@/lib/meta/datos";
 
 type Campo = keyof DatosCheckout;
 
@@ -102,6 +104,14 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
     }
   }, [d]);
 
+  // InitiateCheckout (Meta): una vez al entrar con carrito. Valor = productos con promos, sin envío.
+  const inicioAvisado = useRef(false);
+  useEffect(() => {
+    if (!listo || inicioAvisado.current || totales.lineas.length === 0) return;
+    inicioAvisado.current = true;
+    trackMeta("InitiateCheckout", datosDeLineas(totales.lineas, totales.subtotal - totales.ahorro));
+  }, [listo, totales]);
+
   const errores = useMemo(() => validarCheckout(d), [d]);
   const mostrar = (c: Campo) => (intentado || tocados[c] ? errores[c] : undefined);
 
@@ -154,12 +164,15 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
         const fotoPerro = totales.lineas.some((l) => chapitaConFoto(l.producto, l.opcion) && !l.imagen);
         // retiro: en /gracias le armamos el WhatsApp para coordinar el día.
         const retiraEn = d.entrega === "retiro" ? puntoRetiro(d.puntoRetiro).direccion : undefined;
-        window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ numero: data.numero, nombre: d.nombre, pago: data.redirigirA, fotoPerro, retiraEn, fecha: Date.now() }));
+        // meta: lo que calculó el servidor, para el Purchase del Pixel en /gracias (mismo event_id que el del servidor).
+        window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ numero: data.numero, nombre: d.nombre, pago: data.redirigirA, fotoPerro, retiraEn, meta: data.meta, fecha: Date.now() }));
       } catch {
         // sin almacenamiento: /gracias igual recibe el número por la URL
       }
       vaciar();
       if (data.redirigirA) {
+        // AddPaymentInfo (Meta): el pedido quedó y se va a pagar a Mercado Pago.
+        if (data.meta) trackMeta("AddPaymentInfo", datosDeContenidos(data.meta.contents, data.meta.value, data.meta.personalizado));
         window.location.href = data.redirigirA;
       } else {
         router.push(`/gracias?pedido=${encodeURIComponent(data.numero)}&estado=recibido`);

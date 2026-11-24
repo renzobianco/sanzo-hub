@@ -8,11 +8,14 @@ import {
   calcularTotales,
   claveLinea,
   MAX_CANTIDAD,
+  resolverLineas,
   type LineaCarrito,
   type Totales,
   type Ubicacion,
 } from "@/lib/carrito";
 import type { Personalizacion } from "@/lib/personalizacion";
+import { trackMeta } from "@/lib/meta/cliente";
+import { datosDeContenidos } from "@/lib/meta/datos";
 import { OfertaChapita } from "./OfertaChapita";
 
 const CLAVE_STORAGE = "sanzo-carrito-v1";
@@ -29,7 +32,13 @@ interface CarritoContexto {
   agregar: (
     productoId: string,
     opcion?: string,
-    opts?: { abrir?: boolean; personalizacion?: Personalizacion; imagen?: string },
+    opts?: {
+      abrir?: boolean;
+      personalizacion?: Personalizacion;
+      imagen?: string;
+      /** Precio que se le avisa a Meta si no es el de lista (la chapita del cartel sale `ofertaChapita.precio`). */
+      precioMeta?: number;
+    },
   ) => void;
   cambiarCantidad: (key: string, cantidad: number) => void;
   /** Pone, cambia o saca (undefined) la personalización de una línea. */
@@ -125,6 +134,15 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prev, { key, productoId, opcion, personalizacion, imagen, cantidad: 1 }];
     });
+    // AddToCart para Meta, con el precio real de la unidad (personalización incluida).
+    const [linea] = resolverLineas([{ key, productoId, opcion, personalizacion, imagen, cantidad: 1 }]);
+    if (linea) {
+      const precio = opts?.precioMeta ?? linea.unitario;
+      trackMeta("AddToCart", {
+        ...datosDeContenidos([{ id: productoId, quantity: 1, item_price: precio }], precio, !!personalizacion),
+        content_name: linea.producto.nombre,
+      });
+    }
     if (opts?.abrir !== false) setAbierto(true);
   }, []);
 
@@ -175,7 +193,7 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
 
   function cerrarOferta(sumar?: string, imagen?: string) {
     const seguir = seguirTrasOferta;
-    if (sumar) agregar(chapita.id, sumar, { abrir: false, imagen });
+    if (sumar) agregar(chapita.id, sumar, { abrir: false, imagen, precioMeta: ofertaChapita.precio });
     else dijoQueNo.current = true; // no se la volvemos a ofrecer en esta visita
     setSeguirTrasOferta(null);
     seguir?.();

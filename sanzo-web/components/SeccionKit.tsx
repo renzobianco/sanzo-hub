@@ -7,6 +7,7 @@ import { AgregarAlCarrito } from "./AgregarAlCarrito";
 import { GuiaTalles } from "./GuiaTalles";
 import { KitGaleria } from "./KitGaleria";
 import { Reveal } from "./Reveal";
+import { VerContenidoAlMostrar } from "./meta/EventosMeta";
 
 export function SeccionKit() {
   const { restantes, total } = contadorKits;
@@ -98,6 +99,7 @@ export function SeccionKit() {
           </div>
         </Reveal>
       </div>
+      <VerContenidoAlMostrar productoId={kit.id} seccion="kit" />
     </section>
   );
 }

@@ -14,6 +14,7 @@ import { FlechasGaleria } from "./FlechasGaleria";
 import { IconoCerrar } from "./Iconos";
 import { MiniPiezas } from "./MiniPiezas";
 import { trabarScroll } from "@/lib/scroll";
+import { verContenido } from "@/lib/meta/cliente";
 
 const DURACION = 450;
 
@@ -51,6 +52,7 @@ export function FichaProducto({
     const d = ref.current;
     if (!d) return;
     if (abierta && !d.open) {
+      verContenido(producto.id);
       d.showModal();
       liberar.current?.();
       liberar.current = trabarScroll();

@@ -3,6 +3,8 @@ import { avisarAlCelular } from "@/lib/aviso";
 import { formatearPrecio } from "@/lib/formato";
 import { aplicarPedidoEnHub, estadoPedidoEnHub, hubActivo, leerPedidoEnHub, type PagoMP } from "@/lib/hub";
 import { mandarConfirmacionAlCliente } from "@/lib/mailCliente";
+import { waitUntil } from "@vercel/functions";
+import { enviarCompraMeta } from "@/lib/meta/capi";
 
 export const runtime = "nodejs";
 
@@ -65,6 +67,8 @@ export async function POST(req: Request) {
       // Mail de confirmación al cliente (una sola vez: los reintentos no entran acá).
       const pedido = await leerPedidoEnHub(numero).catch((err) => (console.error(`[mp-webhook] No se pudo leer el pedido ${numero}`, err), null));
       if (pedido) await mandarConfirmacionAlCliente(pedido);
+      // Compra para Meta (API de Conversiones), después del pedido y el mail. No demora la respuesta a MP ni tira error.
+      if (pedido) waitUntil(enviarCompraMeta(numero, { pedido, fecha: p.date_approved, cobrado: p.transaction_amount }));
     }
     if (estado === "pagado" && r === "monto_distinto")
       await avisarAlCelular(`Revisar pago ${numero}`, `Mercado Pago aprobó ${formatearPrecio(p.transaction_amount)} pero no coincide con el total del pedido. Revisalo en el Hub.`, "pago");

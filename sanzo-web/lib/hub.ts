@@ -4,6 +4,7 @@ import { textoOpcion } from "./combos";
 import { detalleEnvio, textoEnvio } from "./formato";
 import { imagenesPersonalizacion, sinImagen, textoPersonalizacion, type Personalizacion } from "./personalizacion";
 import type { DatosCheckout } from "./validacion";
+import type { MetaPedido } from "./meta/datos";
 
 // Sanzo Hub (la app interna) comparte una base Supabase. Cada pedido de la web se guarda en
 // `sanzo_web_orders` con las ventas ya traducidas a los productos del Hub; cuando se confirma el
@@ -134,7 +135,7 @@ export function esImagenNuestra(url: string) {
 }
 
 /** Guarda el pedido en "Pedidos web" del Hub. Si falla, solo queda en los logs: el pedido ya salió por mail. */
-export async function guardarPedidoEnHub(numero: string, c: DatosCheckout, t: Totales, linkPago?: string) {
+export async function guardarPedidoEnHub(numero: string, c: DatosCheckout, t: Totales, linkPago?: string, meta?: MetaPedido) {
   if (!hubActivo()) return;
   const zona = detalleEnvio(t.envio) ? ` (${detalleEnvio(t.envio)})` : "";
   const payload = {
@@ -172,6 +173,8 @@ export async function guardarPedidoEnHub(numero: string, c: DatosCheckout, t: To
     envioACotizar: t.envio.tipo === "cotizar",
     total: t.total,
     ventas: ventasDelPedido(numero, c, t, !!linkPago),
+    // Datos para mandar la compra a Meta (lib/meta/capi.ts) cuando se aprueba el pago.
+    ...(meta ? { meta } : {}),
   };
   try {
     await supabase("sanzo_web_orders", { id: numero, payload });
@@ -219,4 +222,6 @@ export interface PedidoGuardado {
   ahorro: number;
   envio: string;
   total: number;
+  /** Datos para Meta (pedidos hechos desde que está el Pixel; los anteriores no lo tienen). */
+  meta?: MetaPedido;
 }

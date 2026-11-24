@@ -64,5 +64,10 @@ Settings → Environment Variables:
 | `NEXT_PUBLIC_SITE_URL` | Opcional. URL final del sitio (ej. `https://sanzo.com.ar`) para las previews en redes |
 | `GMAIL_USUARIO` | Gmail desde el que le llega al cliente el mail "Recibimos tu pago" cuando Mercado Pago aprueba el pago: `sanzopets@gmail.com` |
 | `GMAIL_CLAVE_APP` | Contraseña de aplicación de ese Gmail (Cuenta de Google → Seguridad → Verificación en 2 pasos activada → [Contraseñas de aplicaciones](https://myaccount.google.com/apppasswords)). Son 16 letras; no es la clave del mail. Sin esto no se manda la confirmación |
+| `NEXT_PUBLIC_META_PIXEL_ID` | Pixel de Meta: `27096330653398044`. Sin esto no se carga el Pixel ni se manda nada a Meta. Después de cargarlo, Redeploy (es pública: se mete en el código al compilar) |
+| `META_CAPI_TOKEN` | Token de la API de Conversiones (Administrador de eventos → el conjunto de datos → Configuración → Generar token de acceso). Secreto |
+| `META_TEST_EVENT_CODE` | Opcional, solo para probar: el código de "Probar eventos". Con esto, los eventos del servidor salen como prueba. Sacarlo al terminar |
+
+**Meta (Pixel + API de Conversiones):** `lib/meta/`. Cada evento del embudo (PageView, ViewContent, AddToCart, InitiateCheckout, AddPaymentInfo, Contact) sale por el Pixel y por el servidor (`/api/meta`) con el mismo `event_id`, y Meta los junta. La compra (Purchase) la manda el servidor cuando Mercado Pago aprueba el pago (`/api/mp-webhook`), con el valor real y los datos del checkout hasheados; en `/gracias` el Pixel manda la misma con el mismo `event_id`. `middleware.ts` pone las cookies `sz_uid`, `_fbp`, `_fbc` (si llega con `fbclid`) y `sz_utm`. Catálogo para anuncios dinámicos: `/catalogo-meta` (CSV).
 
 Si el mail falla, el pedido igual queda en los logs de Vercel (Runtime Logs).

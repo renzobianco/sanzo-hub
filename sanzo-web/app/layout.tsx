@@ -9,6 +9,16 @@ import { BarraSuperior } from "@/components/BarraSuperior";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BotonWhatsapp } from "@/components/BotonWhatsapp";
+import Script from "next/script";
+import { Suspense } from "react";
+import { EventosMeta } from "@/components/meta/EventosMeta";
+import { META_PIXEL_ID } from "@/lib/meta/datos";
+
+// Código base del Pixel de Meta (sin el PageView: lo manda EventosMeta con event_id, para deduplicar con el
+// servidor). external_id = la cookie sz_uid (la pone middleware.ts), igual que en la API de Conversiones.
+const codigoPixel = `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+var m=document.cookie.match(/(?:^|; )sz_uid=([^;]+)/);
+fbq('init',${JSON.stringify(META_PIXEL_ID)},m?{external_id:decodeURIComponent(m[1])}:{});`;
 
 const jost = Jost({ subsets: ["latin"], variable: "--font-jost", display: "swap" });
 
@@ -33,6 +43,8 @@ export const metadata: Metadata = {
     siteName: "sanzo",
   },
   twitter: { card: "summary_large_image" },
+  // Verificación del dominio en Meta (va en el HTML inicial, no por JavaScript).
+  other: { "facebook-domain-verification": "4o17gcmkl6350o6uku1fdiausajez6" },
 };
 
 export const viewport: Viewport = {
@@ -63,6 +75,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <BotonWhatsapp />
           <CarritoDrawer />
         </CarritoProvider>
+        {META_PIXEL_ID && (
+          <>
+            <Script id="meta-pixel" strategy="afterInteractive">
+              {codigoPixel}
+            </Script>
+            <Suspense fallback={null}>
+              <EventosMeta />
+            </Suspense>
+          </>
+        )}
       </body>
     </html>
   );

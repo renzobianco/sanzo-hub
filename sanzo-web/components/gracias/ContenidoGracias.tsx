@@ -6,7 +6,25 @@ import { useEffect, useState } from "react";
 import { ofertaChapita, sitio } from "@/data/products";
 import { retiro } from "@/data/envios";
 import { CLAVE_ULTIMO_PEDIDO } from "@/lib/pedido";
+import { trackMeta } from "@/lib/meta/cliente";
+import { datosDeContenidos, type MetaRespuestaPedido } from "@/lib/meta/datos";
 import { IconoWhatsapp } from "../Iconos";
+
+/** Pedidos cuya compra ya se avisó al Pixel en este navegador (para no mandarla dos veces si recarga). */
+const CLAVE_COMPRAS_META = "sanzo-meta-compras";
+
+/**
+ * Purchase del Pixel al volver de Mercado Pago con el pago aprobado, con el mismo event_id que manda el
+ * servidor desde el webhook (Meta cuenta una sola). Valor y productos: los que calculó el servidor al
+ * hacer el pedido. Sin esos datos (otro navegador, sin almacenamiento) no se manda nada: alcanza con el del servidor.
+ */
+function compraAlPixel(numero: string, meta: MetaRespuestaPedido | undefined) {
+  if (!meta || typeof meta.eventId !== "string" || !Array.isArray(meta.contents) || typeof meta.value !== "number") return;
+  const enviadas: string[] = JSON.parse(window.localStorage.getItem(CLAVE_COMPRAS_META) ?? "[]");
+  if (enviadas.includes(numero)) return;
+  trackMeta("Purchase", { ...datosDeContenidos(meta.contents, meta.value, meta.personalizado), order_id: numero }, { eventId: meta.eventId, soloNavegador: true });
+  window.localStorage.setItem(CLAVE_COMPRAS_META, JSON.stringify([...enviadas, numero].slice(-20)));
+}
 
 // `estado` lo pone /api/pedido (recibido) o Mercado Pago al volver (aprobado, pendiente, rechazado).
 const TEXTOS: Record<string, { eyebrow: string; titulo: string; texto: string }> = {
@@ -50,6 +68,10 @@ export function ContenidoGracias() {
       if (typeof guardado?.pago === "string" && guardado.pago.startsWith("https://")) setLinkPago(guardado.pago);
       setFotoPerro(guardado?.fotoPerro === true);
       setRetiraEn(typeof guardado?.retiraEn === "string" ? guardado.retiraEn : "");
+      // Solo con el pago aprobado de verdad por MP (vuelve con estado=aprobado y status=approved) y del mismo pedido.
+      const pedidoUrl = params.get("pedido");
+      if (params.get("estado") === "aprobado" && (params.get("status") ?? "approved") === "approved" && pedidoUrl && guardado?.numero === pedidoUrl)
+        compraAlPixel(pedidoUrl, guardado.meta);
       // Pago aprobado o en proceso: ya no le ofrecemos "Terminar de pagar" en el checkout.
       if ((estado === "aprobado" || estado === "pendiente") && !guardado?.pagado)
         window.localStorage.setItem(CLAVE_ULTIMO_PEDIDO, JSON.stringify({ ...guardado, pagado: true }));

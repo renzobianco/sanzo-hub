@@ -1,5 +1,6 @@
 import type { Personalizacion } from "./personalizacion";
 import type { DatosCheckout } from "./validacion";
+import type { MetaRespuestaPedido } from "./meta/datos";
 
 /** Lo que el checkout manda a /api/pedido. Los precios se recalculan en el servidor. */
 export interface PedidoEntrada {
@@ -14,6 +15,8 @@ export interface PedidoRespuesta {
   numero?: string;
   /** Link de Mercado Pago si corresponde redirigir directo. */
   redirigirA?: string;
+  /** Datos de la compra para el Pixel de Meta (AddPaymentInfo y el Purchase de /gracias). */
+  meta?: MetaRespuestaPedido;
   error?: string;
 }
 

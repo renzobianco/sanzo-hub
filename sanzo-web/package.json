@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@vercel/functions": "^3.11.3",
     "next": "^15.5.28",
     "nodemailer": "^7.0.13",
     "onnxruntime-web": "1.23.2",

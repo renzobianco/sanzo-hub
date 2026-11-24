@@ -11,6 +11,7 @@ import { FlechasGaleria } from "./FlechasGaleria";
 import { ImagenProducto } from "./ImagenProducto";
 import { MiniPiezas } from "./MiniPiezas";
 import { Reveal } from "./Reveal";
+import { verContenido } from "@/lib/meta/cliente";
 
 const GAP = 10; // px entre tarjetas
 const N = combos.length;
@@ -101,6 +102,19 @@ export function SeccionCombos() {
     setPos(medio);
     requestAnimationFrame(() => requestAnimationFrame(() => setSaltando(false)));
   }
+
+  // ViewContent (Meta) del combo que está enfocado, una vez que la sección se ve en pantalla.
+  const [enPantalla, setEnPantalla] = useState(false);
+  useEffect(() => {
+    const el = pista.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setEnPantalla(e.isIntersecting), { threshold: 0.5 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  useEffect(() => {
+    if (enPantalla) verContenido(combos[activo].id);
+  }, [enPantalla, activo]);
 
   // La primera vez que entra en pantalla, un amague corto hacia el costado: "esto se desliza".
   useEffect(() => {
