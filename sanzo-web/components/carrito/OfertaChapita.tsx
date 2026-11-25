@@ -141,33 +141,49 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo 
     >
       {verCartel ? (
         <>
-          {/* La pieza del cartel (ya trae título, texto y precio) y abajo los avisos y los botones. */}
-          <div className="relative">
+          {/* Foto real de las chapitas grabadas sobre la sábana; los textos van en HTML (nada quemado en la imagen). */}
+          <div className="relative aspect-[4/3] w-full overflow-hidden bg-lino">
             <Image
-              src={oferta.cartelPieza}
-              alt={oferta.cartelAlt}
-              width={oferta.cartelPiezaTam.ancho}
-              height={oferta.cartelPiezaTam.alto}
+              src={oferta.cartelFoto}
+              alt=""
+              fill
               sizes="(min-width: 640px) 448px, 100vw"
-              className="block h-auto w-full"
+              className="object-cover object-[50%_55%]"
               priority
             />
-            <button type="button" onClick={onNo} aria-label="Cerrar" className="absolute right-2 top-2 z-10 rounded-full bg-crema/85 p-2 backdrop-blur-sm">
+            <button type="button" onClick={onNo} aria-label="Cerrar" className="absolute right-3 top-3 z-10 rounded-full bg-crema/85 p-2 backdrop-blur-sm">
               <IconoCerrar />
             </button>
           </div>
-          <div className="px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 text-center">
-            <h2 id={`${id}-titulo`} className="sr-only">
-              {oferta.cartelAlt}
+          <div className="px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-6">
+            <p className="eyebrow">{oferta.cartelPrevia}</p>
+            <h2 id={`${id}-titulo`} className="mt-2 text-[26px] font-light leading-[1.15] tracking-wide text-tinta">
+              {oferta.cartelTitulo}
             </h2>
-            <p className="text-[13px] font-medium text-marron">{oferta.comparacion}</p>
-            {oferta.tresPorDos.activa && (
-              <p className="mt-2 text-[12px] uppercase tracking-[0.16em] text-marron">{oferta.tresPorDos.aviso}</p>
-            )}
+            <p className="mt-2.5 text-[14px] leading-relaxed text-tinta/70">{oferta.cartelTexto}</p>
+
+            <div className="mt-5 flex items-center gap-4 border-t border-tinta/10 pt-4">
+              <p className="flex shrink-0 items-baseline gap-2">
+                <span className="text-[26px] font-normal leading-none tracking-wide text-tinta">{formatearPrecio(oferta.precio)}</span>
+                {chapita.precio !== null && chapita.precio > oferta.precio && (
+                  <s className="text-[14px] text-tinta/45">{formatearPrecio(chapita.precio)}</s>
+                )}
+              </p>
+              {oferta.tresPorDos.activa && (
+                // El 3x2 en un recuadro fino marrón, como el "Ahorrás" de los combos.
+                <p className="flex flex-1 items-center gap-2.5 rounded-lg border border-marron/40 px-3 py-2 text-[12px] leading-snug text-marron">
+                  <span className="text-[15px] font-normal tracking-wide">{oferta.tresPorDos.etiqueta}</span>
+                  <span className="h-6 w-px bg-marron/30" aria-hidden="true" />
+                  <span>{oferta.tresPorDos.aviso}</span>
+                </p>
+              )}
+            </div>
+            {oferta.comparacion && <p className="mt-3 text-center text-[12px] text-tinta/55">{oferta.comparacion}</p>}
+
             <button type="button" onClick={() => setPaso("personalizar")} className="btn-primario mt-5 w-full py-4 text-sm">
               {oferta.agregar}
             </button>
-            <button type="button" onClick={onNo} className="mx-auto mt-2 block px-4 py-3 text-[13px] uppercase tracking-[0.16em] text-tinta/60">
+            <button type="button" onClick={onNo} className="mx-auto mt-1 block px-4 py-3 text-[12px] uppercase tracking-[0.16em] text-tinta/55">
               {oferta.no}
             </button>
           </div>
@@ -414,13 +430,11 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo 
           </div>
 
           <div className="border-t border-tinta/10 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:col-start-2 sm:row-start-3 sm:px-6">
-            {ultimo && modo === "oferta" && (
-              // El precio de la oferta, con el suelto tachado al lado (lo pidió Renzo).
+            {ultimo && modo === "oferta" && chapita.precio !== null && chapita.precio > oferta.precio && (
+              // Solo si hay precio especial con la compra: el de la oferta, con el suelto tachado al lado (lo pidió Renzo).
               <p className="mb-2.5 flex items-baseline justify-center gap-2 text-[12px] uppercase tracking-[0.14em] text-marron">
                 {oferta.soloAhora}
-                {chapita.precio !== null && chapita.precio > oferta.precio && (
-                  <s className="normal-case tracking-normal text-tinta/50">{formatearPrecio(chapita.precio)}</s>
-                )}
+                <s className="normal-case tracking-normal text-tinta/50">{formatearPrecio(chapita.precio)}</s>
               </p>
             )}
             <div className="flex gap-2">

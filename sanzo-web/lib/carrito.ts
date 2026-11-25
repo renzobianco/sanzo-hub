@@ -149,7 +149,7 @@ export function calcularTotales(lineas: LineaCarrito[], ubicacion: Ubicacion): T
 /**
  * Ahorro en chapitas, por línea (key → monto) y en total:
  * - 3x2 (Combo Manada): cada 3 chapitas del carrito (cualquier forma y grabado), una va de regalo → 3 chapitas = $16.000.
- * - Las que no completan un trío, sumadas a otra compra, salen `ofertaChapita.precio` ($6.000).
+ * - Las que no completan un trío, sumadas a otra compra, salen `ofertaChapita.precio` (hoy igual al de lista, $8.000).
  * No se pisan: una chapita del trío no baja además a $6.000 (Santino, 2026-10-30: "tendría que aparecer 16").
  * Las chapitas van a precio de lista en la línea; el ahorro se resta aparte (y la línea lo muestra tachado).
  */

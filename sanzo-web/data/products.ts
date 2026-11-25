@@ -828,8 +828,8 @@ export const vitrinaIndividuales: Producto[] = [...individuales, chapita];
 export const ofertaChapita = {
   /** false → el cartel no aparece. */
   activa: true,
-  /** Precio de la chapita cuando se suma a otra compra. */
-  precio: 6000,
+  /** Precio de la chapita en el cartel (Santino, 2026-11-02: sale $8.000, no hay precio especial con otra compra). */
+  precio: 8000,
   imagen: "/productos/chapitas/oferta.jpg",
   /** Lo primero que se ve: la pieza de la chapita (ya trae título y precio) y abajo el botón `agregar`. */
   cartel: "/productos/chapitas/cartel.jpg",
@@ -837,10 +837,10 @@ export const ofertaChapita = {
   cartelPieza: "/productos/chapitas/cartel-pieza.jpg",
   cartelPiezaTam: { ancho: 1672, alto: 941 },
   /** Cartel armado en la web (antes de la pieza): foto de las 4 chapitas grabadas y textos de la marca. */
-  cartelFoto: "/productos/chapitas/cartel-chapitas.jpg",
+  cartelFoto: "/productos/piezas/chapita-grabadas.jpg",
   cartelPrevia: "Sumala a tu compra",
-  cartelTitulo: "Su chapita, grabada",
-  cartelTexto: "Su nombre, tu teléfono o su carita. Grabada con láser, en la forma que elijas.",
+  cartelTitulo: "¿Le sumás su chapita grabada?",
+  cartelTexto: "Su nombre, tu teléfono o su carita, grabados con láser en la forma que elijas.",
   /** Promo de chapitas: cada 3 en el carrito, la más barata va de regalo (lib/carrito.ts). */
   tresPorDos: {
     activa: true,
@@ -848,14 +848,16 @@ export const ofertaChapita = {
     texto: "Combo Manada: 3x2 en chapitas",
     /** Cartel y ficha de la chapita. */
     aviso: "Llevando 2, la tercera te la regalamos.",
+    /** Etiqueta chiquita del cartel. */
+    etiqueta: "3x2",
     /** Debajo de la chapita en el carrito, cuando le falta una para el regalo. */
     falta: "Sumá una más y te la regalamos.",
   },
   /** Línea del descuento cuando la chapita va con otra compra ($8.000 → $6.000). */
   textoConCompra: "Chapita con tu compra",
   /** Comparación de precio: una chapita grabada sale en promedio $40.000 en otros lados (Santino, 2026-10-30). */
-  comparacion: "80% más barata que en otros lados",
-  cartelAlt: "¿Le sumás una chapita personalizada? Grabá el nombre y el teléfono de tu perro. Por solo $6.000.",
+  comparacion: "En otros lados, una chapita grabada sale unos $40.000.",
+  cartelAlt: "¿Le sumás su chapita grabada?",
   agregar: "Agregar",
   titulo: "Personalizá su chapita",
   bajada: "Elegí la forma y escribí lo que va grabado. Así se ve:",
