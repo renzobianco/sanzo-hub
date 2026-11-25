@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Fragment, useEffect, useRef } from "react";
 import { useCarrito } from "./CarritoProvider";
 import { SelectorZona } from "./SelectorZona";
-import { AvisoArmado, ItemSugerencia } from "./SugerenciasPromo";
+import { AvisoArmado, ItemSugerencia, SugerenciaManada } from "./SugerenciasPromo";
 import type { Sugerencia } from "@/lib/promos";
 import { Personalizar } from "../personalizar/Personalizar";
 import { esPersonalizable } from "@/lib/personalizacion";
@@ -47,9 +47,11 @@ export function CarritoDrawer() {
       sugerenciaDe.set(l.key, s);
     }
   }
-  // 3x2 en chapitas: con 2 (o 5, 8…) avisa en la primera chapita que la próxima es de regalo.
+  // 3x2 en chapitas: con 1 o 2 sueltas (o 4, 5…) muestra el recuadro del Combo Manada para sumar otra.
   const primeraChapita = lineas.find((l) => esChapita(l.productoId))?.key;
-  const faltaUnaChapita = ofertaChapita.tresPorDos.activa && chapitasEnCarrito(lineas) % 3 === 2;
+  const chapitasSueltas = ofertaChapita.tresPorDos.activa ? chapitasEnCarrito(lineas) % 3 : 0;
+  // Va debajo de la primera chapita que se ve suelta (las del trío van juntas en la línea del Combo Manada).
+  const chapitaConSugerencia = lineas.find((l) => esChapita(l.productoId) && precioDeLinea(l, chapitas).cantidad > 0)?.key;
   // Las chapitas no llevan la etiqueta: su precio ya dice cuánto ahorran.
   const enCombo = (id: string) => (esChapita(id) ? undefined : descuentos.find((d) => d.piezas.includes(id))?.texto.replace(/ × \d+$/, ""));
 
@@ -127,9 +129,6 @@ export function CarritoDrawer() {
                             {enCombo(l.productoId)}
                           </p>
                         )}
-                        {faltaUnaChapita && l.key === primeraChapita && (
-                          <p className="mt-1 text-[13px] text-marron">{ofertaChapita.tresPorDos.falta}</p>
-                        )}
                         {esPersonalizable(l.producto) ? (
                           <div className="mt-1.5">
                             <Personalizar
@@ -179,6 +178,7 @@ export function CarritoDrawer() {
                   </div>
                   </div>
                   {sugerenciaDe.has(l.key) && <ItemSugerencia sugerencia={sugerenciaDe.get(l.key)!} />}
+                  {chapitasSueltas > 0 && l.key === chapitaConSugerencia && <SugerenciaManada sueltas={chapitasSueltas} />}
                 </li>
                 )}
                 </Fragment>
