@@ -26,7 +26,8 @@ function linkWhatsapp(celular, texto) {
   let d = String(celular || '').replace(/\D/g, '')
   if (!d) return null
   if (!d.startsWith('54')) d = '549' + d.replace(/^0/, '')
-  return `https://wa.me/${d}${texto ? `?text=${encodeURIComponent(texto)}` : ''}`
+  // api.whatsapp.com/send y no wa.me: la redirección de wa.me rompe los emojis (🐾 llegaba como �).
+  return `https://api.whatsapp.com/send?phone=${d}${texto ? `&text=${encodeURIComponent(texto)}` : ''}`
 }
 
 // Mismos horarios que la web (sanzo-web/data/envios.ts → retiro.horarios).
@@ -61,28 +62,31 @@ function mensajeSinPagar(o, c) {
   return `${hola} ${situacion} ${ayuda}`
 }
 
-/** Link de Mercado Pago del pedido, con botón para copiarlo. */
-function LinkPago({ url }) {
+/** Texto con botón para copiarlo (el link de pago, o el mensaje entero por si WhatsApp lo abre mal). */
+function Copiable({ titulo, texto, boton, esLink = false }) {
   const [copiado, setCopiado] = useState(false)
   const copiar = async () => {
     try {
-      await navigator.clipboard.writeText(url)
+      await navigator.clipboard.writeText(texto)
       setCopiado(true)
       setTimeout(() => setCopiado(false), 2000)
     } catch {
-      window.prompt('Copiá el link de pago:', url)
+      window.prompt(`${titulo}:`, texto)
     }
   }
+  const estilo = { display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
   return (
     <div className="row" style={{ gap: 8, alignItems: 'center', padding: '10px 12px', borderRadius: 10, background: 'var(--beige-soft)' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="small strong">Link de pago</div>
-        <a href={url} target="_blank" rel="noreferrer" className="small muted" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {url}
-        </a>
+        <div className="small strong">{titulo}</div>
+        {esLink ? (
+          <a href={texto} target="_blank" rel="noreferrer" className="small muted" style={estilo}>{texto}</a>
+        ) : (
+          <span className="small muted" style={estilo}>{texto}</span>
+        )}
       </div>
       <button type="button" className="btn btn-ghost btn-sm" onClick={copiar}>
-        {copiado ? <><IconCheck /> Copiado</> : 'Copiar link'}
+        {copiado ? <><IconCheck /> Copiado</> : boton}
       </button>
     </div>
   )
@@ -523,7 +527,8 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenera
         </a>
       )}
       {/* Link de pago aparte: cuando contesta, se copia de acá y se le pega en el chat. */}
-      {sinPagar && String(o.linkPago || '').startsWith('https://') && <LinkPago url={o.linkPago} />}
+      {sinPagar && <Copiable titulo="Mensaje" texto={mensajeSinPagar(o, c)} boton="Copiar mensaje" />}
+      {sinPagar && String(o.linkPago || '').startsWith('https://') && <Copiable titulo="Link de pago" texto={o.linkPago} boton="Copiar link" esLink />}
 
       {retira && !sinPagar && wa && (
         <a className="wa-retiro" href={wa} target="_blank" rel="noreferrer">
