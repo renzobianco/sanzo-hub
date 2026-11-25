@@ -40,14 +40,19 @@ function mensajeRetiro(o, c) {
   return `¡Hola${nombre ? ` ${nombre}` : ''}! Te escribimos de Sanzo por tu pedido ${o.numero || o.id}. Lo podés retirar en ${lugar}, ${HORARIOS_RETIRO}. ¿Qué día y horario te queda mejor?`
 }
 
-/** Qué compró, para el mensaje: "del Kit Paseo Sanzo (talle S)" o "de tu pedido SZ-…" si son varias cosas. */
+/** Qué compró, para el mensaje: "del Kit Paseo Sanzo (talle S)" o, si son varias cosas, "de tu compra: Kit…, Moño y Chapita". */
 function queCompro(o) {
   const items = o.items || []
-  if (items.length === 1 && Number(items[0].cantidad) === 1) {
-    const opcion = items[0].opcion ? ` (${items[0].opcion.charAt(0).toLowerCase()}${items[0].opcion.slice(1)})` : ''
-    return `del ${items[0].nombre}${opcion}`
+  const nombre = (it) => {
+    const opcion = it.opcion ? ` (${it.opcion.charAt(0).toLowerCase()}${it.opcion.slice(1)})` : ''
+    const cant = Number(it.cantidad) > 1 ? `${it.cantidad} × ` : ''
+    return `${cant}${it.nombre}${opcion}`
   }
-  return `de tu pedido ${o.numero || o.id}`
+  if (items.length === 1 && Number(items[0].cantidad) === 1) return `del ${nombre(items[0])}`
+  if (items.length === 0) return `de tu compra`
+  const lista = items.map(nombre)
+  const juntos = lista.length > 1 ? `${lista.slice(0, -1).join(', ')} y ${lista[lista.length - 1]}` : lista[0]
+  return `de tu compra: ${juntos}`
 }
 
 /** Se quedó antes de pagar (o el pago no pasó): mensaje para preguntarle qué pasó. El link de pago va aparte (se copia del Hub cuando contesta). */
