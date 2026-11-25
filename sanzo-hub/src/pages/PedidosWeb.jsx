@@ -26,7 +26,8 @@ function linkWhatsapp(celular, texto) {
   let d = String(celular || '').replace(/\D/g, '')
   if (!d) return null
   if (!d.startsWith('54')) d = '549' + d.replace(/^0/, '')
-  return `https://wa.me/${d}${texto ? `?text=${encodeURIComponent(texto)}` : ''}`
+  // api.whatsapp.com/send y no wa.me: la redirección de wa.me rompe los emojis (🐾 llegaba como �).
+  return `https://api.whatsapp.com/send?phone=${d}${texto ? `&text=${encodeURIComponent(texto)}` : ''}`
 }
 
 // Mismos horarios que la web (sanzo-web/data/envios.ts → retiro.horarios).
@@ -39,14 +40,19 @@ function mensajeRetiro(o, c) {
   return `¡Hola${nombre ? ` ${nombre}` : ''}! Te escribimos de Sanzo por tu pedido ${o.numero || o.id}. Lo podés retirar en ${lugar}, ${HORARIOS_RETIRO}. ¿Qué día y horario te queda mejor?`
 }
 
-/** Qué compró, para el mensaje: "del Kit Paseo Sanzo (talle S)" o "de tu pedido SZ-…" si son varias cosas. */
+/** Qué compró, para el mensaje: "del Kit Paseo Sanzo (talle S)" o, si son varias cosas, "de tu compra: Kit…, Moño y Chapita". */
 function queCompro(o) {
   const items = o.items || []
-  if (items.length === 1 && Number(items[0].cantidad) === 1) {
-    const opcion = items[0].opcion ? ` (${items[0].opcion.charAt(0).toLowerCase()}${items[0].opcion.slice(1)})` : ''
-    return `del ${items[0].nombre}${opcion}`
+  const nombre = (it) => {
+    const opcion = it.opcion ? ` (${it.opcion.charAt(0).toLowerCase()}${it.opcion.slice(1)})` : ''
+    const cant = Number(it.cantidad) > 1 ? `${it.cantidad} × ` : ''
+    return `${cant}${it.nombre}${opcion}`
   }
-  return `de tu pedido ${o.numero || o.id}`
+  if (items.length === 1 && Number(items[0].cantidad) === 1) return `del ${nombre(items[0])}`
+  if (items.length === 0) return `de tu compra`
+  const lista = items.map(nombre)
+  const juntos = lista.length > 1 ? `${lista.slice(0, -1).join(', ')} y ${lista[lista.length - 1]}` : lista[0]
+  return `de tu compra: ${juntos}`
 }
 
 /** Se quedó antes de pagar (o el pago no pasó): mensaje para preguntarle qué pasó. El link de pago va aparte (se copia del Hub cuando contesta). */
@@ -61,28 +67,31 @@ function mensajeSinPagar(o, c) {
   return `${hola} ${situacion} ${ayuda}`
 }
 
-/** Link de Mercado Pago del pedido, con botón para copiarlo. */
-function LinkPago({ url }) {
+/** Texto con botón para copiarlo (el link de pago, o el mensaje entero por si WhatsApp lo abre mal). */
+function Copiable({ titulo, texto, boton, esLink = false }) {
   const [copiado, setCopiado] = useState(false)
   const copiar = async () => {
     try {
-      await navigator.clipboard.writeText(url)
+      await navigator.clipboard.writeText(texto)
       setCopiado(true)
       setTimeout(() => setCopiado(false), 2000)
     } catch {
-      window.prompt('Copiá el link de pago:', url)
+      window.prompt(`${titulo}:`, texto)
     }
   }
+  const estilo = { display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
   return (
     <div className="row" style={{ gap: 8, alignItems: 'center', padding: '10px 12px', borderRadius: 10, background: 'var(--beige-soft)' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="small strong">Link de pago</div>
-        <a href={url} target="_blank" rel="noreferrer" className="small muted" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {url}
-        </a>
+        <div className="small strong">{titulo}</div>
+        {esLink ? (
+          <a href={texto} target="_blank" rel="noreferrer" className="small muted" style={estilo}>{texto}</a>
+        ) : (
+          <span className="small muted" style={estilo}>{texto}</span>
+        )}
       </div>
       <button type="button" className="btn btn-ghost btn-sm" onClick={copiar}>
-        {copiado ? <><IconCheck /> Copiado</> : 'Copiar link'}
+        {copiado ? <><IconCheck /> Copiado</> : boton}
       </button>
     </div>
   )
@@ -523,7 +532,8 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenera
         </a>
       )}
       {/* Link de pago aparte: cuando contesta, se copia de acá y se le pega en el chat. */}
-      {sinPagar && String(o.linkPago || '').startsWith('https://') && <LinkPago url={o.linkPago} />}
+      {sinPagar && <Copiable titulo="Mensaje" texto={mensajeSinPagar(o, c)} boton="Copiar mensaje" />}
+      {sinPagar && String(o.linkPago || '').startsWith('https://') && <Copiable titulo="Link de pago" texto={o.linkPago} boton="Copiar link" esLink />}
 
       {retira && !sinPagar && wa && (
         <a className="wa-retiro" href={wa} target="_blank" rel="noreferrer">
