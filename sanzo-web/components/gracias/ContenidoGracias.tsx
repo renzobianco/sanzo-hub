@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ofertaChapita, sitio } from "@/data/products";
 import { retiro } from "@/data/envios";
 import { CLAVE_ULTIMO_PEDIDO } from "@/lib/pedido";
+import { useCarrito } from "../carrito/CarritoProvider";
 import { trackMeta } from "@/lib/meta/cliente";
 import { datosDeContenidos, type MetaRespuestaPedido } from "@/lib/meta/datos";
 import { IconoWhatsapp } from "../Iconos";
@@ -58,6 +59,12 @@ export function ContenidoGracias() {
   const [retiraEn, setRetiraEn] = useState("");
   const estado = params.get("estado") ?? "aprobado";
   const t = TEXTOS[estado] ?? TEXTOS.aprobado;
+  const { listo, vaciar } = useCarrito();
+
+  // El carrito se guarda hasta que el pago vuelve aprobado (o en proceso): recién ahí se vacía.
+  useEffect(() => {
+    if (listo && (estado === "aprobado" || estado === "pendiente")) vaciar();
+  }, [listo, estado, vaciar]);
 
   useEffect(() => {
     try {
