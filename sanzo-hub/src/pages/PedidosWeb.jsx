@@ -49,17 +49,43 @@ function queCompro(o) {
   return `de tu pedido ${o.numero || o.id}`
 }
 
-/** Se quedó antes de pagar (o el pago no pasó): mensaje para ayudarlo a terminar, con el link de su pedido si lo tenemos. */
+/** Se quedó antes de pagar (o el pago no pasó): mensaje para preguntarle qué pasó. El link de pago va aparte (se copia del Hub cuando contesta). */
 function mensajeSinPagar(o, c) {
   const nombre = String(c.nombre || '').trim().split(/\s+/)[0]
-  const hola = `¡Hola${nombre ? ` ${nombre}` : ''}! ¿Cómo estás? Te escribimos de Sanzo.`
+  const hola = `¡Hola${nombre ? ` ${nombre}` : ''}! ¿Cómo estás? Te escribimos de Sanzo 🐾.`
   const situacion =
     o.estado === 'rechazado'
       ? `Nuestro equipo detectó que el pago ${queCompro(o)} no se pudo completar.`
       : `Nuestro equipo detectó que te quedó pendiente el pago ${queCompro(o)}.`
   const ayuda = '¿Te surgió alguna duda con el talle, el envío o el pago? Contanos y lo resolvemos.'
-  const link = String(o.linkPago || '').startsWith('https://') ? ` Si querés retomarlo, podés terminar el pago desde acá: ${o.linkPago}` : ''
-  return `${hola} ${situacion} ${ayuda}${link}`
+  return `${hola} ${situacion} ${ayuda}`
+}
+
+/** Link de Mercado Pago del pedido, con botón para copiarlo. */
+function LinkPago({ url }) {
+  const [copiado, setCopiado] = useState(false)
+  const copiar = async () => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    } catch {
+      window.prompt('Copiá el link de pago:', url)
+    }
+  }
+  return (
+    <div className="row" style={{ gap: 8, alignItems: 'center', padding: '10px 12px', borderRadius: 10, background: 'var(--beige-soft)' }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="small strong">Link de pago</div>
+        <a href={url} target="_blank" rel="noreferrer" className="small muted" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {url}
+        </a>
+      </div>
+      <button type="button" className="btn btn-ghost btn-sm" onClick={copiar}>
+        {copiado ? <><IconCheck /> Copiado</> : 'Copiar link'}
+      </button>
+    </div>
+  )
 }
 
 /**
@@ -491,11 +517,13 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenera
           <span>
             <span className="wa-retiro-titulo">{o.estado === 'rechazado' ? 'El pago no pasó: escribile' : 'Se quedó antes de pagar: escribile'}</span>
             <span className="wa-retiro-texto">
-              El mensaje ya va escrito con su nombre{String(o.linkPago || '').startsWith('https://') ? ' y el link para terminar de pagar' : ''}. Revisalo y mandalo.
+              El mensaje ya va escrito con su nombre. Revisalo y mandalo.
             </span>
           </span>
         </a>
       )}
+      {/* Link de pago aparte: cuando contesta, se copia de acá y se le pega en el chat. */}
+      {sinPagar && String(o.linkPago || '').startsWith('https://') && <LinkPago url={o.linkPago} />}
 
       {retira && !sinPagar && wa && (
         <a className="wa-retiro" href={wa} target="_blank" rel="noreferrer">
