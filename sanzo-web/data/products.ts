@@ -852,6 +852,12 @@ export const ofertaChapita = {
     etiqueta: "3x2",
     /** Debajo de la chapita en el carrito, cuando le falta una para el regalo. */
     falta: "Sumá una más y te la regalamos.",
+    /** Recuadro en el carrito con 1 o 2 chapitas (como las sugerencias de los otros combos). */
+    sugerencia: {
+      falta1: "Te falta 1 chapita y es de regalo.",
+      falta2: "Llevando 1 más, la tercera te la regalamos.",
+      boton: "Agregar otra chapita",
+    },
   },
   /** Línea del descuento cuando la chapita va con otra compra ($8.000 → $6.000). */
   textoConCompra: "Chapita con tu compra",

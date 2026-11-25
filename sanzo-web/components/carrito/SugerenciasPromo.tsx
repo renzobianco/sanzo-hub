@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { carritoCombos as textos, type Producto } from "@/data/products";
+import { carritoCombos as textos, chapita, getProducto, ofertaChapita, type Producto } from "@/data/products";
 import { armables, type DescuentoAplicado, type Sugerencia } from "@/lib/promos";
 import { formatearPrecio } from "@/lib/formato";
 import { useCarrito } from "./CarritoProvider";
@@ -186,5 +186,51 @@ function PiezaQueFalta({ producto }: { producto: Producto }) {
         </div>
       )}
     </li>
+  );
+}
+
+/**
+ * 3x2 en chapitas, como las sugerencias de los otros combos: con 1 o 2 chapitas sueltas muestra
+ * cuántas faltan para la de regalo y un botón para grabar otra ahí mismo.
+ */
+export function SugerenciaManada({ sueltas }: { sueltas: number }) {
+  const { agregar, pedirGrabado } = useCarrito();
+  const combo = getProducto("combo-manada");
+  const t = ofertaChapita.tresPorDos.sugerencia;
+  const total = 3;
+  return (
+    <div className="mt-4 animate-entrada rounded-[0.8rem] bg-lino p-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="text-[13px] uppercase tracking-[0.14em]">
+          {textos.arma} {combo?.nombre ?? "Combo Manada"}
+        </p>
+        {chapita.precio !== null && (
+          <p className="shrink-0 text-[13px] text-marron">
+            {textos.ahorras} {formatearPrecio(chapita.precio)}
+          </p>
+        )}
+      </div>
+
+      <div className="mt-3 flex items-center gap-1.5">
+        {Array.from({ length: total }, (_, i) => (
+          <Mini key={i} producto={{ ...chapita, miniatura: ofertaChapita.tipos[i % ofertaChapita.tipos.length]?.recorte.src ?? chapita.miniatura }} apagada={i >= sueltas} />
+        ))}
+        <span className="ml-auto shrink-0 whitespace-nowrap pl-1 text-[12px] tabular-nums text-tinta/60">
+          {sueltas} / {total}
+        </span>
+      </div>
+      <div className="mt-3 h-[3px] overflow-hidden rounded-full bg-crema">
+        <div className="h-full rounded-full bg-marron transition-[width] duration-700 ease-suave" style={{ width: `${(sueltas / total) * 100}%` }} />
+      </div>
+
+      <p className="mt-3 text-sm text-tinta/75">{sueltas >= 2 ? t.falta1 : t.falta2}</p>
+      <button
+        type="button"
+        onClick={() => pedirGrabado((grabado, imagen) => agregar(chapita.id, grabado, { abrir: false, imagen }))}
+        className="btn-borde mt-3 w-full py-3 text-[11px]"
+      >
+        {t.boton}
+      </button>
+    </div>
   );
 }
