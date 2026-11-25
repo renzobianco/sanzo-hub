@@ -169,12 +169,14 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
       } catch {
         // sin almacenamiento: /gracias igual recibe el número por la URL
       }
-      vaciar();
       if (data.redirigirA) {
+        // El carrito NO se vacía acá: si se va de Mercado Pago sin pagar y vuelve, lo encuentra igual
+        // (con todo lo que personalizó). Se vacía en /gracias cuando el pago vuelve aprobado.
         // AddPaymentInfo (Meta): el pedido quedó y se va a pagar a Mercado Pago.
         if (data.meta) trackMeta("AddPaymentInfo", datosDeContenidos(data.meta.contents, data.meta.value, data.meta.personalizado));
         window.location.href = data.redirigirA;
       } else {
+        vaciar();
         router.push(`/gracias?pedido=${encodeURIComponent(data.numero)}&estado=recibido`);
       }
     } catch (err) {
@@ -228,6 +230,17 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-12 md:grid-cols-[1fr_380px] md:gap-16">
       <div className="space-y-12">
+        {/* Volvió de Mercado Pago sin pagar: su carrito y sus datos siguen acá; puede pagar el mismo pedido. */}
+        {sinPagar && (
+          <div className="flex flex-col gap-4 rounded-2xl border border-marron/30 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="font-light">
+              Tu pedido{sinPagar.numero ? ` ${sinPagar.numero}` : ""} quedó guardado con todo lo que personalizaste. Solo falta el pago.
+            </p>
+            <a href={sinPagar.pago} className="btn-primario shrink-0 text-center">
+              Terminar de pagar
+            </a>
+          </div>
+        )}
         <Grupo titulo="Tus datos">
           <Campo id="nombre" label="Nombre y apellido" error={mostrar("nombre")} className="sm:col-span-2">
             <input
