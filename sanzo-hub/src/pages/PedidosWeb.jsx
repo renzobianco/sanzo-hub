@@ -44,7 +44,10 @@ function mensajeRetiro(o, c) {
 function queCompro(o) {
   const items = o.items || []
   const nombre = (it) => {
-    const opcion = it.opcion ? ` (${it.opcion.charAt(0).toLowerCase()}${it.opcion.slice(1)})` : ''
+    // Para el cliente alcanza con qué es y qué dice: sin letra, tamaño ni otros detalles técnicos.
+    const partes = String(it.opcion || '').split(' · ').map((x) => x.trim()).filter((x) => x && !/^(letra|tamaño|fuente)\b/i.test(x))
+    const texto = partes.join(' · ')
+    const opcion = texto ? ` (${texto.charAt(0).toLowerCase()}${texto.slice(1)})` : ''
     const cant = Number(it.cantidad) > 1 ? `${it.cantidad} × ` : ''
     return `${cant}${it.nombre}${opcion}`
   }
@@ -416,7 +419,11 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenera
   const retira = c.entrega === 'retiro' && o.estado !== 'cancelado' && o.estado !== 'rechazado'
   // Se quedó antes de pagar o el pago no pasó: recuadro para escribirle con el mensaje ya armado.
   const sinPagar = !o.aplicado && (o.estado === 'pendiente_pago' || o.estado === 'rechazado')
-  const wa = linkWhatsapp(c.celular, sinPagar ? mensajeSinPagar(o, c) : c.entrega === 'retiro' ? mensajeRetiro(o, c) : undefined)
+  // Sin pagar: el chat se abre vacío (WhatsApp rompe el 🐾 si va en el link) y el mensaje se copia para pegarlo.
+  const wa = linkWhatsapp(c.celular, sinPagar ? undefined : c.entrega === 'retiro' ? mensajeRetiro(o, c) : undefined)
+  const copiarMensaje = () => {
+    try { navigator.clipboard?.writeText(mensajeSinPagar(o, c)) } catch { /* sin portapapeles: queda el botón Copiar mensaje */ }
+  }
   const direccion =
     c.entrega === 'retiro'
       ? `Retira en persona en ${PUNTOS_RETIRO[c.puntoRetiro] || 'uno de los puntos'} (coordinar por WhatsApp)`
@@ -521,12 +528,12 @@ function OrderCard({ order: o, onConfirm, onCancel, onReopen, onDelete, onGenera
 
       {/* Retira en persona: recuadro verde bien visible para no olvidarse de escribirle y coordinar el día. */}
       {sinPagar && wa && (
-        <a className="wa-retiro" href={wa} target="_blank" rel="noreferrer">
+        <a className="wa-retiro" href={wa} target="_blank" rel="noreferrer" onClick={copiarMensaje}>
           <IconPhone style={{ width: 22, height: 22, flexShrink: 0 }} />
           <span>
             <span className="wa-retiro-titulo">{o.estado === 'rechazado' ? 'El pago no pasó: escribile' : 'Se quedó antes de pagar: escribile'}</span>
             <span className="wa-retiro-texto">
-              El mensaje ya va escrito con su nombre. Revisalo y mandalo.
+              Se abre su chat vacío y el mensaje ya queda copiado: pegalo (Ctrl+V) y mandalo.
             </span>
           </span>
         </a>
