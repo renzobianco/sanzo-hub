@@ -404,7 +404,8 @@ export const kit: Producto = {
   precio: 59999,
   imagenes: ["/productos/kit/1-v2.jpg","/productos/kit/arnes-correa.jpg", "/productos/kit/mono-bandana.jpg", "/productos/kit/porta-collar.jpg"],
   video: "/productos/videos/kit.mp4",
-  envioGratis: false,
+  /** Viaja gratis (Santino, 2026-11-25). También si lo arman con las piezas sueltas. */
+  envioGratis: true,
   linkPago: "",
   disponible: true,
   opcion: { nombre: "Talle", valores: TALLES_ARNES, agotados: TALLES_AGOTADOS },
@@ -798,7 +799,7 @@ export const preguntas: { pregunta: string; respuesta: string }[] = [
   {
     pregunta: "¿Hacen envíos a todo el país?",
     respuesta:
-      "Sí, a todo el país por Correo Argentino: a domicilio o para retirar en sucursal. En CABA también lo podés retirar gratis en Av. Scalabrini Ortiz 2083 o en Moldes 1375: miércoles a viernes de 11 a 16 h y sábados de 12 a 15 h.",
+      "Sí, a todo el país por Correo Argentino: a domicilio o para retirar en sucursal. El Kit Paseo viaja gratis. En CABA también lo podés retirar gratis en Av. Scalabrini Ortiz 2083 o en Moldes 1375: miércoles a viernes de 11 a 16 h y sábados de 12 a 15 h.",
   },
 ];
 

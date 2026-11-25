@@ -11,6 +11,7 @@ Hoja de ruta de la web de clientes. La lee `/web` antes de tocar nada. Anotar ac
 
 ## Hecho
 
+- 2026-11-25 · **Vuelve el envío gratis del kit** (Santi): `kit.envioGratis: true`. El kit completo (o armado con las piezas sueltas) hace que todo el pedido viaje gratis, también en el total de Mercado Pago. Ficha y sección del kit muestran "Envío gratis"; FAQ de envíos lo dice.
 - 2026-11-23 · **Pedidos sin pagar** (Santi): el checkout guarda los datos del cliente en su navegador (`sanzo-datos-checkout`, sin las notas) y los completa solos si vuelve. Si vuelve de Mercado Pago sin pagar (carrito vacío), ve "Tu pedido SZ-… quedó guardado" + **Terminar de pagar** con el mismo link de MP (hasta 7 días; se apaga al volver aprobado). El link de pago se guarda en el pedido del Hub (`linkPago`) y el búnker muestra en "Esperando pago" / "Pago rechazado" un recuadro verde de WhatsApp con el mensaje ya escrito con su nombre y el link.
 - 2026-10-16 · **Adelanto "Ponele su etiqueta"** (`SeccionEtiqueta`, datos en `etiqueta` de `data/products.ts`): boceto "muy pronto", sin compra, para acordarnos de hacerlo.
 - 2026-10-16 · **"¿Por qué nuestro arnés?"** con lugar para video vertical + 3 razones (`porQue`).
