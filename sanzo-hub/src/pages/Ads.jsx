@@ -670,12 +670,11 @@ function FunnelCard({ t }) {
   if (!t || !t.impressions) return null
   const steps = [
     { label: 'Lo vieron', value: t.reach, hint: 'personas alcanzadas' },
-    { label: 'Miraron 3 s o más', value: t.plays3s, hint: 'solo anuncios con video' },
     { label: 'Tocaron el enlace', value: t.linkClicks },
     { label: 'Llegaron a la web', value: t.landing },
     { label: 'Agregaron al carrito', value: t.addToCart },
     { label: 'Compraron', value: t.purchases, hint: 'según el píxel' },
-  ].filter((st, i) => i === 0 || st.value > 0 || i >= 2)
+  ]
   const max = steps[0].value || 1
   // El paso con peor conversión es donde más gente se pierde.
   let worst = null
@@ -740,7 +739,7 @@ function AdsGallery({ ads, current, onSelect }) {
           if (a.id === bestCtr) tags.push('Mejor CTR')
           if (a.id === bestHook && a.s.plays3s) tags.push('Mejor enganche')
           return (
-            <button type="button" key={a.id} className={`opp-card ad-card ${current?.id === a.id ? 'selected' : ''}`} onClick={() => onSelect(a.id)}>
+            <button type="button" key={a.id} className={`opp-card anuncio-card ${current?.id === a.id ? 'selected' : ''}`} onClick={() => onSelect(a.id)}>
               <div className="comp-thumb" style={{ aspectRatio: '16 / 10' }}>
                 {a.thumb ? <img src={a.thumb} alt="" loading="lazy" /> : <div className="comp-thumb-empty">Anuncio</div>}
                 {tags[0] && <span className="comp-badge hot">{tags.join(' · ')}</span>}
@@ -748,7 +747,7 @@ function AdsGallery({ ads, current, onSelect }) {
               </div>
               <div className="opp-body">
                 <div className="opp-title">{a.name}</div>
-                <div className="ad-stats">
+                <div className="anuncio-stats">
                   <div><strong>{fmtARS(a.s.spend)}</strong><span>gastado</span></div>
                   <div><strong>{fmtPct(a.s.ctr, 2)}</strong><span>CTR</span></div>
                   <div><strong>{fmtNum(a.s.purchases)}</strong><span>compras</span></div>

@@ -3413,33 +3413,33 @@ table.table {
   align-items: flex-end;
   line-height: 1.2;
 }
-.ad-card {
+.anuncio-card {
   text-align: left;
   font: inherit;
   cursor: pointer;
   padding: 0;
 }
-.ad-card.selected {
+.anuncio-card.selected {
   border-color: var(--caramel);
   box-shadow: 0 0 0 2px var(--caramel-soft);
 }
-.ad-stats {
+.anuncio-stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
 }
-.ad-stats div {
+.anuncio-stats div {
   display: flex;
   flex-direction: column;
   background: var(--cream);
   border-radius: 8px;
   padding: 6px 7px;
 }
-.ad-stats strong {
+.anuncio-stats strong {
   font-size: 13px;
   white-space: nowrap;
 }
-.ad-stats span {
+.anuncio-stats span {
   font-size: 10.5px;
   color: var(--muted);
 }
