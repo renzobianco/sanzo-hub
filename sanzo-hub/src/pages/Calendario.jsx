@@ -968,7 +968,12 @@ function AssetUploadMultiple({ value, onChange, accept, placeholder }) {
   const urls = value || []
 
   const onFiles = async (e) => {
-    const files = Array.from(e.target.files || [])
+    // El selector de archivos (sobre todo en Windows) no devuelve las fotos en el orden
+    // del nombre: suele poner primero la última que se clickeó. Las ordenamos por nombre
+    // (1.jpg, 2.jpg… 10.jpg) para que el carrusel quede como está numerado en la carpeta.
+    const files = Array.from(e.target.files || []).sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+    )
     e.target.value = ''
     if (!files.length) return
     setErr('')
