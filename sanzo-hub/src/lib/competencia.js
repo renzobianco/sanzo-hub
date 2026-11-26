@@ -67,8 +67,13 @@ export function analyzeCompetitor(c) {
     thumb: m.thumbnail_url || (m.media_type !== 'VIDEO' ? m.media_url : null) || m.children?.data?.map((c) => c.thumbnail_url || (c.media_type !== 'VIDEO' ? c.media_url : null)).find(Boolean) || null,
     video: m.media_type === 'VIDEO' && !m.thumbnail_url ? m.media_url : null,
   }))
-  for (const m of media) m.eng = m.likes + m.comments * 3
-  const med = median(media.map((m) => m.eng)) || 1
+  // Sorteos y convocatorias inflan los comentarios ("comentá y participá"):
+  // no sirven para medir si el contenido gustó, así que quedan afuera.
+  for (const m of media) {
+    m.eng = m.likes + m.comments
+    m.giveaway = m.comments > m.likes * 0.5 || /sorteo|giveaway|ganador|particip|concurso|buscamos creador/i.test(m.caption || '')
+  }
+  const med = median(media.filter((m) => !m.giveaway).map((m) => m.eng)) || 1
   for (const m of media) m.lift = m.eng / med
   const last30 = media.filter((m) => daysSince(m.timestamp) <= 30)
   const mix = { Reel: 0, Carrusel: 0, Foto: 0 }
@@ -106,7 +111,7 @@ export function findOpportunities({ brands, own }) {
   for (const b of brands) {
     for (const m of b.media) {
       const age = daysSince(m.timestamp)
-      if (age > 45 || m.lift < 2 || m.eng < 20) continue
+      if (age > 45 || m.lift < 2 || m.eng < 20 || m.giveaway) continue
       out.push({
         key: `post-${m.id}`,
         type: 'post',
@@ -117,7 +122,7 @@ export function findOpportunities({ brands, own }) {
         thumb: m.thumb,
         video: m.video,
         link: m.permalink,
-        badge: `${m.lift.toFixed(1)}x su promedio`,
+        badge: liftLabel(m.lift),
         title: firstLine(m.caption) || `${m.kind} de ${b.name || b.username}`,
         why: `${m.likes.toLocaleString('es-AR')} likes y ${m.comments.toLocaleString('es-AR')} comentarios, hace ${age} días.`,
         idea: ideaFor(m.kind),
@@ -172,6 +177,8 @@ export function findOpportunities({ brands, own }) {
   }
   return out.sort((a, b) => b.score - a.score)
 }
+
+export const liftLabel = (x) => (x >= 10 ? '10x+ su promedio' : `${x.toFixed(1)}x su promedio`)
 
 function ideaFor(kind) {
   if (kind === 'Reel') return 'Copiá la estructura (gancho, ritmo, remate) con un perro Sanzo y nuestros productos.'
