@@ -15,6 +15,10 @@ export interface PedidoRespuesta {
   numero?: string;
   /** Link de Mercado Pago si corresponde redirigir directo. */
   redirigirA?: string;
+  /** Hay cobro online armado (se puede pagar con Mercado Pago o con la tarjeta en la web). */
+  pagoOnline?: boolean;
+  /** Total que calculó el servidor (lo que se cobra con la tarjeta). */
+  total?: number;
   /** Datos de la compra para el Pixel de Meta (AddPaymentInfo y el Purchase de /gracias). */
   meta?: MetaRespuestaPedido;
   error?: string;

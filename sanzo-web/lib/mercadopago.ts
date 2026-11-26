@@ -84,3 +84,73 @@ export async function crearPreferencia(numero: string, c: DatosCheckout, t: Tota
   if (!data.init_point) throw new Error("Mercado Pago no devolvió init_point");
   return data.init_point;
 }
+
+/** Public Key de Mercado Pago (formulario de tarjeta dentro de la web). Vacío → solo el botón de Mercado Pago. */
+export function clavePublicaMP() {
+  return (process.env.MP_PUBLIC_KEY || process.env.NEXT_PUBLIC_MP_PUBLIC_KEY || "").trim();
+}
+
+/** Lo que manda el formulario de tarjeta (Card Payment Brick) al tocar Pagar. */
+export interface DatosTarjeta {
+  token: string;
+  payment_method_id: string;
+  issuer_id?: string | number;
+  installments: number;
+  payer?: { email?: string; identification?: { type?: string; number?: string } };
+}
+
+export type ResultadoTarjeta = { estado: "aprobado" | "pendiente" | "rechazado"; mensaje?: string };
+
+/** Por qué no pasó la tarjeta, en criollo (status_detail de MP). */
+const RECHAZOS: Record<string, string> = {
+  cc_rejected_bad_filled_card_number: "Revisá el número de la tarjeta.",
+  cc_rejected_bad_filled_date: "Revisá la fecha de vencimiento.",
+  cc_rejected_bad_filled_security_code: "Revisá el código de seguridad.",
+  cc_rejected_bad_filled_other: "Revisá los datos de la tarjeta.",
+  cc_rejected_insufficient_amount: "La tarjeta no tiene saldo suficiente.",
+  cc_rejected_call_for_authorize: "Tenés que autorizar el pago con el banco de tu tarjeta.",
+  cc_rejected_card_disabled: "La tarjeta no está activa. Llamá a tu banco para activarla.",
+  cc_rejected_duplicated_payment: "Ya hiciste un pago por este monto. Si querés pagar de nuevo, usá otra tarjeta.",
+  cc_rejected_max_attempts: "Llegaste al límite de intentos. Probá con otra tarjeta.",
+  cc_rejected_invalid_installments: "La tarjeta no acepta esas cuotas. Probá con otras.",
+};
+
+/**
+ * Cobra con la tarjeta cargada en la web (Checkout API). El monto sale del pedido guardado, nunca del navegador.
+ * El webhook recibe el aviso igual que con Checkout Pro (external_reference = número de pedido).
+ * Docs: https://www.mercadopago.com.ar/developers/es/reference/payments/_payments/post
+ */
+export async function cobrarConTarjeta(numero: string, total: number, tarjeta: DatosTarjeta, emailPedido: string, origen: string): Promise<ResultadoTarjeta> {
+  const res = await fetch("https://api.mercadopago.com/v1/payments", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+      "Content-Type": "application/json",
+      // Una clave por intento: cada token de tarjeta sirve una sola vez.
+      "X-Idempotency-Key": `${numero}-${tarjeta.token}`.slice(0, 64),
+    },
+    body: JSON.stringify({
+      transaction_amount: total,
+      token: tarjeta.token,
+      description: `Pedido ${numero} · sanzo`,
+      installments: Number(tarjeta.installments) || 1,
+      payment_method_id: tarjeta.payment_method_id,
+      ...(tarjeta.issuer_id ? { issuer_id: Number(tarjeta.issuer_id) } : {}),
+      payer: {
+        email: tarjeta.payer?.email || emailPedido,
+        ...(tarjeta.payer?.identification?.number ? { identification: tarjeta.payer.identification } : {}),
+      },
+      external_reference: numero,
+      statement_descriptor: "SANZO",
+      notification_url: `${origen}/api/mp-webhook`,
+    }),
+  });
+  const data = (await res.json().catch(() => ({}))) as { status?: string; status_detail?: string; message?: string };
+  if (!res.ok) {
+    console.error(`[tarjeta] Mercado Pago ${res.status} en ${numero}:`, data);
+    return { estado: "rechazado", mensaje: "No pudimos procesar la tarjeta. Revisá los datos o probá con otra." };
+  }
+  if (data.status === "approved") return { estado: "aprobado" };
+  if (data.status === "in_process" || data.status === "pending" || data.status === "authorized") return { estado: "pendiente" };
+  return { estado: "rechazado", mensaje: RECHAZOS[data.status_detail ?? ""] ?? "El pago no pasó. Probá con otra tarjeta o pagá con Mercado Pago." };
+}

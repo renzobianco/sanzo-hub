@@ -285,6 +285,8 @@ export async function POST(req: Request) {
     ok: true,
     numero,
     redirigirA,
+    pagoOnline: !!linkPago,
+    total: totales.total,
     meta: { eventId: meta.eventId, value: meta.valor, contents: meta.contents, num_items: meta.numItems, personalizado: meta.personalizado },
   });
 }

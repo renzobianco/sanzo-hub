@@ -221,7 +221,10 @@ export interface PedidoGuardado {
   subtotal: number;
   ahorro: number;
   envio: string;
+  envioACotizar?: boolean;
   total: number;
+  /** Lo va cambiando el Hub y el webhook (pendiente_pago, pagado…). */
+  estado?: EstadoPedidoWeb;
   /** Datos para Meta (pedidos hechos desde que está el Pixel; los anteriores no lo tienen). */
   meta?: MetaPedido;
 }

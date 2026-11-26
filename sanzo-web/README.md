@@ -44,6 +44,8 @@ Envío gratis por producto: `envioGratis: true` en `data/products.ts` (si el car
 
 **Cobro con Mercado Pago (Checkout Pro):** con `MP_ACCESS_TOKEN` cargado en Vercel, al confirmar el pedido el cliente va a la página de pago de Mercado Pago con el total exacto del carrito (productos, personalización y envío). Ahí paga con tarjeta de crédito, débito (sin cuenta) o con su cuenta de MP, y vuelve a `/gracias`. El número de pedido llega a MP como referencia externa. Si el envío está "a cotizar", no hay total cerrado: el pedido se registra y le escribís con el link.
 
+**Pagar con tarjeta dentro de la web (Checkout API):** con `MP_PUBLIC_KEY` cargado además del token, el checkout muestra dos botones: "Pagar con Mercado Pago" (lo de arriba) y "Pagar con tarjeta". Con tarjeta, el pedido se registra igual y aparece el formulario de tarjeta de Mercado Pago (Card Payment Brick, `components/checkout/PagoTarjeta.tsx`) sin salir de la web. Los datos de la tarjeta los toma el formulario de MP (nunca pasan por nuestro servidor); `/api/pago-tarjeta` cobra con el token y el total guardado del pedido. Lo demás (ventas en el Hub, avisos, mail, Meta) lo hace `/api/mp-webhook`, como con Checkout Pro. Sin `MP_PUBLIC_KEY`, queda un solo botón ("Pago seguro") que lleva a Mercado Pago.
+
 **Pedidos en Sanzo Hub:** con `SUPABASE_URL` y `SUPABASE_ANON_KEY` cargados, cada pedido se guarda también en "Pedidos web" del Hub (`lib/hub.ts`), con las ventas ya traducidas a los productos del Hub (los combos se parten en piezas, con el precio repartido según lo que vale cada una suelta). Cuando Mercado Pago avisa que el pago se aprobó (`/api/mp-webhook`, se consulta el pago a MP antes de creerle), se pasan solas a Ventas: descuentan stock y suman a la ganancia. Los "a coordinar" se confirman a mano en el Hub. La parte de la base está en `sanzo-hub/supabase/migrations/005_web_orders.sql`.
 
 Sin `MP_ACCESS_TOKEN`, solo redirige al `linkPago` fijo del producto cuando el pedido es un único producto, 1 unidad, sin envío a cobrar; en cualquier otro caso muestra "Pedido recibido".
@@ -59,6 +61,7 @@ Settings → Environment Variables:
 | `NTFY_TOPIC` | Opcional. Nombre del tema de la app ntfy para recibir en el celular un aviso por cada pedido y cada pago aprobado (cada socio se suscribe a ese tema en la app). Sin esto no se manda nada |
 | `PEDIDOS_FROM` | Opcional. Remitente, ej. `sanzo <pedidos@tudominio.com>`. Tiene que ser de un dominio verificado en Resend. Si no lo ponés, se usa `onboarding@resend.dev`, que **solo** manda al mail de tu cuenta de Resend |
 | `MP_ACCESS_TOKEN` | Access Token de **producción** de Mercado Pago (Tus integraciones → tu aplicación → Credenciales de producción). Activa el pago online. Después de cargarlo, hacé Redeploy |
+| `MP_PUBLIC_KEY` | Public Key de **producción** de la misma aplicación de Mercado Pago (al lado del Access Token). Activa "Pagar con tarjeta" dentro de la web. Después de cargarlo, hacé Redeploy |
 | `SUPABASE_URL` | Misma base que Sanzo Hub: el valor de `VITE_SUPABASE_URL` del proyecto sanzo-hub. Manda los pedidos a "Pedidos web" del Hub |
 | `SUPABASE_ANON_KEY` | El valor de `VITE_SUPABASE_ANON_KEY` del proyecto sanzo-hub (la llave pública, nunca la secret) |
 | `NEXT_PUBLIC_SITE_URL` | Opcional. URL final del sitio (ej. `https://sanzo.com.ar`) para las previews en redes |

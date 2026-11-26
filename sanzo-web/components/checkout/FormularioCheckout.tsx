@@ -11,6 +11,7 @@ import { detalleEnvio, formatearPrecio, textoEnvio } from "@/lib/formato";
 import { CLAVE_DATOS_CHECKOUT, CLAVE_ULTIMO_PEDIDO, DIAS_PEDIDO_PENDIENTE, type PedidoEntrada, type PedidoRespuesta } from "@/lib/pedido";
 import { esPersonalizable, sinImagen, textoPersonalizacion } from "@/lib/personalizacion";
 import { Personalizar } from "../personalizar/Personalizar";
+import { PagoTarjeta } from "./PagoTarjeta";
 import { datosVacios, validarCheckout, type DatosCheckout } from "@/lib/validacion";
 import { chapitaConFoto, esChapita } from "@/lib/chapita";
 import { useCarrito } from "../carrito/CarritoProvider";
@@ -64,8 +65,18 @@ const ORDEN: Campo[] = [
   "codigoPostal",
 ];
 
-/** `pagoOnline`: hay credenciales de Mercado Pago cargadas → se paga en el momento. */
-export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
+/** Pedido ya creado que se está pagando con la tarjeta dentro de la web. */
+interface PedidoTarjeta {
+  numero: string;
+  total: number;
+  linkMP?: string;
+}
+
+/**
+ * `pagoOnline`: hay credenciales de Mercado Pago cargadas → se paga en el momento.
+ * `clavePublica`: Public Key de MP → además del botón de Mercado Pago, se puede pagar con tarjeta acá mismo.
+ */
+export function FormularioCheckout({ pagoOnline, clavePublica }: { pagoOnline: boolean; clavePublica: string }) {
   const router = useRouter();
   const { totales, listo, ubicacion, setUbicacion, vaciar, personalizar } = useCarrito();
   const [d, setD] = useState<DatosCheckout>(datosVacios);
@@ -75,6 +86,8 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
   const [errorEnvio, setErrorEnvio] = useState("");
   const [empresa, setEmpresa] = useState("");
   const [sinPagar, setSinPagar] = useState<{ numero: string; pago: string } | null>(null);
+  const [enTarjeta, setEnTarjeta] = useState<PedidoTarjeta | null>(null);
+  const [metodo, setMetodo] = useState<"mp" | "tarjeta">("mp");
   const inicializado = useRef(false);
 
   // Completar con lo que ya cargó antes (queda guardado en su navegador) y con lo que eligió en el
@@ -137,6 +150,8 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
       return;
     }
     if (totales.lineas.length === 0) return;
+    const conTarjeta = (e.nativeEvent as SubmitEvent).submitter?.getAttribute("value") === "tarjeta";
+    setMetodo(conTarjeta ? "tarjeta" : "mp");
 
     setEnviando(true);
     const payload: PedidoEntrada = {
@@ -169,6 +184,14 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
       } catch {
         // sin almacenamiento: /gracias igual recibe el número por la URL
       }
+      if (conTarjeta && data.pagoOnline && data.total) {
+        // Tarjeta acá mismo: el carrito se vacía recién cuando el pago pasa.
+        if (data.meta) trackMeta("AddPaymentInfo", datosDeContenidos(data.meta.contents, data.meta.value, data.meta.personalizado));
+        setEnTarjeta({ numero: data.numero, total: data.total, linkMP: data.redirigirA });
+        setEnviando(false);
+        window.scrollTo({ top: 0 });
+        return;
+      }
       if (data.redirigirA) {
         // El carrito NO se vacía acá: si se va de Mercado Pago sin pagar y vuelve, lo encuentra igual
         // (con todo lo que personalizó). Se vacía en /gracias cuando el pago vuelve aprobado.
@@ -191,6 +214,27 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
 
   if (!listo) {
     return <div className="min-h-[60vh]" aria-busy="true" />;
+  }
+
+  if (enTarjeta) {
+    return (
+      <PagoTarjeta
+        clavePublica={clavePublica}
+        numero={enTarjeta.numero}
+        total={enTarjeta.total}
+        email={d.email.trim()}
+        linkMP={enTarjeta.linkMP}
+        onResultado={(estado) => {
+          vaciar();
+          router.push(`/gracias?pedido=${encodeURIComponent(enTarjeta.numero)}&estado=${estado}`);
+        }}
+        // Si cambia algo, se arma un pedido nuevo (el anterior queda sin pagar en el Hub).
+        onVolver={() => {
+          setEnTarjeta(null);
+          window.scrollTo({ top: 0 });
+        }}
+      />
+    );
   }
 
   if (totales.lineas.length === 0 && !enviando) {
@@ -226,6 +270,8 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
   const zona = zonaDeUbicacion(ubicacion);
   // Con envío "a cotizar" no hay total cerrado: el pedido se confirma y le escribimos con el link.
   const pagaAhora = pagoOnline && envio.tipo !== "cotizar";
+  // Dos botones: Mercado Pago (su página) o tarjeta acá mismo. Sin Public Key, solo el de Mercado Pago.
+  const dosBotones = pagaAhora && !!clavePublica;
 
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-12 md:grid-cols-[1fr_380px] md:gap-16">
@@ -552,13 +598,38 @@ export function FormularioCheckout({ pagoOnline }: { pagoOnline: boolean }) {
           </div>
         </dl>
 
-        <button type="submit" disabled={enviando} className="btn-primario mt-8 w-full py-4">
-          {enviando ? (pagaAhora ? "Yendo a pagar…" : "Enviando…") : pagaAhora ? "Ir a pagar" : "Confirmar pedido"}
-        </button>
+        {dosBotones ? (
+          <div className="mt-8">
+            <p className="flex items-center justify-center gap-2 text-sm uppercase tracking-marca text-tinta/80">
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <rect x="4" y="10" width="16" height="11" rx="2" />
+                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+              </svg>
+              Pago seguro
+            </p>
+            <div className="mt-4 space-y-3">
+              <button type="submit" name="metodo" value="mp" disabled={enviando} className="btn-primario w-full py-4">
+                {enviando && metodo === "mp" ? "Yendo a Mercado Pago…" : "Pagar con Mercado Pago"}
+              </button>
+              <button type="submit" name="metodo" value="tarjeta" disabled={enviando} className="btn-borde w-full py-4">
+                {enviando && metodo === "tarjeta" ? "Preparando el pago…" : "Pagar con tarjeta"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button type="submit" disabled={enviando} className="btn-primario mt-8 w-full py-4">
+            {enviando ? (pagaAhora ? "Yendo a pagar…" : "Enviando…") : pagaAhora ? "Pago seguro" : "Confirmar pedido"}
+          </button>
+        )}
         <p role="alert" className="mt-3 text-sm text-marron empty:hidden">
           {errorEnvio || (intentado && Object.keys(errores).length > 0 ? "Revisá los campos marcados." : "")}
         </p>
-        {pagaAhora ? (
+        {dosBotones ? (
+          <div className="mt-4 space-y-1 text-[15px] leading-snug">
+            <p>Con tarjeta de crédito o débito la cargás acá, sin salir de la web.</p>
+            <p className="text-tinta/70">Con Mercado Pago pagás con tu cuenta o tarjeta en su página.</p>
+          </div>
+        ) : pagaAhora ? (
           <div className="mt-4 space-y-1 text-[15px] leading-snug">
             <p>Pagás con tarjeta de crédito, débito o Mercado Pago.</p>
             <p className="text-tinta/70">No hace falta tener cuenta. El pago se hace en la página segura de Mercado Pago.</p>
