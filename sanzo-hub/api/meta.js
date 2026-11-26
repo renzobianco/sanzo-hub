@@ -96,8 +96,29 @@ async function readAds(q) {
       limit: 200,
     }),
   ])
-  const total = await graph(`${AD_ACCOUNT}/insights`, { fields: AD_FIELDS.join(','), time_range })
-  return { account, campaigns, total: total.data?.[0] || null, daily, byAd, ads, range: time_range }
+  const days = Math.round((Date.parse(time_range.until) - Date.parse(time_range.since)) / 864e5) + 1
+  const prevUntil = isoDate(new Date(Date.parse(time_range.since) - 864e5))
+  const prevSince = isoDate(new Date(Date.parse(time_range.since) - days * 864e5))
+  const BREAK_FIELDS = 'spend,reach,impressions,inline_link_clicks,inline_link_click_ctr,actions,action_values'
+  const [total, previous, placements, demo] = await Promise.all([
+    graph(`${AD_ACCOUNT}/insights`, { fields: AD_FIELDS.join(','), time_range }),
+    graph(`${AD_ACCOUNT}/insights`, { fields: AD_FIELDS.join(','), time_range: { since: prevSince, until: prevUntil } }),
+    graphAll(`${AD_ACCOUNT}/insights`, { fields: BREAK_FIELDS, time_range, breakdowns: 'publisher_platform,platform_position', limit: 100 }, 2),
+    graphAll(`${AD_ACCOUNT}/insights`, { fields: BREAK_FIELDS, time_range, breakdowns: 'age,gender', limit: 100 }, 2),
+  ])
+  return {
+    account,
+    campaigns,
+    total: total.data?.[0] || null,
+    previous: previous.data?.[0] || null,
+    previousRange: { since: prevSince, until: prevUntil },
+    daily,
+    byAd,
+    ads,
+    placements,
+    demo,
+    range: time_range,
+  }
 }
 
 // ---------- Instagram ----------
@@ -124,6 +145,40 @@ async function mediaInsights(m) {
   }
 }
 
+// Métricas de la cuenta en el período: alcance por día, seguidores nuevos por
+// día y totales de visitas al perfil, clics al link de la bio y cuentas que
+// interactuaron. Cada bloque por separado: si Meta rechaza uno, el resto sale.
+async function accountInsights(igId, { since, until }) {
+  const ts = (d, end) => Math.floor(Date.parse(d + (end ? 'T23:59:59Z' : 'T00:00:00Z')) / 1000)
+  const range = { since: ts(since), until: ts(until, true) }
+  const out = { range: { since, until }, daily: {}, totals: {} }
+  const safe = async (fn) => {
+    try {
+      await fn()
+    } catch (e) {
+      out.errors = [...(out.errors || []), e.message]
+    }
+  }
+  await Promise.all([
+    safe(async () => {
+      const r = await graph(`${igId}/insights`, { metric: 'reach', period: 'day', ...range })
+      out.daily.reach = (r.data?.[0]?.values || []).map((v) => ({ date: v.end_time?.slice(0, 10), value: v.value }))
+    }),
+    safe(async () => {
+      // follower_count solo acepta los últimos 30 días
+      const r = await graph(`${igId}/insights`, { metric: 'follower_count', period: 'day', since: Math.max(range.since, Math.floor(Date.now() / 1000) - 29 * 86400), until: range.until })
+      out.daily.followers = (r.data?.[0]?.values || []).map((v) => ({ date: v.end_time?.slice(0, 10), value: v.value }))
+    }),
+    ...['profile_views', 'website_clicks', 'accounts_engaged', 'total_interactions', 'views'].map((metric) =>
+      safe(async () => {
+        const r = await graph(`${igId}/insights`, { metric, period: 'day', metric_type: 'total_value', ...range })
+        out.totals[metric] = r.data?.[0]?.total_value?.value ?? null
+      }),
+    ),
+  ])
+  return out
+}
+
 async function readInstagram(q) {
   const igId = await findInstagramAccount()
   const limit = Math.min(Number(q.get('cantidad')) || 24, 50)
@@ -140,7 +195,8 @@ async function readInstagram(q) {
   for (let i = 0; i < media.length; i += 6) {
     insights.push(...(await Promise.all(media.slice(i, i + 6).map(mediaInsights))))
   }
-  return { profile, media: media.map((m, i) => ({ ...m, insights: insights[i] })) }
+  const account = await accountInsights(igId, rangeFromQuery(q))
+  return { profile, account, media: media.map((m, i) => ({ ...m, insights: insights[i] })) }
 }
 
 export default async function handler(req, res) {

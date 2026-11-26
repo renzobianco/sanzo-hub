@@ -29,6 +29,7 @@ import { nextContentSeq, contentCode, sortContent, contentStreak, weekCoverage, 
 import { bufferReady, getStoredChannels, channelForNetwork, scheduleChannelPost, deleteBufferPost, bufferCaption } from '../lib/buffer.js'
 import { uploadContentMedia, deleteContentMedia } from '../lib/supabase.js'
 import InstagramPreviewPanel from '../components/ui/InstagramPreview.jsx'
+import PostPerformance from '../components/ui/PostPerformance.jsx'
 
 const FORMAT_ICONS = { Reel: IconReel, Historia: IconStory, Carrusel: IconCarousel, Foto: IconCamera }
 const networkLabel = (key) => NETWORKS.find((n) => n.key === key)?.label || key
@@ -802,6 +803,7 @@ function DetailModal({ post, onClose, onEdit, onDuplicate, onDelete, onCopy, onS
       </div>
 
       <div className="stack" style={{ gap: 14 }}>
+        <PostPerformance post={post} />
         <DetailBlock label="Responsable" text={CONTENT_RESPONSIBLES.find((r) => r.value === post.responsible)?.label} />
         <DetailBlock label="Ubicación" text={post.location} />
         <DetailBlock label="Hashtags" text={post.hashtags} />

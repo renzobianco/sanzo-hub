@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
 import { useApp } from '../context/AppContext.jsx'
 import { PageHeader, Segmented, ChartTooltip, EmptyState } from '../components/ui/Primitives.jsx'
 import { IconRefresh, IconAlert, IconSparkle, IconTrash, IconPlus, IconEye, IconChevronRight } from '../components/ui/Icons.jsx'
 import { fmtARS, fmtNum, fmtPct, fmtDecimal, fmtDate, fmtAxis, uid } from '../utils/format.js'
-import { fetchMeta, summarize, suggestionsFor, biggestDrop } from '../lib/meta.js'
+import { fetchMeta, summarize, suggestionsFor, biggestDrop, pctChange, igPost, contentSuggestions } from '../lib/meta.js'
+import { saleTotal } from '../utils/calc.js'
 
 const axisTick = { fontSize: 11, fill: '#8a7a6d' }
 const gridProps = { stroke: '#EFE6DB', vertical: false }
@@ -76,12 +77,20 @@ function MetaError({ error, onRetry }) {
   )
 }
 
-function Kpi({ label, value, foot, tone = '' }) {
+function Kpi({ label, value, foot, tone = '', delta = null, upIsGood = true }) {
+  const good = delta === null ? null : delta >= 0 === upIsGood
   return (
     <div className="card kpi">
       <div className="kpi-label">{label}</div>
       <div>
-        <div className={`kpi-value sm ${tone}`}>{value}</div>
+        <div className={`kpi-value sm ${tone}`}>
+          {value}
+          {delta !== null && Math.abs(delta) >= 1 && (
+            <span className="small" style={{ marginLeft: 8, fontSize: 12, color: good ? '#6B8F5E' : '#B5533C' }} title="Contra el período anterior de la misma duración">
+              {delta > 0 ? '▲' : '▼'} {fmtDecimal(Math.abs(delta), 0)}%
+            </span>
+          )}
+        </div>
         {foot && <div className="kpi-foot">{foot}</div>}
       </div>
     </div>
@@ -95,7 +104,43 @@ function AdsTab() {
   const { loading, data, error, reload } = useMeta('ads', params)
   const [selected, setSelected] = useState(null)
 
+  const { state } = useApp()
   const total = useMemo(() => summarize(data?.total), [data])
+  const prev = useMemo(() => summarize(data?.previous), [data])
+  const d = (k) => (total && prev ? pctChange(total[k], prev[k]) : null)
+  // Ventas reales cargadas en el hub en el mismo período (no dependen del píxel).
+  const hubSales = useMemo(() => {
+    if (!data) return null
+    const inRange = (state.sales || []).filter((s) => s.date >= data.range.since && s.date <= data.range.until)
+    const web = inRange.filter((s) => s.channel === 'Tienda online')
+    // 1 venta por persona por día (un combo cuenta como 1)
+    const key = (s) => `${s.date}|${(s.clientHandle || s.clientName || s.id || '').toLowerCase()}`
+    return {
+      all: new Set(inRange.map(key)).size,
+      allARS: inRange.reduce((a, s) => a + saleTotal(s), 0),
+      web: new Set(web.map(key)).size,
+      webARS: web.reduce((a, s) => a + saleTotal(s), 0),
+    }
+  }, [data, state.sales])
+  const placements = useMemo(
+    () =>
+      (data?.placements || [])
+        .map((r) => ({ name: placementLabel(r.publisher_platform, r.platform_position), s: summarize(r) }))
+        .filter((r) => r.s.impressions > 0)
+        .sort((a, b) => b.s.spend - a.s.spend),
+    [data],
+  )
+  const demo = useMemo(() => {
+    const ages = {}
+    for (const r of data?.demo || []) {
+      const s = summarize(r)
+      const row = (ages[r.age] ||= { age: r.age, Mujeres: 0, Hombres: 0, Otros: 0, clics: 0, compras: 0 })
+      row[r.gender === 'female' ? 'Mujeres' : r.gender === 'male' ? 'Hombres' : 'Otros'] += s.reach
+      row.clics += s.linkClicks
+      row.compras += s.purchases
+    }
+    return Object.values(ages).sort((a, b) => a.age.localeCompare(b.age))
+  }, [data])
   const daily = useMemo(
     () =>
       (data?.daily || []).map((d) => {
@@ -127,13 +172,46 @@ function AdsTab() {
       {data && (
         <>
           <div className="grid grid-kpi mt-16">
-            <Kpi label="Gastado" value={fmtARS(total?.spend)} foot={`${fmtDate(data.range.since)} al ${fmtDate(data.range.until)}`} />
-            <Kpi label="Alcance" value={fmtNum(total?.reach)} foot={`${fmtNum(total?.impressions)} impresiones · frecuencia ${fmtDecimal(total?.frequency, 1)}`} />
-            <Kpi label="Clics al enlace" value={fmtNum(total?.linkClicks)} foot={`CTR ${fmtPct(total?.ctr, 2)} · ${fmtARS(total?.cpc)} por clic`} />
-            <Kpi label="Visitas a la web" value={fmtNum(total?.landing)} foot={`${fmtNum(total?.addToCart)} agregaron al carrito`} />
-            <Kpi label="Compras" value={fmtNum(total?.purchases)} foot={total?.purchases ? `${fmtARS(total.costPerPurchase)} cada una` : 'Según el píxel de Meta'} tone={total?.purchases ? 'pos' : ''} />
+            <Kpi label="Gastado" value={`$ ${fmtNum(total?.spend)}`} foot={`${fmtDate(data.range.since)} al ${fmtDate(data.range.until)}`} delta={d('spend')} upIsGood={false} />
+            <Kpi label="Alcance" value={fmtNum(total?.reach)} foot={`${fmtNum(total?.impressions)} impresiones · frecuencia ${fmtDecimal(total?.frequency, 1)}`} delta={d('reach')} />
+            <Kpi label="Clics al enlace" value={fmtNum(total?.linkClicks)} foot={`CTR ${fmtPct(total?.ctr, 2)} · ${fmtARS(total?.cpc)} por clic`} delta={d('linkClicks')} />
+            <Kpi label="Visitas a la web" value={fmtNum(total?.landing)} foot={`${fmtNum(total?.addToCart)} agregaron al carrito`} delta={d('landing')} />
+            <Kpi label="Compras (píxel)" value={fmtNum(total?.purchases)} foot={total?.purchases ? `${fmtARS(total.costPerPurchase)} cada una` : 'Las que Meta atribuye al anuncio'} tone={total?.purchases ? 'pos' : ''} delta={d('purchases')} />
             <Kpi label="ROAS" value={total?.purchases ? fmtDecimal(total.roas, 2) : '—'} foot={total?.revenue ? `Vendido ${fmtARS(total.revenue)}` : `CPM ${fmtARS(total?.cpm)}`} tone={total?.roas >= 1 ? 'pos' : ''} />
           </div>
+          {prev && prev.spend > 0 && (
+            <div className="muted small mt-8">Las flechitas comparan con {fmtDate(data.previousRange.since)} al {fmtDate(data.previousRange.until)}.</div>
+          )}
+
+          {hubSales && (
+            <div className="card beige mt-24">
+              <div className="card-head">
+                <div>
+                  <div className="card-title">Contra las ventas reales del hub</div>
+                  <div className="card-sub">Lo cargado en Ventas en el mismo período, sin depender del píxel de Meta (1 venta por persona por día)</div>
+                </div>
+              </div>
+              <div className="grid grid-3">
+                <div>
+                  <div className="kpi-label">Ventas por la web</div>
+                  <div className="kpi-value sm">{fmtNum(hubSales.web)}</div>
+                  <div className="kpi-foot">{fmtARS(hubSales.webARS)} vendidos</div>
+                </div>
+                <div>
+                  <div className="kpi-label">Costo de ads por venta web</div>
+                  <div className="kpi-value sm">{hubSales.web ? fmtARS(total.spend / hubSales.web) : '—'}</div>
+                  <div className="kpi-foot">Gasto en ads dividido ventas web</div>
+                </div>
+                <div>
+                  <div className="kpi-label">Todas las ventas del período</div>
+                  <div className="kpi-value sm">{fmtNum(hubSales.all)}</div>
+                  <div className="kpi-foot">
+                    {fmtARS(hubSales.allARS)} · ads = {hubSales.allARS ? fmtPct((total.spend / hubSales.allARS) * 100, 0) : '—'} de lo vendido
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-3 mt-24">
             <div className="card span-2">
@@ -261,6 +339,65 @@ function AdsTab() {
           </div>
 
           {current && current.s.curve.length > 0 && <RetentionCard ad={current} />}
+
+          {(placements.length > 0 || demo.length > 0) && (
+            <div className="grid grid-2 mt-24">
+              <div className="card" style={{ minWidth: 0 }}>
+                <div className="card-head">
+                  <div>
+                    <div className="card-title">Dónde se vio</div>
+                    <div className="card-sub">Por ubicación: qué rinde más, Reels, Feed o Historias</div>
+                  </div>
+                </div>
+                <div className="table-wrap">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Ubicación</th>
+                        <th className="num">Gastado</th>
+                        <th className="num">CTR</th>
+                        <th className="num">Costo/clic</th>
+                        <th className="num">Compras</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {placements.map((p) => (
+                        <tr key={p.name}>
+                          <td>{p.name}</td>
+                          <td className="num">{fmtARS(p.s.spend)}</td>
+                          <td className="num">{fmtPct(p.s.ctr, 2)}</td>
+                          <td className="num">{p.s.linkClicks ? fmtARS(p.s.spend / p.s.linkClicks) : '—'}</td>
+                          <td className="num">{fmtNum(p.s.purchases)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div className="card" style={{ minWidth: 0 }}>
+                <div className="card-head">
+                  <div>
+                    <div className="card-title">A quién le llegó</div>
+                    <div className="card-sub">Alcance por edad y sexo</div>
+                  </div>
+                </div>
+                <div className="chart-box" style={{ height: 240 }}>
+                  <ResponsiveContainer>
+                    <BarChart data={demo} margin={{ top: 10, right: 6, left: 0, bottom: 0 }}>
+                      <CartesianGrid {...gridProps} />
+                      <XAxis dataKey="age" tick={axisTick} axisLine={false} tickLine={false} />
+                      <YAxis tick={axisTick} axisLine={false} tickLine={false} width={40} />
+                      <Tooltip content={<ChartTooltip formatter={(v) => fmtNum(v)} />} />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                      <Bar dataKey="Mujeres" stackId="a" fill="#956037" isAnimationActive={false} />
+                      <Bar dataKey="Hombres" stackId="a" fill="#D5B9A2" isAnimationActive={false} />
+                      <Bar dataKey="Otros" stackId="a" fill="#8A7A6D" radius={[6, 6, 0, 0]} isAnimationActive={false} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
@@ -327,6 +464,27 @@ function RetentionCard({ ad }) {
   )
 }
 
+function placementLabel(platform, position) {
+  const plat = { instagram: 'Instagram', facebook: 'Facebook', messenger: 'Messenger', audience_network: 'Audience Network', threads: 'Threads' }[platform] || platform
+  const pos =
+    {
+      instagram_reels: 'Reels',
+      facebook_reels: 'Reels',
+      feed: 'Feed',
+      instagram_stories: 'Historias',
+      facebook_stories: 'Historias',
+      instagram_explore: 'Explorar',
+      instagram_explore_grid_home: 'Explorar',
+      instagram_profile_feed: 'Perfil',
+      marketplace: 'Marketplace',
+      video_feeds: 'Videos',
+      search: 'Búsqueda',
+      an_classic: 'Apps',
+      rewarded_video: 'Videos con premio',
+    }[position] || (position || '').replaceAll('_', ' ')
+  return `${plat} · ${pos}`
+}
+
 function statusLabel(s) {
   return (
     {
@@ -345,31 +503,18 @@ function statusLabel(s) {
 }
 
 // ---------- Instagram ----------
-const TYPE_LABEL = { REELS: 'Reel', FEED: 'Post', STORY: 'Historia', AD: 'Anuncio' }
 
 function InstagramTab() {
-  const { loading, data, error, reload } = useMeta('instagram', { cantidad: '24' })
-  const posts = useMemo(
-    () =>
-      (data?.media || []).map((m) => {
-        const i = m.insights || {}
-        const avgMs = Number(i.ig_reels_avg_watch_time) || 0
-        return {
-          ...m,
-          kind: m.media_product_type === 'FEED' && m.media_type === 'CAROUSEL_ALBUM' ? 'Carrusel' : TYPE_LABEL[m.media_product_type] || m.media_type,
-          views: Number(i.views) || 0,
-          reach: Number(i.reach) || 0,
-          likes: Number(i.likes ?? m.like_count) || 0,
-          comments: Number(i.comments ?? m.comments_count) || 0,
-          shares: Number(i.shares) || 0,
-          saved: Number(i.saved) || 0,
-          avgWatch: avgMs / 1000,
-          totalWatchH: (Number(i.ig_reels_video_view_total_time) || 0) / 3_600_000,
-        }
-      }),
-    [data],
-  )
-  const reels = posts.filter((p) => p.media_product_type === 'REELS')
+  const [period, setPeriod] = useState('30')
+  const params = useMemo(() => ({ cantidad: '30', desde: isoDaysAgo(Number(period) - 1), hasta: isoDaysAgo(0) }), [period])
+  const { loading, data, error, reload } = useMeta('instagram', params)
+  const posts = useMemo(() => (data?.media || []).map(igPost), [data])
+  const acc = data?.account
+  const reachDaily = (acc?.daily?.reach || []).map((r) => ({ label: fmtDate(r.date).slice(0, 5), alcance: Number(r.value) || 0 }))
+  const newFollowers = (acc?.daily?.followers || []).reduce((a, r) => a + (Number(r.value) || 0), 0)
+  const tips = useMemo(() => contentSuggestions(posts, acc), [posts, acc])
+  const t = acc?.totals || {}
+  const reels = posts.filter((p) => p.kind === 'Reel')
   const avg = (arr, k) => (arr.length ? arr.reduce((a, p) => a + p[k], 0) / arr.length : 0)
   const chart = reels
     .slice()
@@ -379,7 +524,10 @@ function InstagramTab() {
   return (
     <div>
       <div className="row between mt-8">
-        <div className="muted small">{data?.profile ? `@${data.profile.username} · últimas ${posts.length} publicaciones` : ' '}</div>
+        <div className="row" style={{ gap: 12 }}>
+          <Segmented options={PERIODS} value={period} onChange={setPeriod} />
+          <span className="muted small">{data?.profile ? `@${data.profile.username}` : ''}</span>
+        </div>
         <button className="btn btn-ghost btn-sm" onClick={reload} disabled={loading}>
           <IconRefresh /> {loading ? 'Cargando…' : 'Actualizar'}
         </button>
@@ -390,12 +538,61 @@ function InstagramTab() {
       {data && (
         <>
           <div className="grid grid-kpi mt-16">
-            <Kpi label="Seguidores" value={fmtNum(data.profile.followers_count)} foot={`${fmtNum(data.profile.media_count)} publicaciones en total`} />
-            <Kpi label="Vistas promedio por reel" value={fmtNum(avg(reels, 'views'))} foot={`${reels.length} reels en la lista`} />
-            <Kpi label="Tiempo promedio visto" value={`${fmtDecimal(avg(reels, 'avgWatch'), 1)} s`} foot="Promedio de los reels" />
-            <Kpi label="Alcance promedio" value={fmtNum(avg(posts, 'reach'))} foot="Todas las publicaciones" />
-            <Kpi label="Compartidos promedio" value={fmtDecimal(avg(posts, 'shares'), 1)} foot="Lo que más empuja el alcance" />
-            <Kpi label="Guardados promedio" value={fmtDecimal(avg(posts, 'saved'), 1)} foot="Señal de contenido útil" />
+            <Kpi label="Seguidores" value={fmtNum(data.profile.followers_count)} foot={acc?.daily?.followers ? `${newFollowers >= 0 ? '+' : ''}${fmtNum(newFollowers)} en el período` : `${fmtNum(data.profile.media_count)} publicaciones en total`} />
+            <Kpi label="Visitas al perfil" value={t.profile_views != null ? fmtNum(t.profile_views) : '—'} foot="En el período" />
+            <Kpi label="Clics al link de la web" value={t.website_clicks != null ? fmtNum(t.website_clicks) : '—'} foot={t.profile_views ? `${fmtPct((t.website_clicks / t.profile_views) * 100, 1)} de las visitas al perfil` : 'Desde la bio'} />
+            <Kpi label="Cuentas que interactuaron" value={t.accounts_engaged != null ? fmtNum(t.accounts_engaged) : '—'} foot={t.total_interactions != null ? `${fmtNum(t.total_interactions)} interacciones` : 'En el período'} />
+            <Kpi label="Vistas promedio por reel" value={fmtNum(avg(reels, 'views'))} foot={`Tiempo visto: ${fmtDecimal(avg(reels, 'avgWatch'), 1)} s en promedio`} />
+            <Kpi label="Compartidos y guardados" value={`${fmtDecimal(avg(posts, 'shares'), 1)} · ${fmtDecimal(avg(posts, 'saved'), 1)}`} foot="Promedio por publicación" />
+          </div>
+
+          <div className="grid grid-3 mt-24">
+            <div className="card span-2">
+              <div className="card-head">
+                <div>
+                  <div className="card-title">Alcance de la cuenta por día</div>
+                  <div className="card-sub">Cuántas cuentas distintas vieron algo de Sanzo cada día</div>
+                </div>
+              </div>
+              {reachDaily.length ? (
+                <div className="chart-box" style={{ height: 220 }}>
+                  <ResponsiveContainer>
+                    <AreaChart data={reachDaily} margin={{ top: 10, right: 6, left: 0, bottom: 0 }}>
+                      <CartesianGrid {...gridProps} />
+                      <XAxis dataKey="label" tick={axisTick} axisLine={false} tickLine={false} />
+                      <YAxis tick={axisTick} axisLine={false} tickLine={false} width={44} />
+                      <Tooltip content={<ChartTooltip formatter={(v) => fmtNum(v)} />} />
+                      <Area type="monotone" dataKey="alcance" name="Alcance" stroke="#956037" strokeWidth={2.2} fill="#956037" fillOpacity={0.12} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="muted small">Meta no devolvió el alcance diario para este período.</div>
+              )}
+            </div>
+            <div className="card">
+              <div className="card-head">
+                <div>
+                  <div className="card-title">
+                    <IconSparkle style={{ width: 16, height: 16 }} /> Sugerencias de contenido
+                  </div>
+                  <div className="card-sub">Salen de cómo rindieron las publicaciones</div>
+                </div>
+              </div>
+              {tips.length ? (
+                <div className="list">
+                  {tips.map((tip, i) => (
+                    <div className="list-item" key={i}>
+                      <div className="body">
+                        <div className="title" style={{ whiteSpace: 'normal', fontWeight: 500 }}>{tip.text}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="muted small">Hacen falta algunas publicaciones más para comparar.</div>
+              )}
+            </div>
           </div>
 
           {chart.length > 0 && (

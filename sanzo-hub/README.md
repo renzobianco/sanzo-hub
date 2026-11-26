@@ -40,7 +40,7 @@ Desde el celular en la misma red Wi-Fi: `npm run dev -- --host` y entrá a la IP
 | Pedidos a China | Órdenes al proveedor con FOB, flete y otros; costo unitario final prorrateado; guarda la cotización del día del pedido; al recibir suma stock y registra el gasto. |
 | Objetivos y fases | Fases 01/02/03 con progreso, metas automáticas y manuales, seguidores semanales por red, punto de equilibrio. |
 | Clientes | Se arma sola desde las ventas; filtros "2+ compras" e "interesados"; carga manual desde DMs. |
-| Ads y estadísticas | Anuncios de Meta (gasto, alcance, CTR, compras, ROAS, retención segundo a segundo de los videos, sugerencias), publicaciones de Instagram (vistas, alcance, tiempo promedio visto, compartidos, guardados) y lista de competidores con link a su Biblioteca de anuncios. Solo lectura. |
+| Ads y estadísticas | Anuncios de Meta (gasto, alcance, CTR, compras, ROAS, comparación con el período anterior, costo real por venta usando Ventas del hub, desglose por ubicación y por edad/sexo, retención segundo a segundo de los videos, sugerencias), Instagram (alcance diario, visitas al perfil, clics a la web, seguidores nuevos, vistas, tiempo promedio visto, compartidos, guardados y sugerencias de contenido) y competidores con link a su Biblioteca de anuncios. En el Calendario, cada publicación publicada muestra "Cómo le fue en Instagram". Solo lectura. |
 | Ajustes | Conexión con la API de Buffer, fuente del tipo de cambio (oficial/blue automático o manual). |
 
 ## Integración con Buffer
