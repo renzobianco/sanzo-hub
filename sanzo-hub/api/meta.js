@@ -26,7 +26,8 @@ class MetaError extends Error {
 }
 
 async function graph(path, params = {}) {
-  const token = process.env.META_ACCESS_TOKEN
+  // En Vercel Renzo la cargó como TOKENMETA; se aceptan los dos nombres.
+  const token = process.env.META_ACCESS_TOKEN || process.env.TOKENMETA
   if (!token) throw new MetaError('Falta META_ACCESS_TOKEN en el servidor', 'sin_token')
   const url = new URL(path.startsWith('http') ? path : `${GRAPH}/${path}`)
   for (const [k, v] of Object.entries(params)) {

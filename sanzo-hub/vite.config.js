@@ -9,7 +9,7 @@ function metaApiDev(env) {
   return {
     name: 'sanzo-meta-api-dev',
     configureServer(server) {
-      for (const k of ['META_ACCESS_TOKEN', 'META_API_VERSION', 'META_AD_ACCOUNT_ID', 'META_IG_USER_ID']) {
+      for (const k of ['META_ACCESS_TOKEN', 'TOKENMETA', 'META_API_VERSION', 'META_AD_ACCOUNT_ID', 'META_IG_USER_ID']) {
         if (env[k] && !process.env[k]) process.env[k] = env[k]
       }
       server.middlewares.use('/api/meta', async (req, res) => {
