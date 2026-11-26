@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
 import { useApp } from '../context/AppContext.jsx'
 import { PageHeader, Segmented, ChartTooltip, EmptyState } from '../components/ui/Primitives.jsx'
-import { IconRefresh, IconAlert, IconSparkle, IconTrash, IconPlus, IconEye, IconChevronRight } from '../components/ui/Icons.jsx'
-import { fmtARS, fmtNum, fmtPct, fmtDecimal, fmtDate, fmtAxis, uid } from '../utils/format.js'
+import { IconRefresh, IconAlert, IconSparkle, IconEye } from '../components/ui/Icons.jsx'
+import { fmtARS, fmtNum, fmtPct, fmtDecimal, fmtDate, fmtAxis } from '../utils/format.js'
 import { fetchMeta, summarize, suggestionsFor, biggestDrop, pctChange, igPost, contentSuggestions } from '../lib/meta.js'
 import { saleTotal } from '../utils/calc.js'
+import CompetitorsTab from './Competencia.jsx'
 
 const axisTick = { fontSize: 11, fill: '#8a7a6d' }
 const gridProps = { stroke: '#EFE6DB', vertical: false }
@@ -25,7 +26,7 @@ export default function Ads() {
           options={[
             { value: 'ads', label: 'Anuncios' },
             { value: 'ig', label: 'Instagram' },
-            { value: 'comp', label: 'Competencia' },
+            { value: 'comp', label: 'Competencia y oportunidades' },
           ]}
           value={tab}
           onChange={setTab}
@@ -155,6 +156,27 @@ function AdsTab() {
       .map((r) => ({ id: r.ad_id, name: r.ad_name, campaign: r.campaign_name, adset: r.adset_name, status: thumbs[r.ad_id]?.effective_status, thumb: thumbs[r.ad_id]?.creative?.thumbnail_url, s: summarize(r) }))
       .sort((a, b) => b.s.spend - a.s.spend)
   }, [data])
+  const hours = useMemo(() => {
+    const out = Array.from({ length: 24 }, (_, h) => ({ hora: `${h}h`, clics: 0, compras: 0, gasto: 0 }))
+    for (const r of data?.hours || []) {
+      const h = parseInt(String(r.hourly_stats_aggregated_by_advertiser_time_zone || '').slice(0, 2), 10)
+      if (Number.isNaN(h)) continue
+      const s = summarize(r)
+      out[h].clics += s.linkClicks
+      out[h].compras += s.purchases
+      out[h].gasto += s.spend
+    }
+    return out.some((r) => r.clics || r.compras) ? out : []
+  }, [data])
+  const regions = useMemo(
+    () =>
+      (data?.regions || [])
+        .map((r) => ({ name: r.region, s: summarize(r) }))
+        .filter((r) => r.s.reach > 0)
+        .sort((a, b) => b.s.reach - a.s.reach)
+        .slice(0, 8),
+    [data],
+  )
   const tips = useMemo(() => suggestionsFor(total, ads), [total, ads])
   const current = ads.find((a) => a.id === selected) || ads.find((a) => a.s.curve.length) || null
 
@@ -212,6 +234,8 @@ function AdsTab() {
               </div>
             </div>
           )}
+
+          <FunnelCard t={total} />
 
           <div className="grid grid-3 mt-24">
             <div className="card span-2">
@@ -287,56 +311,7 @@ function AdsTab() {
             )}
           </div>
 
-          <div className="card mt-24">
-            <div className="card-head">
-              <div>
-                <div className="card-title">Anuncios</div>
-                <div className="card-sub">Tocá uno con video para ver en qué segundo se va la gente</div>
-              </div>
-            </div>
-            {ads.length ? (
-              <div className="table-wrap">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Anuncio</th>
-                      <th className="num">Gastado</th>
-                      <th className="num">Alcance</th>
-                      <th className="num">CTR</th>
-                      <th className="num">Costo/clic</th>
-                      <th className="num">Compras</th>
-                      <th className="num" title="Porcentaje de impresiones que miraron 3 segundos o más">Enganche 3s</th>
-                      <th className="num">Visto prom.</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ads.map((a) => (
-                      <tr key={a.id} onClick={() => setSelected(a.id)} style={{ cursor: 'pointer', background: current?.id === a.id ? 'var(--beige-50, #F7F1EA)' : undefined }}>
-                        <td>
-                          <div className="row" style={{ gap: 10, flexWrap: 'nowrap' }}>
-                            {a.thumb && <img src={a.thumb} alt="" width={36} height={36} style={{ borderRadius: 6, objectFit: 'cover' }} />}
-                            <div>
-                              <div>{a.name}</div>
-                              <div className="muted small">{statusLabel(a.status)} · {a.adset}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="num">{fmtARS(a.s.spend)}</td>
-                        <td className="num">{fmtNum(a.s.reach)}</td>
-                        <td className="num">{fmtPct(a.s.ctr, 2)}</td>
-                        <td className="num">{a.s.cpc ? fmtARS(a.s.cpc) : '—'}</td>
-                        <td className="num">{fmtNum(a.s.purchases)}</td>
-                        <td className="num">{a.s.plays3s ? fmtPct(a.s.hookRate, 0) : '—'}</td>
-                        <td className="num">{a.s.avgWatch ? `${fmtDecimal(a.s.avgWatch, 1)} s` : '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <EmptyState compact title="Sin datos por anuncio" text="Meta todavía no informó números para este período." />
-            )}
-          </div>
+          <AdsGallery ads={ads} current={current} onSelect={setSelected} />
 
           {current && current.s.curve.length > 0 && <RetentionCard ad={current} />}
 
@@ -396,6 +371,13 @@ function AdsTab() {
                   </ResponsiveContainer>
                 </div>
               </div>
+            </div>
+          )}
+
+          {(hours.length > 0 || regions.length > 0) && (
+            <div className="grid grid-2 mt-24">
+              <HoursCard hours={hours} />
+              <RegionsCard regions={regions} />
             </div>
           )}
         </>
@@ -683,74 +665,162 @@ function InstagramTab() {
   )
 }
 
-// ---------- Competencia ----------
-// La API de la Biblioteca de anuncios no trae anuncios comerciales de
-// Argentina, así que acá queda la lista de marcas con el link directo a sus
-// anuncios activos y las notas de lo que se vio (las puede completar Claude
-// en la rutina de la mañana).
-function libraryUrl(q) {
-  const p = new URLSearchParams({ active_status: 'active', ad_type: 'all', country: 'AR', media_type: 'all', q, search_type: 'keyword_unordered' })
-  return `https://www.facebook.com/ads/library/?${p}`
+// ---------- piezas visuales de Anuncios ----------
+function FunnelCard({ t }) {
+  if (!t || !t.impressions) return null
+  const steps = [
+    { label: 'Lo vieron', value: t.reach, hint: 'personas alcanzadas' },
+    { label: 'Miraron 3 s o más', value: t.plays3s, hint: 'solo anuncios con video' },
+    { label: 'Tocaron el enlace', value: t.linkClicks },
+    { label: 'Llegaron a la web', value: t.landing },
+    { label: 'Agregaron al carrito', value: t.addToCart },
+    { label: 'Compraron', value: t.purchases, hint: 'según el píxel' },
+  ].filter((st, i) => i === 0 || st.value > 0 || i >= 2)
+  const max = steps[0].value || 1
+  // El paso con peor conversión es donde más gente se pierde.
+  let worst = null
+  for (let i = 1; i < steps.length; i++) {
+    const rate = steps[i - 1].value ? steps[i].value / steps[i - 1].value : 0
+    if (i >= 2 && steps[i - 1].value >= 20 && (!worst || rate < worst.rate)) worst = { i, rate }
+  }
+  return (
+    <div className="card mt-24">
+      <div className="card-head">
+        <div>
+          <div className="card-title">El camino hasta la compra</div>
+          <div className="card-sub">Cuánta gente pasa de un paso al siguiente{worst ? `. Donde más se pierde: "${steps[worst.i].label}"` : ''}</div>
+        </div>
+      </div>
+      <div className="funnel">
+        {steps.map((st, i) => {
+          const rate = i > 0 && steps[i - 1].value ? (st.value / steps[i - 1].value) * 100 : null
+          return (
+            <div className={`funnel-row ${worst?.i === i ? 'leak' : ''}`} key={st.label}>
+              <div className="funnel-label">
+                <span>{st.label}</span>
+                {st.hint && <span className="muted small"> · {st.hint}</span>}
+              </div>
+              <div className="funnel-bar">
+                <div style={{ width: `${Math.max(2, (st.value / max) * 100)}%` }} />
+              </div>
+              <div className="funnel-num">
+                <strong>{fmtNum(st.value)}</strong>
+                {rate !== null && <span className="muted small">{fmtPct(rate, rate < 10 ? 1 : 0)}</span>}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
-function CompetitorsTab() {
-  const { state, updateSettings } = useApp()
-  const list = state.settings.adCompetitors || []
-  const [name, setName] = useState('')
-  const save = (next) => updateSettings({ adCompetitors: next })
-  const add = (e) => {
-    e.preventDefault()
-    const n = name.trim()
-    if (!n) return
-    save([...list, { id: uid(), name: n, notes: '', updatedAt: null }])
-    setName('')
-  }
-  const edit = (id, patch) => save(list.map((c) => (c.id === id ? { ...c, ...patch, updatedAt: new Date().toISOString() } : c)))
-  const remove = (id) => save(list.filter((c) => c.id !== id))
-
+function AdsGallery({ ads, current, onSelect }) {
+  if (!ads.length)
+    return (
+      <div className="card mt-24">
+        <EmptyState compact title="Sin datos por anuncio" text="Meta todavía no informó números para este período." />
+      </div>
+    )
+  const withImp = ads.filter((a) => a.s.impressions >= 300)
+  const best = (k) => (withImp.length >= 2 ? [...withImp].sort((x, y) => y.s[k] - x.s[k])[0]?.id : null)
+  const bestCtr = best('ctr')
+  const bestHook = best('hookRate')
+  const mostSales = ads.some((a) => a.s.purchases > 0) ? [...ads].sort((x, y) => y.s.purchases - x.s.purchases)[0].id : null
   return (
-    <div>
-      <form className="row mt-8" style={{ gap: 8 }} onSubmit={add}>
-        <input className="input" style={{ maxWidth: 320 }} placeholder="Nombre de la marca o su @" value={name} onChange={(e) => setName(e.target.value)} />
-        <button className="btn btn-primary btn-sm" type="submit">
-          <IconPlus /> Sumar marca
-        </button>
-      </form>
-      <p className="muted small mt-8">
-        Meta no publica cuánto gastan los demás ni deja leer por API los anuncios comerciales de Argentina. Desde acá se abre su Biblioteca de anuncios con lo
-        que tienen activo, y se anota lo que se ve (creativos, ofertas, desde cuándo los corren).
-      </p>
-      {list.length === 0 ? (
-        <EmptyState compact title="Todavía no hay marcas" text="Sumá las marcas de la competencia que quieran seguir." />
-      ) : (
-        <div className="grid grid-2 mt-16">
-          {list.map((c) => (
-            <div className="card" key={c.id}>
-              <div className="card-head">
-                <div>
-                  <div className="card-title">{c.name}</div>
-                  <div className="card-sub">{c.updatedAt ? `Notas del ${fmtDate(c.updatedAt.slice(0, 10))}` : 'Sin notas todavía'}</div>
+    <>
+      <div className="row mt-24" style={{ gap: 8, alignItems: 'baseline' }}>
+        <h3 className="section-title">Tus anuncios</h3>
+        <span className="muted small">Tocá uno con video para ver en qué segundo se va la gente</span>
+      </div>
+      <div className="comp-grid mt-12">
+        {ads.map((a) => {
+          const tags = []
+          if (a.id === mostSales) tags.push('Más compras')
+          if (a.id === bestCtr) tags.push('Mejor CTR')
+          if (a.id === bestHook && a.s.plays3s) tags.push('Mejor enganche')
+          return (
+            <button type="button" key={a.id} className={`opp-card ad-card ${current?.id === a.id ? 'selected' : ''}`} onClick={() => onSelect(a.id)}>
+              <div className="comp-thumb" style={{ aspectRatio: '16 / 10' }}>
+                {a.thumb ? <img src={a.thumb} alt="" loading="lazy" /> : <div className="comp-thumb-empty">Anuncio</div>}
+                {tags[0] && <span className="comp-badge hot">{tags.join(' · ')}</span>}
+                <span className="comp-kind">{statusLabel(a.status)}</span>
+              </div>
+              <div className="opp-body">
+                <div className="opp-title">{a.name}</div>
+                <div className="ad-stats">
+                  <div><strong>{fmtARS(a.s.spend)}</strong><span>gastado</span></div>
+                  <div><strong>{fmtPct(a.s.ctr, 2)}</strong><span>CTR</span></div>
+                  <div><strong>{fmtNum(a.s.purchases)}</strong><span>compras</span></div>
+                  <div><strong>{a.s.plays3s ? fmtPct(a.s.hookRate, 0) : '—'}</strong><span>enganche 3 s</span></div>
                 </div>
-                <div className="row" style={{ gap: 4 }}>
-                  <a className="btn btn-soft btn-sm" href={libraryUrl(c.name)} target="_blank" rel="noreferrer">
-                    Ver sus anuncios <IconChevronRight />
-                  </a>
-                  <button className="btn-icon danger" title="Sacar de la lista" onClick={() => remove(c.id)} type="button">
-                    <IconTrash />
-                  </button>
+                <div className="muted small">
+                  {fmtNum(a.s.reach)} personas · {a.s.cpc ? `${fmtARS(a.s.cpc)} por clic` : 'sin clics'}
+                  {a.s.avgWatch ? ` · visto ${fmtDecimal(a.s.avgWatch, 1)} s` : ''}
                 </div>
               </div>
-              <textarea
-                className="input"
-                rows={4}
-                placeholder="Qué anuncios tienen activos, qué ofrecen, qué formato usan…"
-                defaultValue={c.notes}
-                onBlur={(e) => e.target.value !== c.notes && edit(c.id, { notes: e.target.value })}
-              />
-            </div>
-          ))}
+            </button>
+          )
+        })}
+      </div>
+    </>
+  )
+}
+
+function HoursCard({ hours }) {
+  if (!hours.length) return <div />
+  const top = [...hours].sort((a, b) => b.clics + b.compras * 10 - (a.clics + a.compras * 10))[0]
+  return (
+    <div className="card" style={{ minWidth: 0 }}>
+      <div className="card-head">
+        <div>
+          <div className="card-title">A qué hora responden</div>
+          <div className="card-sub">Clics al enlace por hora del día{top?.clics ? `. Pico: ${top.hora}` : ''}</div>
         </div>
-      )}
+      </div>
+      <div className="chart-box" style={{ height: 220 }}>
+        <ResponsiveContainer>
+          <BarChart data={hours} margin={{ top: 10, right: 6, left: 0, bottom: 0 }}>
+            <CartesianGrid {...gridProps} />
+            <XAxis dataKey="hora" tick={axisTick} axisLine={false} tickLine={false} interval={2} />
+            <YAxis tick={axisTick} axisLine={false} tickLine={false} width={32} allowDecimals={false} />
+            <Tooltip content={<ChartTooltip formatter={(v, n) => (n === 'Gasto' ? fmtARS(v) : fmtNum(v))} />} />
+            <Bar dataKey="clics" name="Clics" fill="#956037" radius={[4, 4, 0, 0]} isAnimationActive={false} maxBarSize={18} />
+            <Bar dataKey="compras" name="Compras" fill="#6b8f5e" radius={[4, 4, 0, 0]} isAnimationActive={false} maxBarSize={18} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  )
+}
+
+function RegionsCard({ regions }) {
+  if (!regions.length) return <div />
+  const max = regions[0].s.reach || 1
+  return (
+    <div className="card" style={{ minWidth: 0 }}>
+      <div className="card-head">
+        <div>
+          <div className="card-title">De dónde son</div>
+          <div className="card-sub">Alcance por provincia, con clics y compras</div>
+        </div>
+      </div>
+      <div className="funnel">
+        {regions.map((r) => (
+          <div className="funnel-row" key={r.name}>
+            <div className="funnel-label">{r.name.replace(/ Province$/, '')}</div>
+            <div className="funnel-bar">
+              <div style={{ width: `${Math.max(2, (r.s.reach / max) * 100)}%` }} />
+            </div>
+            <div className="funnel-num">
+              <strong>{fmtNum(r.s.reach)}</strong>
+              <span className="muted small">
+                {fmtNum(r.s.linkClicks)} clics{r.s.purchases ? ` · ${fmtNum(r.s.purchases)} compras` : ''}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

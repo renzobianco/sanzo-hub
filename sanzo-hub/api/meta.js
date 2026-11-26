@@ -4,12 +4,12 @@
 // Solo lectura. El token vive en la variable de entorno META_ACCESS_TOKEN
 // (Vercel → Settings → Environment Variables, y en .env para desarrollo):
 // nunca en el navegador, nunca en Supabase. Es un token de "usuario del
-// sistema" del Business de Sanzo con permisos ads_read, read_insights,
+// sistema" del Business de Sanzo con permisos ads_read,
 // pages_show_list, pages_read_engagement, instagram_basic e
 // instagram_manage_insights.
 //
 // Esta función no reenvía consultas arbitrarias: solo arma las dos lecturas
-// de abajo (?tipo=ads y ?tipo=instagram), así que aunque alguien la llame
+// de abajo (?tipo=ads, ?tipo=instagram y ?tipo=competencia), así que aunque alguien la llame
 // no puede usar el token para otra cosa.
 //
 // En desarrollo la sirve el plugin de vite.config.js.
@@ -101,11 +101,15 @@ async function readAds(q) {
   const prevUntil = isoDate(new Date(Date.parse(time_range.since) - 864e5))
   const prevSince = isoDate(new Date(Date.parse(time_range.since) - days * 864e5))
   const BREAK_FIELDS = 'spend,reach,impressions,inline_link_clicks,inline_link_click_ctr,actions,action_values'
-  const [total, previous, placements, demo] = await Promise.all([
+  // Hora y provincia pueden fallar por separado sin tirar todo lo demás.
+  const optional = (p) => p.catch(() => [])
+  const [total, previous, placements, demo, hours, regions] = await Promise.all([
     graph(`${AD_ACCOUNT}/insights`, { fields: AD_FIELDS.join(','), time_range }),
     graph(`${AD_ACCOUNT}/insights`, { fields: AD_FIELDS.join(','), time_range: { since: prevSince, until: prevUntil } }),
     graphAll(`${AD_ACCOUNT}/insights`, { fields: BREAK_FIELDS, time_range, breakdowns: 'publisher_platform,platform_position', limit: 100 }, 2),
     graphAll(`${AD_ACCOUNT}/insights`, { fields: BREAK_FIELDS, time_range, breakdowns: 'age,gender', limit: 100 }, 2),
+    optional(graphAll(`${AD_ACCOUNT}/insights`, { fields: BREAK_FIELDS, time_range, breakdowns: 'hourly_stats_aggregated_by_advertiser_time_zone', limit: 100 }, 2)),
+    optional(graphAll(`${AD_ACCOUNT}/insights`, { fields: BREAK_FIELDS, time_range, breakdowns: 'region', limit: 100 }, 2)),
   ])
   return {
     account,
@@ -118,6 +122,8 @@ async function readAds(q) {
     ads,
     placements,
     demo,
+    hours,
+    regions,
     range: time_range,
   }
 }
@@ -200,6 +206,39 @@ async function readInstagram(q) {
   return { profile, account, media: media.map((m, i) => ({ ...m, insights: insights[i] })) }
 }
 
+// ---------- Competencia (Instagram de otras marcas) ----------
+// business_discovery deja ver el perfil público y los últimos posts de otras
+// cuentas de empresa o creador: seguidores, likes, comentarios, tipo de post.
+// No da reproducciones ni alcance de cuentas ajenas.
+const COMP_MEDIA_FIELDS = 'id,caption,media_type,media_product_type,permalink,timestamp,like_count,comments_count,thumbnail_url,media_url,children{media_type,media_url,thumbnail_url}'
+async function readCompetitor(igId, username) {
+  const fields = `business_discovery.username(${username}){username,name,biography,website,followers_count,follows_count,media_count,profile_picture_url,media.limit(30){${COMP_MEDIA_FIELDS}}}`
+  try {
+    const r = await graph(igId, { fields })
+    const b = r.business_discovery || {}
+    const media = b.media?.data || []
+    delete b.media
+    return { ...b, media }
+  } catch (e) {
+    return { username, _error: e.message }
+  }
+}
+
+async function readCompetencia(q) {
+  const users = (q.get('usuarios') || '')
+    .split(',')
+    .map((u) => u.trim().replace(/^@/, '').toLowerCase())
+    .filter((u) => /^[a-z0-9._]{1,30}$/.test(u))
+    .slice(0, 15)
+  if (users.length === 0) return { competitors: [] }
+  const igId = await findInstagramAccount()
+  const competitors = []
+  for (let i = 0; i < users.length; i += 4) {
+    competitors.push(...(await Promise.all(users.slice(i, i + 4).map((u) => readCompetitor(igId, u)))))
+  }
+  return { competitors, at: new Date().toISOString() }
+}
+
 export default async function handler(req, res) {
   const send = (status, body) => {
     res.statusCode = status
@@ -213,7 +252,8 @@ export default async function handler(req, res) {
     const tipo = q.get('tipo')
     if (tipo === 'ads') return send(200, await readAds(q))
     if (tipo === 'instagram') return send(200, await readInstagram(q))
-    return send(400, { error: 'tipo tiene que ser ads o instagram' })
+    if (tipo === 'competencia') return send(200, await readCompetencia(q))
+    return send(400, { error: 'tipo tiene que ser ads, instagram o competencia' })
   } catch (e) {
     const status = e.code === 'sin_token' || e.code === 'token_invalido' ? 401 : 502
     return send(status, { error: e.message, code: e.code || 'error' })
