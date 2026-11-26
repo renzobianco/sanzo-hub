@@ -121,7 +121,7 @@ export default function CompetitorsTab() {
 
       {/* ---------- Oportunidades ---------- */}
       <div className="row mt-24" style={{ gap: 8, alignItems: 'baseline' }}>
-        <IconSparkle />
+        <IconSparkle style={{ width: 18, height: 18, color: 'var(--terra)' }} />
         <h3 className="section-title" style={{ margin: 0 }}>Oportunidades</h3>
         <span className="muted small">Lo que les está funcionando y se puede hacer con Sanzo</span>
       </div>
@@ -175,7 +175,7 @@ export default function CompetitorsTab() {
         <div className="gallery-grid mt-12">
           {gallery.slice(0, shown).map((m) => (
             <a key={m.id} className="gallery-item" href={m.permalink} target="_blank" rel="noreferrer" title={(m.caption || '').slice(0, 200)}>
-              <Thumb src={m.thumb} video={m.video} kind={m.kind} badge={m.adDays != null ? `${m.adDays} días activo` : m.lift >= 2 ? `${m.lift.toFixed(1)}x` : null} hot={m.lift >= 2 || m.adDays >= 14} />
+              <Thumb src={m.thumb} video={m.video} kind={m.kind} badge={m.adDays != null ? `${m.adDays} días activo` : m.giveaway ? 'Sorteo' : m.lift >= 2 ? (m.lift >= 10 ? '10x+' : `${m.lift.toFixed(1)}x`) : null} hot={(!m.giveaway && m.lift >= 2) || m.adDays >= 14} />
               <div className="gallery-meta">
                 <span className="strong">{m.brand}</span>
                 {m.kind !== 'Anuncio' ? (
