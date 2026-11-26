@@ -101,11 +101,15 @@ async function readAds(q) {
   const prevUntil = isoDate(new Date(Date.parse(time_range.since) - 864e5))
   const prevSince = isoDate(new Date(Date.parse(time_range.since) - days * 864e5))
   const BREAK_FIELDS = 'spend,reach,impressions,inline_link_clicks,inline_link_click_ctr,actions,action_values'
-  const [total, previous, placements, demo] = await Promise.all([
+  // Hora y provincia pueden fallar por separado sin tirar todo lo demás.
+  const optional = (p) => p.catch(() => [])
+  const [total, previous, placements, demo, hours, regions] = await Promise.all([
     graph(`${AD_ACCOUNT}/insights`, { fields: AD_FIELDS.join(','), time_range }),
     graph(`${AD_ACCOUNT}/insights`, { fields: AD_FIELDS.join(','), time_range: { since: prevSince, until: prevUntil } }),
     graphAll(`${AD_ACCOUNT}/insights`, { fields: BREAK_FIELDS, time_range, breakdowns: 'publisher_platform,platform_position', limit: 100 }, 2),
     graphAll(`${AD_ACCOUNT}/insights`, { fields: BREAK_FIELDS, time_range, breakdowns: 'age,gender', limit: 100 }, 2),
+    optional(graphAll(`${AD_ACCOUNT}/insights`, { fields: BREAK_FIELDS, time_range, breakdowns: 'hourly_stats_aggregated_by_advertiser_time_zone', limit: 100 }, 2)),
+    optional(graphAll(`${AD_ACCOUNT}/insights`, { fields: BREAK_FIELDS, time_range, breakdowns: 'region', limit: 100 }, 2)),
   ])
   return {
     account,
@@ -118,6 +122,8 @@ async function readAds(q) {
     ads,
     placements,
     demo,
+    hours,
+    regions,
     range: time_range,
   }
 }
