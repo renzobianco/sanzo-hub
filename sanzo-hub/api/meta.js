@@ -176,6 +176,15 @@ async function accountInsights(igId, { since, until }) {
       const r = await graph(`${igId}/insights`, { metric: 'follower_count', period: 'day', since: Math.max(range.since, Math.floor(Date.now() / 1000) - 29 * 86400), until: range.until })
       out.daily.followers = (r.data?.[0]?.values || []).map((v) => ({ date: v.end_time?.slice(0, 10), value: v.value }))
     }),
+    // Quiénes son los seguidores: ciudad, edad y género (Meta pide 100+ seguidores).
+    ...['city', 'age', 'gender'].map((breakdown) =>
+      safe(async () => {
+        const r = await graph(`${igId}/insights`, { metric: 'follower_demographics', period: 'lifetime', metric_type: 'total_value', timeframe: 'this_month', breakdown })
+        const res = r.data?.[0]?.total_value?.breakdowns?.[0]?.results || []
+        out.demographics = out.demographics || {}
+        out.demographics[breakdown] = res.map((x) => ({ key: x.dimension_values?.[0], value: Number(x.value) || 0 })).sort((a, b) => b.value - a.value)
+      }),
+    ),
     ...['profile_views', 'website_clicks', 'accounts_engaged', 'total_interactions', 'views'].map((metric) =>
       safe(async () => {
         const r = await graph(`${igId}/insights`, { metric, period: 'day', metric_type: 'total_value', ...range })

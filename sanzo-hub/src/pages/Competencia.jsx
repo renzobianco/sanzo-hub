@@ -249,10 +249,10 @@ function BrandCard({ b, onRemove }) {
           <div className="comp-avatar">{(b.name || '?').slice(0, 1).toUpperCase()}</div>
         )}
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div className="card-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.name}</div>
+          <div className="card-title" style={{ lineHeight: 1.2 }}>{b.name}</div>
           <div className="muted small">@{b.ig || '—'}</div>
         </div>
-        <span className={`chip ${b.group === 'directa' ? 'terra' : 'outline'}`}>{b.group === 'directa' ? 'Argentina' : 'Inspiración'}</span>
+        <span className={`chip ${b.group === 'directa' ? 'terra' : 'outline'}`} style={{ flexShrink: 0 }}>{b.group === 'directa' ? 'AR' : 'Inspira'}</span>
       </div>
       {b.igError ? (
         <p className="muted small mt-8">No se pudo leer su Instagram (puede ser una cuenta personal o el usuario cambió).</p>
