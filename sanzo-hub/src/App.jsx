@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useApp } from './context/AppContext.jsx'
 import { Sidebar, BottomNav, TopBar, BackupBanner, UserPicker, useDocumentTitle } from './components/layout/Layout.jsx'
 import { Toast } from './components/ui/Primitives.jsx'
-import { IconHome, IconTag, IconReceipt, IconBox, IconChart, IconShip, IconTarget, IconUsers, IconCalendar, IconSettings, IconNote, IconSend } from './components/ui/Icons.jsx'
+import { IconHome, IconTag, IconReceipt, IconBox, IconChart, IconShip, IconTarget, IconUsers, IconCalendar, IconSettings, IconNote, IconSend, IconTrendUp } from './components/ui/Icons.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Ventas from './pages/Ventas.jsx'
 import Gastos from './pages/Gastos.jsx'
@@ -15,6 +15,7 @@ import Calendario from './pages/Calendario.jsx'
 import Ajustes from './pages/Ajustes.jsx'
 import Notas from './pages/Notas.jsx'
 import PedidosWeb from './pages/PedidosWeb.jsx'
+import Ads from './pages/Ads.jsx'
 
 const NAV = [
   { key: 'dashboard', label: 'Inicio', icon: IconHome, page: Dashboard },
@@ -24,6 +25,7 @@ const NAV = [
   { key: 'productos', label: 'Productos y stock', short: 'Stock', icon: IconBox, page: Productos },
   { key: 'calendario', label: 'Calendario', icon: IconCalendar, page: Calendario },
   { key: 'notas', label: 'Notas', icon: IconNote, page: Notas },
+  { key: 'ads', label: 'Ads y estadísticas', short: 'Ads', icon: IconTrendUp, page: Ads },
   { key: 'graficos', label: 'Gráficos', icon: IconChart, page: Graficos },
   { key: 'pedidos', label: 'Pedidos a China', short: 'Pedidos', icon: IconShip, page: Pedidos },
   { key: 'objetivos', label: 'Objetivos y fases', short: 'Objetivos', icon: IconTarget, page: Objetivos },

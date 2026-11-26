@@ -40,6 +40,7 @@ Desde el celular en la misma red Wi-Fi: `npm run dev -- --host` y entrá a la IP
 | Pedidos a China | Órdenes al proveedor con FOB, flete y otros; costo unitario final prorrateado; guarda la cotización del día del pedido; al recibir suma stock y registra el gasto. |
 | Objetivos y fases | Fases 01/02/03 con progreso, metas automáticas y manuales, seguidores semanales por red, punto de equilibrio. |
 | Clientes | Se arma sola desde las ventas; filtros "2+ compras" e "interesados"; carga manual desde DMs. |
+| Ads y estadísticas | Anuncios de Meta (gasto, alcance, CTR, compras, ROAS, comparación con el período anterior, costo real por venta usando Ventas del hub, desglose por ubicación y por edad/sexo, retención segundo a segundo de los videos, sugerencias), Instagram (alcance diario, visitas al perfil, clics a la web, seguidores nuevos, vistas, tiempo promedio visto, compartidos, guardados y sugerencias de contenido) y competidores con link a su Biblioteca de anuncios. En el Calendario, cada publicación publicada muestra "Cómo le fue en Instagram". Solo lectura. |
 | Ajustes | Conexión con la API de Buffer, fuente del tipo de cambio (oficial/blue automático o manual). |
 
 ## Integración con Buffer
@@ -93,3 +94,12 @@ En cada pedido web, **Generar envío** lo da de alta en Correo Argentino (API PA
 - **Credenciales** (las da el área Comercial de Correo Argentino), en Vercel → proyecto sanzo-hub → Environment Variables: `CORREO_AGREEMENT` (número de acuerdo) y `CORREO_API_KEY`. Opcionales: `CORREO_SERVICIO` (tipo de servicio, default `CP`) y `CORREO_TEST=1` para usar el ambiente de prueba. Después, Redeploy.
 - **Remitente y paquete por defecto** (medidas en cm, peso en gramos): Ajustes → Correo Argentino. Ahí también se ve si la conexión anda.
 - La API no cotiza precios: el precio del envío que paga el cliente sale de `sanzo-web/data/envios.ts`.
+
+## Integración con Meta (Ads e Instagram)
+
+La pestaña **Ads y estadísticas** lee Meta con un token de *usuario del sistema* del Business de Sanzo, con permisos de solo lectura (`ads_read`, `read_insights`, `pages_show_list`, `pages_read_engagement`, `instagram_basic`, `instagram_manage_insights`, `business_management`).
+
+- El token va en la variable `META_ACCESS_TOKEN`: en Vercel (Settings → Environment Variables) y en `.env` para desarrollo. Sin `VITE_` adelante, así nunca llega al navegador ni a Supabase.
+- `api/meta.js` (función de Vercel) arma solo dos lecturas fijas: `?tipo=ads` y `?tipo=instagram`. No reenvía consultas arbitrarias. En desarrollo la sirve un plugin en `vite.config.js`.
+- Opcionales: `META_AD_ACCOUNT_ID` (por defecto `act_1502019825120576`), `META_IG_USER_ID` (si no, se busca desde las páginas que ve el token) y `META_API_VERSION`.
+- Límites de Meta: la curva de retención por segundo solo existe para anuncios; de los reels orgánicos la API da el tiempo promedio visto. La API de la Biblioteca de anuncios no trae anuncios comerciales de Argentina, por eso la competencia se sigue con links y notas.
