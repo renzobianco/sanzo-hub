@@ -3543,3 +3543,18 @@ table.table {
   font-size: 10.5px;
   color: var(--muted);
 }
+
+.comp-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  position: sticky;
+  top: 52px;
+  z-index: 5;
+}

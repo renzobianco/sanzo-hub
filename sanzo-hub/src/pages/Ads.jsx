@@ -109,18 +109,24 @@ function AdsTab() {
   const total = useMemo(() => summarize(data?.total), [data])
   const prev = useMemo(() => summarize(data?.previous), [data])
   const d = (k) => (total && prev ? pctChange(total[k], prev[k]) : null)
-  // Ventas reales cargadas en el hub en el mismo período (no dependen del píxel).
+  // Ventas reales cargadas en el hub en el mismo período, por canal (no dependen del píxel).
   const hubSales = useMemo(() => {
     if (!data) return null
     const inRange = (state.sales || []).filter((s) => s.date >= data.range.since && s.date <= data.range.until)
-    const web = inRange.filter((s) => s.channel === 'Tienda online')
     // 1 venta por persona por día (un combo cuenta como 1)
     const key = (s) => `${s.date}|${(s.clientHandle || s.clientName || s.id || '').toLowerCase()}`
+    const byChannel = {}
+    for (const s of inRange) {
+      const c = (byChannel[s.channel || 'Sin canal'] ||= { keys: new Set(), ars: 0 })
+      c.keys.add(key(s))
+      c.ars += saleTotal(s)
+    }
     return {
       all: new Set(inRange.map(key)).size,
       allARS: inRange.reduce((a, s) => a + saleTotal(s), 0),
-      web: new Set(web.map(key)).size,
-      webARS: web.reduce((a, s) => a + saleTotal(s), 0),
+      channels: Object.entries(byChannel)
+        .map(([name, c]) => ({ name, n: c.keys.size, ars: c.ars }))
+        .sort((x, y) => y.n - x.n),
     }
   }, [data, state.sales])
   const placements = useMemo(
@@ -209,27 +215,35 @@ function AdsTab() {
             <div className="card beige mt-24">
               <div className="card-head">
                 <div>
-                  <div className="card-title">Contra las ventas reales del hub</div>
-                  <div className="card-sub">Lo cargado en Ventas en el mismo período, sin depender del píxel de Meta (1 venta por persona por día)</div>
+                  <div className="card-title">Ventas reales y anuncios</div>
+                  <div className="card-sub">
+                    Lo cargado en Ventas en el mismo período (1 venta por persona por día). Una venta por la web puede venir de Instagram, de un anuncio o de otro lado: como
+                    venta de anuncio solo cuenta la que Meta registra con el píxel.
+                  </div>
                 </div>
               </div>
               <div className="grid grid-3">
                 <div>
-                  <div className="kpi-label">Ventas por la web</div>
-                  <div className="kpi-value sm">{fmtNum(hubSales.web)}</div>
-                  <div className="kpi-foot">{fmtARS(hubSales.webARS)} vendidos</div>
-                </div>
-                <div>
-                  <div className="kpi-label">Costo de ads por venta web</div>
-                  <div className="kpi-value sm">{hubSales.web ? fmtARS(total.spend / hubSales.web) : '—'}</div>
-                  <div className="kpi-foot">Gasto en ads dividido ventas web</div>
-                </div>
-                <div>
-                  <div className="kpi-label">Todas las ventas del período</div>
+                  <div className="kpi-label">Ventas del período</div>
                   <div className="kpi-value sm">{fmtNum(hubSales.all)}</div>
-                  <div className="kpi-foot">
-                    {fmtARS(hubSales.allARS)} · ads = {hubSales.allARS ? fmtPct((total.spend / hubSales.allARS) * 100, 0) : '—'} de lo vendido
+                  <div className="kpi-foot">{fmtARS(hubSales.allARS)} vendidos</div>
+                  <div className="row mt-8" style={{ gap: 6, flexWrap: 'wrap' }}>
+                    {hubSales.channels.map((c) => (
+                      <span className="chip outline" key={c.name}>
+                        {c.name}: {c.n}
+                      </span>
+                    ))}
                   </div>
+                </div>
+                <div>
+                  <div className="kpi-label">Ventas que vinieron de anuncios</div>
+                  <div className="kpi-value sm">{fmtNum(total.purchases)}</div>
+                  <div className="kpi-foot">{total.purchases ? `${fmtARS(total.costPerPurchase)} de anuncios por cada una` : 'Todavía ninguna compra registrada desde un anuncio'}</div>
+                </div>
+                <div>
+                  <div className="kpi-label">Lo invertido en anuncios</div>
+                  <div className="kpi-value sm">{fmtARS(total.spend)}</div>
+                  <div className="kpi-foot">{hubSales.allARS ? `Equivale al ${fmtPct((total.spend / hubSales.allARS) * 100, 0)} de todo lo vendido` : 'Sin ventas cargadas en el período'}</div>
                 </div>
               </div>
             </div>

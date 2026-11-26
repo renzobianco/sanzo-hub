@@ -16,6 +16,17 @@ export const DEFAULT_COMPETITORS = [
   { ig: 'handy_do', name: 'Handy Do', group: 'directa' },
   { ig: 'manadabarky', name: 'Manada Barky', group: 'inspiracion' },
   { ig: 'doggy.craft', name: 'Doggy Craft', group: 'inspiracion' },
+  // Virales de cualquier tema (probadas el 26 nov: todas leen bien). Sirven para
+  // ver qué formato está pegando en toda la plataforma y adaptarlo.
+  { ig: 'weratedogs', name: 'WeRateDogs', group: 'viral' },
+  { ig: 'barked', name: 'Barked', group: 'viral' },
+  { ig: 'thedodo', name: 'The Dodo', group: 'viral' },
+  { ig: 'daquan', name: 'Daquan', group: 'viral' },
+  { ig: 'pubity', name: 'Pubity', group: 'viral' },
+  { ig: 'memezar', name: 'Memezar', group: 'viral' },
+  { ig: '9gag', name: '9GAG', group: 'viral' },
+  { ig: 'ladbible', name: 'LADbible', group: 'viral' },
+  { ig: 'khaby00', name: 'Khaby Lame', group: 'viral' },
   { ig: 'wearedukier', name: 'Dukier', group: 'inspiracion' },
   { ig: 'mypugandco', name: 'My Pug & Co.', group: 'inspiracion' },
 ]

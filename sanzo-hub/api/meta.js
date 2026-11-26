@@ -238,12 +238,12 @@ async function readCompetencia(q) {
     .split(',')
     .map((u) => u.trim().replace(/^@/, '').toLowerCase())
     .filter((u) => /^[a-z0-9._]{1,30}$/.test(u))
-    .slice(0, 15)
+    .slice(0, 25)
   if (users.length === 0) return { competitors: [] }
   const igId = await findInstagramAccount()
   const competitors = []
-  for (let i = 0; i < users.length; i += 4) {
-    competitors.push(...(await Promise.all(users.slice(i, i + 4).map((u) => readCompetitor(igId, u)))))
+  for (let i = 0; i < users.length; i += 7) {
+    competitors.push(...(await Promise.all(users.slice(i, i + 7).map((u) => readCompetitor(igId, u)))))
   }
   return { competitors, at: new Date().toISOString() }
 }
