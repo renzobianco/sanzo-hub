@@ -3,18 +3,19 @@
 // la mañana anota de la Biblioteca de anuncios y de sus webs, una lista de
 // "oportunidades": cosas que les están funcionando y que Sanzo puede copiar.
 
-// Marcas que Claude encontró en Instagram (26 nov 2026). Las de Argentina son
-// competencia directa; las de afuera, inspiración.
+// Marcas que Claude encontró en Instagram (26 nov 2026, todas leen bien por
+// business_discovery). Las de Argentina son competencia directa; las de afuera
+// (Colombia, España), inspiración.
 export const DEFAULT_COMPETITORS = [
   { ig: 'barkargentina', name: 'Bark', group: 'directa' },
   { ig: 'somos_orejas', name: 'Somos Orejas', group: 'directa' },
   { ig: 'perrijos.ar', name: 'Perrijos', group: 'directa' },
   { ig: 'chaveandco_', name: 'Chave & Co.', group: 'directa' },
   { ig: 'somos.mochi', name: 'Mochi', group: 'directa' },
-  { ig: 'doggy.craft', name: 'Doggy Craft', group: 'directa' },
   { ig: 'orejas_voladoras', name: 'Orejas Voladoras', group: 'directa' },
   { ig: 'handy_do', name: 'Handy Do', group: 'directa' },
   { ig: 'manadabarky', name: 'Manada Barky', group: 'inspiracion' },
+  { ig: 'doggy.craft', name: 'Doggy Craft', group: 'inspiracion' },
   { ig: 'wearedukier', name: 'Dukier', group: 'inspiracion' },
   { ig: 'mypugandco', name: 'My Pug & Co.', group: 'inspiracion' },
 ]
@@ -63,7 +64,7 @@ export function analyzeCompetitor(c) {
     kind: compKind(m),
     likes: Number(m.like_count) || 0,
     comments: Number(m.comments_count) || 0,
-    thumb: m.thumbnail_url || (m.media_type !== 'VIDEO' ? m.media_url : null),
+    thumb: m.thumbnail_url || (m.media_type !== 'VIDEO' ? m.media_url : null) || m.children?.data?.map((c) => c.thumbnail_url || (c.media_type !== 'VIDEO' ? c.media_url : null)).find(Boolean) || null,
     video: m.media_type === 'VIDEO' && !m.thumbnail_url ? m.media_url : null,
   }))
   for (const m of media) m.eng = m.likes + m.comments * 3

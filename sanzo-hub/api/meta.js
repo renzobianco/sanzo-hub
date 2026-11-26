@@ -204,7 +204,7 @@ async function readInstagram(q) {
 // business_discovery deja ver el perfil público y los últimos posts de otras
 // cuentas de empresa o creador: seguidores, likes, comentarios, tipo de post.
 // No da reproducciones ni alcance de cuentas ajenas.
-const COMP_MEDIA_FIELDS = 'id,caption,media_type,media_product_type,permalink,timestamp,like_count,comments_count,thumbnail_url,media_url'
+const COMP_MEDIA_FIELDS = 'id,caption,media_type,media_product_type,permalink,timestamp,like_count,comments_count,thumbnail_url,media_url,children{media_type,media_url,thumbnail_url}'
 async function readCompetitor(igId, username) {
   const fields = `business_discovery.username(${username}){username,name,biography,website,followers_count,follows_count,media_count,profile_picture_url,media.limit(30){${COMP_MEDIA_FIELDS}}}`
   try {
