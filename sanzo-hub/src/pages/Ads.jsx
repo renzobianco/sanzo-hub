@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
 import { useApp } from '../context/AppContext.jsx'
 import { PageHeader, Segmented, ChartTooltip, EmptyState } from '../components/ui/Primitives.jsx'
-import { IconRefresh, IconAlert, IconSparkle, IconTrash, IconPlus, IconEye, IconChevronRight } from '../components/ui/Icons.jsx'
-import { fmtARS, fmtNum, fmtPct, fmtDecimal, fmtDate, fmtAxis, uid } from '../utils/format.js'
+import { IconRefresh, IconAlert, IconSparkle, IconEye } from '../components/ui/Icons.jsx'
+import { fmtARS, fmtNum, fmtPct, fmtDecimal, fmtDate, fmtAxis } from '../utils/format.js'
 import { fetchMeta, summarize, suggestionsFor, biggestDrop, pctChange, igPost, contentSuggestions } from '../lib/meta.js'
 import { saleTotal } from '../utils/calc.js'
+import CompetitorsTab from './Competencia.jsx'
 
 const axisTick = { fontSize: 11, fill: '#8a7a6d' }
 const gridProps = { stroke: '#EFE6DB', vertical: false }
@@ -25,7 +26,7 @@ export default function Ads() {
           options={[
             { value: 'ads', label: 'Anuncios' },
             { value: 'ig', label: 'Instagram' },
-            { value: 'comp', label: 'Competencia' },
+            { value: 'comp', label: 'Competencia y oportunidades' },
           ]}
           value={tab}
           onChange={setTab}
@@ -678,78 +679,6 @@ function InstagramTab() {
             )}
           </div>
         </>
-      )}
-    </div>
-  )
-}
-
-// ---------- Competencia ----------
-// La API de la Biblioteca de anuncios no trae anuncios comerciales de
-// Argentina, así que acá queda la lista de marcas con el link directo a sus
-// anuncios activos y las notas de lo que se vio (las puede completar Claude
-// en la rutina de la mañana).
-function libraryUrl(q) {
-  const p = new URLSearchParams({ active_status: 'active', ad_type: 'all', country: 'AR', media_type: 'all', q, search_type: 'keyword_unordered' })
-  return `https://www.facebook.com/ads/library/?${p}`
-}
-
-function CompetitorsTab() {
-  const { state, updateSettings } = useApp()
-  const list = state.settings.adCompetitors || []
-  const [name, setName] = useState('')
-  const save = (next) => updateSettings({ adCompetitors: next })
-  const add = (e) => {
-    e.preventDefault()
-    const n = name.trim()
-    if (!n) return
-    save([...list, { id: uid(), name: n, notes: '', updatedAt: null }])
-    setName('')
-  }
-  const edit = (id, patch) => save(list.map((c) => (c.id === id ? { ...c, ...patch, updatedAt: new Date().toISOString() } : c)))
-  const remove = (id) => save(list.filter((c) => c.id !== id))
-
-  return (
-    <div>
-      <form className="row mt-8" style={{ gap: 8 }} onSubmit={add}>
-        <input className="input" style={{ maxWidth: 320 }} placeholder="Nombre de la marca o su @" value={name} onChange={(e) => setName(e.target.value)} />
-        <button className="btn btn-primary btn-sm" type="submit">
-          <IconPlus /> Sumar marca
-        </button>
-      </form>
-      <p className="muted small mt-8">
-        Meta no publica cuánto gastan los demás ni deja leer por API los anuncios comerciales de Argentina. Desde acá se abre su Biblioteca de anuncios con lo
-        que tienen activo, y se anota lo que se ve (creativos, ofertas, desde cuándo los corren).
-      </p>
-      {list.length === 0 ? (
-        <EmptyState compact title="Todavía no hay marcas" text="Sumá las marcas de la competencia que quieran seguir." />
-      ) : (
-        <div className="grid grid-2 mt-16">
-          {list.map((c) => (
-            <div className="card" key={c.id}>
-              <div className="card-head">
-                <div>
-                  <div className="card-title">{c.name}</div>
-                  <div className="card-sub">{c.updatedAt ? `Notas del ${fmtDate(c.updatedAt.slice(0, 10))}` : 'Sin notas todavía'}</div>
-                </div>
-                <div className="row" style={{ gap: 4 }}>
-                  <a className="btn btn-soft btn-sm" href={libraryUrl(c.name)} target="_blank" rel="noreferrer">
-                    Ver sus anuncios <IconChevronRight />
-                  </a>
-                  <button className="btn-icon danger" title="Sacar de la lista" onClick={() => remove(c.id)} type="button">
-                    <IconTrash />
-                  </button>
-                </div>
-              </div>
-              <textarea
-                className="input"
-                rows={4}
-                placeholder="Qué anuncios tienen activos, qué ofrecen, qué formato usan…"
-                defaultValue={c.notes}
-                onBlur={(e) => e.target.value !== c.notes && edit(c.id, { notes: e.target.value })}
-              />
-            </div>
-          ))}
-        </div>
       )}
     </div>
   )
