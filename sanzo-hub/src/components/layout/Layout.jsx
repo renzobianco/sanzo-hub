@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { useApp } from '../../context/AppContext.jsx'
 import { ImageUpload, Avatar } from '../ui/ImageUpload.jsx'
 import { Modal, ConfirmDialog, PawRow } from '../ui/Primitives.jsx'
-import { BrandMark, IconDownload, IconUpload, IconMore, IconX, IconLogout, IconAlert, IconSettings, IconPaw, IconTrash, IconRefresh } from '../ui/Icons.jsx'
+import { BrandMark, IconDownload, IconUpload, IconMore, IconX, IconLogout, IconAlert, IconSettings, IconPaw, IconTrash, IconRefresh, IconEdit } from '../ui/Icons.jsx'
 import { fmtDateTime, fmtNum } from '../../utils/format.js'
 
 // ---------- Sidebar (desktop) ----------
-export function Sidebar({ items, current, onNavigate }) {
+export function Sidebar({ items, current, onNavigate, onEditMenu }) {
   const { state, updateSettings, exportBackup } = useApp()
   return (
     <aside className="sidebar">
@@ -20,12 +20,15 @@ export function Sidebar({ items, current, onNavigate }) {
       {items.map((it) => {
         const Icon = it.icon
         return (
-          <button key={it.key} className={`nav-item ${current === it.key ? 'active' : ''}`} onClick={() => onNavigate(it.key)}>
+          <button key={it.key} className={`nav-item ${current === it.key ? 'active' : ''} ${it.color ? 'has-color' : ''}`} style={navColorStyle(it)} onClick={() => onNavigate(it.key)}>
             <Icon />
             {it.label}
           </button>
         )
       })}
+      <button className="nav-edit-link" onClick={onEditMenu}>
+        <IconEdit /> Acomodar menú
+      </button>
       <div className="sidebar-footer">
         <SyncStatus />
         <button className="btn btn-soft btn-sm btn-block" onClick={exportBackup}>
@@ -67,7 +70,7 @@ function BackupStatus() {
 }
 
 // ---------- Bottom nav (mobile) ----------
-export function BottomNav({ items, current, onNavigate }) {
+export function BottomNav({ items, current, onNavigate, onEditMenu }) {
   const [more, setMore] = useState(false)
   const primary = items.slice(0, 4)
   const secondary = items.slice(4)
@@ -81,7 +84,8 @@ export function BottomNav({ items, current, onNavigate }) {
             return (
               <button
                 key={it.key}
-                className={`nav-item ${current === it.key ? 'active' : ''}`}
+                className={`nav-item ${current === it.key ? 'active' : ''} ${it.color ? 'has-color' : ''}`}
+                style={navColorStyle(it)}
                 onClick={() => {
                   onNavigate(it.key)
                   setMore(false)
@@ -91,6 +95,15 @@ export function BottomNav({ items, current, onNavigate }) {
               </button>
             )
           })}
+          <button
+            className="nav-edit-link more"
+            onClick={() => {
+              setMore(false)
+              onEditMenu?.()
+            }}
+          >
+            <IconEdit /> Acomodar menú
+          </button>
         </div>
       )}
       <nav className="bottom-nav">
@@ -99,7 +112,8 @@ export function BottomNav({ items, current, onNavigate }) {
           return (
             <button
               key={it.key}
-              className={current === it.key && !more ? 'active' : ''}
+              className={`${current === it.key && !more ? 'active' : ''} ${it.color ? 'has-color' : ''}`}
+              style={navColorStyle(it)}
               onClick={() => {
                 onNavigate(it.key)
                 setMore(false)
@@ -119,8 +133,10 @@ export function BottomNav({ items, current, onNavigate }) {
   )
 }
 
+const navColorStyle = (it) => (it.color ? { '--nav-color': it.color } : undefined)
+
 // ---------- Topbar ----------
-export function TopBar({ title }) {
+export function TopBar({ title, accent }) {
   const { state, updateSettings, exportBackup, importBackup, resetAll, setPartnerPhoto, setCurrentUser, online } = useApp()
   const [menu, setMenu] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
@@ -141,7 +157,7 @@ export function TopBar({ title }) {
   }
 
   return (
-    <header className="topbar">
+    <header className={`topbar ${accent ? 'has-accent' : ''}`} style={accent ? { '--nav-color': accent } : undefined}>
       <div className="topbar-left">
         <div className="topbar-brand">
           <ImageUpload value={state.settings.logoImage} onChange={(v) => updateSettings({ logoImage: v })} shape="round" size={38} showText={false} maxSize={400} />
