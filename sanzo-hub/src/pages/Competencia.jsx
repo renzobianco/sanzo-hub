@@ -15,9 +15,48 @@ const GROUPS = [
   { value: 'todas', label: 'Todas' },
   { value: 'directa', label: 'Argentina' },
   { value: 'inspiracion', label: 'Inspiración' },
+  { value: 'viral', label: 'Virales' },
 ]
+const PERIODS = [
+  { value: '7', label: 'Semana' },
+  { value: '30', label: '30 días' },
+  { value: '0', label: 'Todo' },
+]
+const SORTS = [
+  { value: 'fecha', label: 'Recientes' },
+  { value: 'likes', label: 'Más likes' },
+  { value: 'lift', label: 'Más arriba de su promedio' },
+]
+const SIZES = { S: 110, M: 160, L: 240 }
+const readPref = (k, d) => {
+  try {
+    return localStorage.getItem(k) || d
+  } catch {
+    return d
+  }
+}
+const savePref = (k, v) => {
+  try {
+    localStorage.setItem(k, v)
+  } catch {
+    /* sin almacenamiento */
+  }
+}
+// Desde dónde la rutina puede mandar datos al hub con postMessage.
+const TRUSTED_ORIGINS = ['https://www.facebook.com', 'https://www.instagram.com', 'https://www.tiktok.com']
 const KINDS = ['Todo', 'Reel', 'Carrusel', 'Foto', 'Anuncio']
 const KIND_LABEL = { Todo: 'Todo', Reel: 'Reels', Carrusel: 'Carruseles', Foto: 'Fotos', Anuncio: 'Anuncios' }
+
+// Lo mismo no se vuelve a pedir a Meta por 15 minutos (cada lectura son ~20 consultas).
+const compCache = new Map()
+function fetchCompetencia(key, force) {
+  const hit = compCache.get(key)
+  if (!force && hit && Date.now() - hit.at < 15 * 60 * 1000) return hit.promise
+  const promise = fetchMeta('competencia', { usuarios: key })
+  compCache.set(key, { at: Date.now(), promise })
+  promise.catch(() => compCache.delete(key))
+  return promise
+}
 
 export default function CompetitorsTab() {
   const { state, updateSettings } = useApp()
@@ -29,11 +68,18 @@ export default function CompetitorsTab() {
   const [group, setGroup] = useState('todas')
   const [kind, setKind] = useState('Todo')
   const [brand, setBrand] = useState('')
-  const [shown, setShown] = useState(24)
+  const [shown, setShown] = useState(48)
+  const [period, setPeriod] = useState(() => readPref('comp-period', '30'))
+  const [sort, setSort] = useState(() => readPref('comp-sort', 'likes'))
+  const [size, setSize] = useState(() => readPref('comp-size', 'M'))
+  const pick = (setter, k) => (v) => {
+    setter(v)
+    savePref(k, v)
+  }
 
-  const load = useCallback(() => {
+  const load = useCallback((force) => {
     setSt((s) => ({ ...s, loading: true, error: null }))
-    fetchMeta('competencia', { usuarios: key })
+    fetchCompetencia(key, force === true)
       .then((data) => setSt({ loading: false, data, error: null }))
       .catch((error) => setSt({ loading: false, data: null, error }))
   }, [key])
@@ -61,6 +107,18 @@ export default function CompetitorsTab() {
     },
     [state.settings.adCompetitors, list, updateSettings],
   )
+  const trends = state.settings.trendReels || []
+  const saveTrends = useCallback(
+    (items) => {
+      const clean = (items || [])
+        .filter((t) => t && t.link)
+        .map((t) => ({ ...t, id: t.id || t.link, savedAt: new Date().toISOString() }))
+      const byId = new Map([...(state.settings.trendReels || []), ...clean].map((t) => [t.id, t]))
+      const next = [...byId.values()].sort((a, b) => String(b.date || b.savedAt).localeCompare(String(a.date || a.savedAt))).slice(0, 200)
+      return updateSettings({ trendReels: next })
+    },
+    [state.settings.trendReels, updateSettings],
+  )
   const remove = (c) => {
     if (c.suggested) updateSettings({ adCompetitorsHidden: [...(state.settings.adCompetitorsHidden || []), c.ig] })
     else updateSettings({ adCompetitors: saved.filter((x) => x.id !== c.id) })
@@ -75,8 +133,20 @@ export default function CompetitorsTab() {
       lista: () => list.map(({ ig, name, group, website, ads, products, adsCheckedAt }) => ({ ig, name, group, website, ads, products, adsCheckedAt })),
       guardar: (ig, patch) => upsert(ig, patch),
       oportunidades: () => window.__sanzoOportunidades || [],
+      // Reels/TikToks virales de cualquier tema que encuentra la rutina de trends:
+      // [{ id, link, thumb, title, views, likes, source, date, idea }]
+      guardarTendencias: (items) => saveTrends(items),
     }
-  }, [list, upsert])
+    // La rutina abre el hub con window.open desde la Biblioteca de anuncios o
+    // Instagram y le manda lo que leyó (las miniaturas solo se ven desde ahí).
+    const onMsg = (e) => {
+      if (!TRUSTED_ORIGINS.includes(e.origin) || !e.data || typeof e.data !== 'object') return
+      if (e.data.type === 'sanzo-guardar' && e.data.ig) upsert(e.data.ig, e.data.patch || {})
+      if (e.data.type === 'sanzo-tendencias' && Array.isArray(e.data.items)) saveTrends(e.data.items)
+    }
+    window.addEventListener('message', onMsg)
+    return () => window.removeEventListener('message', onMsg)
+  }, [list, upsert, saveTrends])
 
   // ---- análisis ----
   const brands = useMemo(() => {
@@ -101,14 +171,26 @@ export default function CompetitorsTab() {
       for (const ad of b.ads || [])
         items.push({ id: `ad-${b.ig}-${ad.id || ad.link}`, kind: 'Anuncio', thumb: ad.thumb, permalink: ad.link, caption: ad.text, timestamp: ad.startedAt, brand: b.name, handle: b.ig, adDays: daysSince(ad.startedAt) })
     }
-    return items.filter((m) => kind === 'Todo' || m.kind === kind).sort((a, b) => String(b.timestamp || '').localeCompare(String(a.timestamp || '')))
-  }, [visibleBrands, brand, kind])
+    const maxAge = Number(period)
+    return items
+      .filter((m) => kind === 'Todo' || m.kind === kind)
+      .filter((m) => !maxAge || (m.kind === 'Anuncio' ? true : daysSince(m.timestamp) <= maxAge))
+      .sort((a, b) =>
+        sort === 'likes' ? (b.likes || 0) - (a.likes || 0) : sort === 'lift' ? (b.giveaway ? 0 : b.lift || 0) - (a.giveaway ? 0 : a.lift || 0) : String(b.timestamp || '').localeCompare(String(a.timestamp || '')),
+      )
+  }, [visibleBrands, brand, kind, period, sort])
+  const trendItems = useMemo(() => {
+    const maxAge = Number(period)
+    return trends
+      .filter((t) => !maxAge || daysSince(t.date || t.savedAt) <= maxAge)
+      .sort((a, b) => (sort === 'fecha' ? String(b.date || '').localeCompare(String(a.date || '')) : (b.views || b.likes || 0) - (a.views || a.likes || 0)))
+  }, [trends, period, sort])
 
   return (
     <div>
       <div className="row between mt-8" style={{ flexWrap: 'wrap', gap: 8 }}>
         <Segmented options={GROUPS} value={group} onChange={setGroup} />
-        <button className="btn btn-ghost btn-sm" onClick={load} disabled={st.loading}>
+        <button className="btn btn-ghost btn-sm" onClick={() => load(true)} disabled={st.loading}>
           <IconRefresh /> {st.loading ? 'Cargando…' : 'Actualizar'}
         </button>
       </div>
@@ -150,6 +232,40 @@ export default function CompetitorsTab() {
         </div>
       )}
 
+      {/* ---------- Filtros de las galerías ---------- */}
+      <div className="comp-filters mt-24">
+        <Segmented options={PERIODS} value={period} onChange={pick(setPeriod, 'comp-period')} />
+        <Segmented options={SORTS} value={sort} onChange={pick(setSort, 'comp-sort')} />
+        <div className="row" style={{ gap: 4 }} title="Tamaño de las miniaturas">
+          {['S', 'M', 'L'].map((k) => (
+            <button key={k} type="button" className={`chip chip-btn ${size === k ? 'ink' : 'outline'}`} onClick={() => pick(setSize, 'comp-size')(k)}>
+              {k === 'S' ? 'Chico' : k === 'M' ? 'Mediano' : 'Grande'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ---------- Lo más pegado de la plataforma ---------- */}
+      <div className="row mt-24" style={{ gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
+        <h3 className="section-title">Lo más pegado de la plataforma</h3>
+        <span className="muted small">Reels y TikToks virales de cualquier tema, para adaptar a Sanzo. Los suma la rutina de trends cada mañana</span>
+      </div>
+      {trendItems.length === 0 ? (
+        <p className="muted small mt-8">Todavía no hay virales cargados en este período. Mientras tanto, la vista "Virales" de arriba muestra las cuentas más grandes de Instagram.</p>
+      ) : (
+        <div className="gallery-grid mt-12" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${SIZES[size]}px, 1fr))` }}>
+          {trendItems.slice(0, shown).map((t) => (
+            <a key={t.id} className="gallery-item" href={t.link} target="_blank" rel="noreferrer" title={t.idea || t.title || ''}>
+              <Thumb src={t.thumb} kind={t.source || 'Reel'} badge={t.views ? `${fmtNum(t.views)} vistas` : t.likes ? `${fmtNum(t.likes)} likes` : null} hot />
+              <div className="gallery-meta">
+                <span className="strong">{t.title || t.source}</span>
+                <span>{t.date ? fmtDate(String(t.date).slice(0, 10)) : ''}</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      )}
+
       {/* ---------- Galería ---------- */}
       <div className="row between mt-24" style={{ flexWrap: 'wrap', gap: 8 }}>
         <h3 className="section-title" style={{ margin: 0 }}>Lo que están publicando</h3>
@@ -170,9 +286,9 @@ export default function CompetitorsTab() {
         </div>
       </div>
       {gallery.length === 0 ? (
-        <p className="muted small mt-8">{kind === 'Anuncio' ? 'Todavía no hay anuncios anotados. Los carga la rutina de la mañana desde la Biblioteca de anuncios.' : 'Nada para mostrar con estos filtros.'}</p>
+        <p className="muted small mt-8">{kind === 'Anuncio' ? 'Todavía no hay anuncios cargados. Los carga la rutina de la mañana desde la Biblioteca de anuncios.' : 'Nada para mostrar con estos filtros. Probá con "Todo" en el período.'}</p>
       ) : (
-        <div className="gallery-grid mt-12">
+        <div className="gallery-grid mt-12" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${SIZES[size]}px, 1fr))` }}>
           {gallery.slice(0, shown).map((m) => (
             <a key={m.id} className="gallery-item" href={m.permalink} target="_blank" rel="noreferrer" title={(m.caption || '').slice(0, 200)}>
               <Thumb src={m.thumb} video={m.video} kind={m.kind} badge={m.adDays != null ? `${m.adDays} días activo` : m.giveaway ? 'Sorteo' : m.lift >= 2 ? (m.lift >= 10 ? '10x+' : `${m.lift.toFixed(1)}x`) : null} hot={(!m.giveaway && m.lift >= 2) || m.adDays >= 14} />
@@ -197,7 +313,7 @@ export default function CompetitorsTab() {
       )}
       {gallery.length > shown && (
         <div className="mt-12" style={{ textAlign: 'center' }}>
-          <button className="btn btn-soft btn-sm" onClick={() => setShown((n) => n + 24)}>
+          <button className="btn btn-soft btn-sm" onClick={() => setShown((n) => n + 48)}>
             Ver más ({gallery.length - shown})
           </button>
         </div>
@@ -249,10 +365,10 @@ function BrandCard({ b, onRemove }) {
           <div className="comp-avatar">{(b.name || '?').slice(0, 1).toUpperCase()}</div>
         )}
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div className="card-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.name}</div>
+          <div className="card-title" style={{ lineHeight: 1.2 }}>{b.name}</div>
           <div className="muted small">@{b.ig || '—'}</div>
         </div>
-        <span className={`chip ${b.group === 'directa' ? 'terra' : 'outline'}`}>{b.group === 'directa' ? 'Argentina' : 'Inspiración'}</span>
+        <span className={`chip ${b.group === 'directa' ? 'terra' : 'outline'}`} style={{ flexShrink: 0 }}>{b.group === 'directa' ? 'AR' : b.group === 'viral' ? 'Viral' : 'Inspira'}</span>
       </div>
       {b.igError ? (
         <p className="muted small mt-8">No se pudo leer su Instagram (puede ser una cuenta personal o el usuario cambió).</p>
@@ -339,6 +455,7 @@ function AddBrand({ onAdd }) {
       <select className="input" style={{ width: 'auto' }} value={group} onChange={(e) => setGroup(e.target.value)}>
         <option value="directa">Argentina</option>
         <option value="inspiracion">Inspiración</option>
+        <option value="viral">Viral (cualquier tema)</option>
       </select>
       <button className="btn btn-primary btn-sm" type="submit">
         <IconPlus /> Sumar marca

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
 import { useApp } from '../context/AppContext.jsx'
 import { PageHeader, Segmented, ChartTooltip, EmptyState } from '../components/ui/Primitives.jsx'
-import { IconRefresh, IconAlert, IconSparkle, IconEye } from '../components/ui/Icons.jsx'
+import { IconRefresh, IconAlert, IconSparkle } from '../components/ui/Icons.jsx'
 import { fmtARS, fmtNum, fmtPct, fmtDecimal, fmtDate, fmtAxis } from '../utils/format.js'
 import { fetchMeta, summarize, suggestionsFor, biggestDrop, pctChange, igPost, contentSuggestions } from '../lib/meta.js'
 import { saleTotal } from '../utils/calc.js'
@@ -109,18 +109,24 @@ function AdsTab() {
   const total = useMemo(() => summarize(data?.total), [data])
   const prev = useMemo(() => summarize(data?.previous), [data])
   const d = (k) => (total && prev ? pctChange(total[k], prev[k]) : null)
-  // Ventas reales cargadas en el hub en el mismo período (no dependen del píxel).
+  // Ventas reales cargadas en el hub en el mismo período, por canal (no dependen del píxel).
   const hubSales = useMemo(() => {
     if (!data) return null
     const inRange = (state.sales || []).filter((s) => s.date >= data.range.since && s.date <= data.range.until)
-    const web = inRange.filter((s) => s.channel === 'Tienda online')
     // 1 venta por persona por día (un combo cuenta como 1)
     const key = (s) => `${s.date}|${(s.clientHandle || s.clientName || s.id || '').toLowerCase()}`
+    const byChannel = {}
+    for (const s of inRange) {
+      const c = (byChannel[s.channel || 'Sin canal'] ||= { keys: new Set(), ars: 0 })
+      c.keys.add(key(s))
+      c.ars += saleTotal(s)
+    }
     return {
       all: new Set(inRange.map(key)).size,
       allARS: inRange.reduce((a, s) => a + saleTotal(s), 0),
-      web: new Set(web.map(key)).size,
-      webARS: web.reduce((a, s) => a + saleTotal(s), 0),
+      channels: Object.entries(byChannel)
+        .map(([name, c]) => ({ name, n: c.keys.size, ars: c.ars }))
+        .sort((x, y) => y.n - x.n),
     }
   }, [data, state.sales])
   const placements = useMemo(
@@ -209,27 +215,35 @@ function AdsTab() {
             <div className="card beige mt-24">
               <div className="card-head">
                 <div>
-                  <div className="card-title">Contra las ventas reales del hub</div>
-                  <div className="card-sub">Lo cargado en Ventas en el mismo período, sin depender del píxel de Meta (1 venta por persona por día)</div>
+                  <div className="card-title">Ventas reales y anuncios</div>
+                  <div className="card-sub">
+                    Lo cargado en Ventas en el mismo período (1 venta por persona por día). Una venta por la web puede venir de Instagram, de un anuncio o de otro lado: como
+                    venta de anuncio solo cuenta la que Meta registra con el píxel.
+                  </div>
                 </div>
               </div>
               <div className="grid grid-3">
                 <div>
-                  <div className="kpi-label">Ventas por la web</div>
-                  <div className="kpi-value sm">{fmtNum(hubSales.web)}</div>
-                  <div className="kpi-foot">{fmtARS(hubSales.webARS)} vendidos</div>
-                </div>
-                <div>
-                  <div className="kpi-label">Costo de ads por venta web</div>
-                  <div className="kpi-value sm">{hubSales.web ? fmtARS(total.spend / hubSales.web) : '—'}</div>
-                  <div className="kpi-foot">Gasto en ads dividido ventas web</div>
-                </div>
-                <div>
-                  <div className="kpi-label">Todas las ventas del período</div>
+                  <div className="kpi-label">Ventas del período</div>
                   <div className="kpi-value sm">{fmtNum(hubSales.all)}</div>
-                  <div className="kpi-foot">
-                    {fmtARS(hubSales.allARS)} · ads = {hubSales.allARS ? fmtPct((total.spend / hubSales.allARS) * 100, 0) : '—'} de lo vendido
+                  <div className="kpi-foot">{fmtARS(hubSales.allARS)} vendidos</div>
+                  <div className="row mt-8" style={{ gap: 6, flexWrap: 'wrap' }}>
+                    {hubSales.channels.map((c) => (
+                      <span className="chip outline" key={c.name}>
+                        {c.name}: {c.n}
+                      </span>
+                    ))}
                   </div>
+                </div>
+                <div>
+                  <div className="kpi-label">Ventas que vinieron de anuncios</div>
+                  <div className="kpi-value sm">{fmtNum(total.purchases)}</div>
+                  <div className="kpi-foot">{total.purchases ? `${fmtARS(total.costPerPurchase)} de anuncios por cada una` : 'Todavía ninguna compra registrada desde un anuncio'}</div>
+                </div>
+                <div>
+                  <div className="kpi-label">Lo invertido en anuncios</div>
+                  <div className="kpi-value sm">{fmtARS(total.spend)}</div>
+                  <div className="kpi-foot">{hubSales.allARS ? `Equivale al ${fmtPct((total.spend / hubSales.allARS) * 100, 0)} de todo lo vendido` : 'Sin ventas cargadas en el período'}</div>
                 </div>
               </div>
             </div>
@@ -599,66 +613,14 @@ function InstagramTab() {
             </div>
           )}
 
-          <div className="card mt-24">
-            <div className="card-head">
-              <div>
-                <div className="card-title">Publicaciones</div>
-                <div className="card-sub">
-                  La curva segundo a segundo de un reel orgánico solo la muestra la app de Instagram; Meta no la da por API. En los anuncios sí (pestaña Anuncios).
-                </div>
-              </div>
-            </div>
-            {posts.length ? (
-              <div className="table-wrap">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Publicación</th>
-                      <th className="num">Vistas</th>
-                      <th className="num">Alcance</th>
-                      <th className="num">Visto prom.</th>
-                      <th className="num">Me gusta</th>
-                      <th className="num">Coment.</th>
-                      <th className="num">Compart.</th>
-                      <th className="num">Guard.</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {posts.map((p) => (
-                      <tr key={p.id}>
-                        <td>
-                          <div className="row" style={{ gap: 10, flexWrap: 'nowrap' }}>
-                            {(p.thumbnail_url || p.media_url) && <img src={p.thumbnail_url || p.media_url} alt="" width={36} height={36} style={{ borderRadius: 6, objectFit: 'cover' }} />}
-                            <div style={{ maxWidth: 280 }}>
-                              <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(p.caption || 'Sin texto').split('\n')[0]}</div>
-                              <div className="muted small">
-                                {p.kind} · {fmtDate(p.timestamp.slice(0, 10))}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="num">{p.views ? fmtNum(p.views) : '—'}</td>
-                        <td className="num">{fmtNum(p.reach)}</td>
-                        <td className="num">{p.avgWatch ? `${fmtDecimal(p.avgWatch, 1)} s` : '—'}</td>
-                        <td className="num">{fmtNum(p.likes)}</td>
-                        <td className="num">{fmtNum(p.comments)}</td>
-                        <td className="num">{fmtNum(p.shares)}</td>
-                        <td className="num">{fmtNum(p.saved)}</td>
-                        <td>
-                          <a className="btn btn-ghost btn-sm" href={p.permalink} target="_blank" rel="noreferrer" title="Abrir en Instagram">
-                            <IconEye />
-                          </a>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <EmptyState compact title="Sin publicaciones" text="No se encontraron publicaciones en la cuenta." />
-            )}
+          <div className="grid grid-2 mt-24">
+            <WhenToPost posts={posts} />
+            <FormatCompare posts={posts} />
           </div>
+
+          {acc?.demographics && <Demographics d={acc.demographics} />}
+
+          <PostsGallery posts={posts} />
         </>
       )}
     </div>
@@ -821,5 +783,231 @@ function RegionsCard({ regions }) {
         ))}
       </div>
     </div>
+  )
+}
+
+// ---------- piezas visuales de Instagram ----------
+const WEEKDAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+const arParts = (ts) => {
+  const d = new Date(Date.parse(ts) - 3 * 3600 * 1000)
+  return { wd: d.getUTCDay(), h: d.getUTCHours() }
+}
+const BANDS = [
+  { label: 'Mañana (6 a 12)', from: 6, to: 12 },
+  { label: 'Tarde (12 a 18)', from: 12, to: 18 },
+  { label: 'Noche (18 a 24)', from: 18, to: 24 },
+  { label: 'Madrugada (0 a 6)', from: 0, to: 6 },
+]
+
+function WhenToPost({ posts }) {
+  // Se mide con el alcance de cada publicación, según el día y la hora (Argentina) en que salió.
+  const withReach = posts.filter((p) => p.reach > 0 && p.kind !== 'Historia')
+  if (withReach.length < 5) return <div />
+  const byDay = WEEKDAYS.map((name, i) => {
+    const arr = withReach.filter((p) => arParts(p.timestamp).wd === i)
+    return { name, n: arr.length, avg: arr.length ? arr.reduce((a, p) => a + p.reach, 0) / arr.length : 0 }
+  })
+  const byBand = BANDS.map((b) => {
+    const arr = withReach.filter((p) => {
+      const { h } = arParts(p.timestamp)
+      return h >= b.from && h < b.to
+    })
+    return { name: b.label, n: arr.length, avg: arr.length ? arr.reduce((a, p) => a + p.reach, 0) / arr.length : 0 }
+  })
+  const max = Math.max(...byDay.map((d) => d.avg), ...byBand.map((d) => d.avg), 1)
+  const bestDay = [...byDay].filter((d) => d.n >= 2).sort((a, b) => b.avg - a.avg)[0]
+  const bestBand = [...byBand].filter((d) => d.n >= 2).sort((a, b) => b.avg - a.avg)[0]
+  const Row = ({ r, best }) => (
+    <div className={`funnel-row ${best ? 'best' : ''}`}>
+      <div className="funnel-label">{r.name}</div>
+      <div className="funnel-bar">
+        <div style={{ width: `${Math.max(2, (r.avg / max) * 100)}%` }} />
+      </div>
+      <div className="funnel-num">
+        <strong>{r.n ? fmtNum(Math.round(r.avg)) : '—'}</strong>
+        <span className="muted small">{r.n} posts</span>
+      </div>
+    </div>
+  )
+  return (
+    <div className="card" style={{ minWidth: 0 }}>
+      <div className="card-head">
+        <div>
+          <div className="card-title">Cuándo publicar</div>
+          <div className="card-sub">
+            Alcance promedio según cuándo salió cada post
+            {bestDay && bestBand ? `. Lo que mejor anda: ${bestDay.name.toLowerCase()} a la ${bestBand.name.split(' ')[0].toLowerCase()}` : ''}
+          </div>
+        </div>
+      </div>
+      <div className="funnel">
+        {byDay.map((r) => (
+          <Row key={r.name} r={r} best={r === bestDay} />
+        ))}
+      </div>
+      <div className="funnel mt-16">
+        {byBand.map((r) => (
+          <Row key={r.name} r={r} best={r === bestBand} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function FormatCompare({ posts }) {
+  const kinds = ['Reel', 'Carrusel', 'Foto']
+    .map((k) => {
+      const arr = posts.filter((p) => p.kind === k && p.reach > 0)
+      const avg = (key) => (arr.length ? arr.reduce((a, p) => a + p[key], 0) / arr.length : 0)
+      return { k, n: arr.length, reach: avg('reach'), shares: avg('shares'), saved: avg('saved'), likes: avg('likes') }
+    })
+    .filter((r) => r.n > 0)
+  if (!kinds.length) return <div />
+  const best = (key) => [...kinds].sort((a, b) => b[key] - a[key])[0].k
+  const winners = { reach: best('reach'), shares: best('shares'), saved: best('saved'), likes: best('likes') }
+  return (
+    <div className="card" style={{ minWidth: 0 }}>
+      <div className="card-head">
+        <div>
+          <div className="card-title">Reels, carruseles o fotos</div>
+          <div className="card-sub">Promedio por publicación de cada formato. En marrón, el que gana en cada cosa</div>
+        </div>
+      </div>
+      <div className="format-compare">
+        {kinds.map((r) => (
+          <div key={r.k} className="format-col">
+            <div className="format-head">
+              <strong>{r.k === 'Foto' ? 'Fotos' : `${r.k}s`}</strong>
+              <span className="muted small">{r.n} posts</span>
+            </div>
+            {[
+              ['reach', 'alcance'],
+              ['likes', 'me gusta'],
+              ['shares', 'compartidos'],
+              ['saved', 'guardados'],
+            ].map(([key, label]) => (
+              <div key={key} className={`format-cell ${winners[key] === r.k && kinds.length > 1 ? 'win' : ''}`}>
+                <strong>{key === 'reach' || key === 'likes' ? fmtNum(Math.round(r[key])) : fmtDecimal(r[key], 1)}</strong>
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const GENDER = { F: 'Mujeres', M: 'Hombres', U: 'Sin dato' }
+function Demographics({ d }) {
+  const cities = (d.city || []).slice(0, 8)
+  const ages = (d.age || []).slice().sort((a, b) => String(a.key).localeCompare(String(b.key)))
+  const genders = d.gender || []
+  if (!cities.length && !ages.length && !genders.length) return null
+  const totalG = genders.reduce((a, g) => a + g.value, 0) || 1
+  const maxC = cities[0]?.value || 1
+  const maxA = Math.max(...ages.map((a) => a.value), 1)
+  return (
+    <div className="card mt-24">
+      <div className="card-head">
+        <div>
+          <div className="card-title">Quiénes te siguen</div>
+          <div className="card-sub">Ciudad, edad y género de los seguidores de @sanzo_pets</div>
+        </div>
+      </div>
+      {genders.length > 0 && (
+        <div className="gender-bar">
+          {genders.map((g) => (
+            <div key={g.key} className={`g-${g.key}`} style={{ width: `${(g.value / totalG) * 100}%` }}>
+              {GENDER[g.key] || g.key} {fmtPct((g.value / totalG) * 100, 0)}
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="grid grid-2 mt-16">
+        <div className="funnel">
+          {cities.map((c) => (
+            <div className="funnel-row" key={c.key}>
+              <div className="funnel-label">{String(c.key).split(',')[0]}</div>
+              <div className="funnel-bar">
+                <div style={{ width: `${Math.max(2, (c.value / maxC) * 100)}%` }} />
+              </div>
+              <div className="funnel-num">
+                <strong>{fmtNum(c.value)}</strong>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="funnel">
+          {ages.map((a) => (
+            <div className="funnel-row" key={a.key}>
+              <div className="funnel-label">{a.key} años</div>
+              <div className="funnel-bar">
+                <div style={{ width: `${Math.max(2, (a.value / maxA) * 100)}%` }} />
+              </div>
+              <div className="funnel-num">
+                <strong>{fmtNum(a.value)}</strong>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PostsGallery({ posts }) {
+  const [sort, setSort] = useState('fecha')
+  if (!posts.length)
+    return (
+      <div className="card mt-24">
+        <EmptyState compact title="Sin publicaciones" text="No se encontraron publicaciones en la cuenta." />
+      </div>
+    )
+  const top = (k) => [...posts].sort((a, b) => b[k] - a[k])[0]
+  const tags = {}
+  const tag = (p, t) => p && p[t[1]] > 0 && (tags[p.id] = [...(tags[p.id] || []), t[0]])
+  tag(top('views'), ['Más visto', 'views'])
+  tag(top('shares'), ['Más compartido', 'shares'])
+  tag(top('saved'), ['Más guardado', 'saved'])
+  tag(top('avgWatch'), ['Más retiene', 'avgWatch'])
+  const sorted = [...posts].sort((a, b) => (sort === 'fecha' ? b.timestamp.localeCompare(a.timestamp) : b[sort] - a[sort]))
+  return (
+    <>
+      <div className="row between mt-24" style={{ flexWrap: 'wrap', gap: 8 }}>
+        <div>
+          <h3 className="section-title">Tus publicaciones</h3>
+          <div className="muted small">La curva segundo a segundo de un reel orgánico solo la da la app de Instagram; en los anuncios sí está (solapa Anuncios).</div>
+        </div>
+        <Segmented
+          options={[
+            { value: 'fecha', label: 'Recientes' },
+            { value: 'views', label: 'Más vistas' },
+            { value: 'shares', label: 'Compartidas' },
+            { value: 'saved', label: 'Guardadas' },
+          ]}
+          value={sort}
+          onChange={setSort}
+        />
+      </div>
+      <div className="gallery-grid mt-12">
+        {sorted.map((p) => (
+          <a key={p.id} className="gallery-item" href={p.permalink} target="_blank" rel="noreferrer" title={(p.caption || '').slice(0, 200)}>
+            <div className="comp-thumb">
+              {p.thumbnail_url || p.media_url ? <img src={p.thumbnail_url || p.media_url} alt="" loading="lazy" /> : <div className="comp-thumb-empty">{p.kind}</div>}
+              {tags[p.id] && <span className="comp-badge hot">{tags[p.id].join(' · ')}</span>}
+              {p.kind !== 'Foto' && <span className="comp-kind">{p.kind}</span>}
+            </div>
+            <div className="post-stats">
+              <div><strong>{p.views ? fmtNum(p.views) : fmtNum(p.reach)}</strong><span>{p.views ? 'vistas' : 'alcance'}</span></div>
+              <div><strong>{p.avgWatch ? `${fmtDecimal(p.avgWatch, 1)} s` : fmtNum(p.likes)}</strong><span>{p.avgWatch ? 'visto prom.' : 'me gusta'}</span></div>
+              <div><strong>{fmtNum(p.shares)}</strong><span>compart.</span></div>
+              <div><strong>{fmtNum(p.saved)}</strong><span>guard.</span></div>
+            </div>
+            <div className="muted small" style={{ padding: '0 8px 8px' }}>{fmtDate(p.timestamp.slice(0, 10))}</div>
+          </a>
+        ))}
+      </div>
+    </>
   )
 }
