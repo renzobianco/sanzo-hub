@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useApp } from './context/AppContext.jsx'
 import { Sidebar, BottomNav, TopBar, BackupBanner, UserPicker, useDocumentTitle } from './components/layout/Layout.jsx'
 import { Toast } from './components/ui/Primitives.jsx'
@@ -16,6 +16,8 @@ import Ajustes from './pages/Ajustes.jsx'
 import Notas from './pages/Notas.jsx'
 import PedidosWeb from './pages/PedidosWeb.jsx'
 import Ads from './pages/Ads.jsx'
+import { applyMenuLayout } from './lib/menu.js'
+import { MenuEditor } from './components/layout/MenuEditor.jsx'
 
 const NAV = [
   { key: 'dashboard', label: 'Inicio', icon: IconHome, page: Dashboard },
@@ -41,6 +43,10 @@ function readHash() {
 export default function App() {
   const { state, toast } = useApp()
   const [current, setCurrent] = useState(readHash)
+  const [editMenu, setEditMenu] = useState(false)
+  const user = state.settings.currentUser
+  const layout = state.settings.navLayout?.[user]
+  const nav = useMemo(() => applyMenuLayout(NAV, layout), [layout])
 
   useEffect(() => {
     const onHash = () => setCurrent(readHash())
@@ -54,7 +60,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const item = NAV.find((n) => n.key === current) || NAV[0]
+  const item = nav.find((n) => n.key === current) || nav[0]
   useDocumentTitle(item.label)
 
   if (!state.settings.currentUser) {
@@ -69,15 +75,16 @@ export default function App() {
   const Page = item.page
   return (
     <div className="app-shell">
-      <Sidebar items={NAV} current={current} onNavigate={navigate} />
+      <Sidebar items={nav} current={current} onNavigate={navigate} onEditMenu={() => setEditMenu(true)} />
       <div className="main">
-        <TopBar title={item.label} />
+        <TopBar title={item.label} accent={item.color} />
         <main className="page" key={current}>
           <BackupBanner />
           <Page navigate={navigate} />
         </main>
       </div>
-      <BottomNav items={NAV} current={current} onNavigate={navigate} />
+      <BottomNav items={nav} current={current} onNavigate={navigate} onEditMenu={() => setEditMenu(true)} />
+      <MenuEditor open={editMenu} onClose={() => setEditMenu(false)} baseItems={NAV} />
       <Toast toast={toast} />
     </div>
   )
