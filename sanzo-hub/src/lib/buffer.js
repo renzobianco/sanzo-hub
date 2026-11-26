@@ -184,14 +184,12 @@ export function bufferCaption(post) {
 // soportan así). Para el resto de los formatos seguimos mandando un único asset.
 function assetsField(post) {
   if (post.format === 'Carrusel' && post.assetUrls?.length) {
-    // Depende de cómo se publica (ver schedulingType en scheduleChannelPost):
-    // - Automático (Buffer publica solo): Buffer sube el carrusel en el orden INVERSO
-    //   al que llegan en `assets` (la última imagen termina siendo la primera), así que
-    //   mandamos el array dado vuelta para que en Instagram/Facebook quede 1, 2, 3…
-    // - Con recordatorio (post.reminder → schedulingType notification): se publica a mano
-    //   desde el celu y las fotos aparecen en el orden en que llegan, así que ahí se
-    //   mandan tal cual (1, 2, 3…); si las invirtiéramos quedarían al revés.
-    const ordered = post.reminder ? [...post.assetUrls] : [...post.assetUrls].reverse()
+    // Siempre se mandan en el orden armado en el hub (1, 2, 3…), sea automático o con
+    // recordatorio. Antes los automáticos se mandaban dados vuelta creyendo que Buffer
+    // los invertía, y era al revés: Buffer publica en el mismo orden en que llegan, así
+    // que todos los carruseles automáticos salían invertidos (confirmado por Santino,
+    // 26 nov 2026). No volver a invertir.
+    const ordered = [...post.assetUrls]
     const items = ordered
       .filter(Boolean)
       .map((url) => (isVideoUrl(url, false) ? `{ video: { url: ${JSON.stringify(url)} } }` : `{ image: { url: ${JSON.stringify(url)} } }`))
