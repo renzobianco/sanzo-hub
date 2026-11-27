@@ -75,6 +75,10 @@
   section[id] {
     scroll-margin-top: 4.5rem;
   }
+  /* /kit (anuncios) cae en el título del kit: el header fijo no lo tapa. */
+  #kit-titulo {
+    scroll-margin-top: 5.5rem;
+  }
 }
 
 @layer components {

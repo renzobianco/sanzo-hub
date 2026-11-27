@@ -7,6 +7,7 @@ import { CarritoProvider } from "@/components/carrito/CarritoProvider";
 import { CarritoDrawer } from "@/components/carrito/CarritoDrawer";
 import { BarraSuperior } from "@/components/BarraSuperior";
 import { CartelBlackFriday } from "@/components/CartelBlackFriday";
+import { ReAnclar } from "@/components/ReAnclar";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BotonWhatsapp } from "@/components/BotonWhatsapp";
@@ -78,6 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           >
             Saltar al contenido
           </a>
+          <ReAnclar />
           <CartelBlackFriday />
           <BarraSuperior />
           <Header hayLogo={hayLogo} />
