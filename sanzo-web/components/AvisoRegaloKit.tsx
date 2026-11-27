@@ -36,7 +36,7 @@ export function AvisoRegaloKit({ className = "" }: { className?: string }) {
           {a.titulo}
           <span className="rounded-md bg-marron px-2 py-0.5 text-[12px] font-medium tracking-[0.14em] text-crema">{a.etiqueta}</span>
         </p>
-        <p className="mt-0.5 text-[12px] text-tinta/60">{a.bajada}</p>
+        {a.bajada && <p className="mt-0.5 text-[12px] text-tinta/60">{a.bajada}</p>}
       </div>
     </div>
   );

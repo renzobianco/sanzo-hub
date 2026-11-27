@@ -877,7 +877,7 @@ export const ofertaChapita = {
     aviso: {
       titulo: "Chapita grabada",
       etiqueta: "Gratis",
-      bajada: "Black Friday, con el kit. Hasta el lunes 30/11.",
+      bajada: "",
       foto: "/productos/piezas/chapita-grabadas.jpg",
     },
     /** Cartel de la chapita cuando se suma el kit. */
