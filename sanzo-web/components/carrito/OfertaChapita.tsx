@@ -24,13 +24,17 @@ interface Props {
   modo?: "oferta" | "combo";
   /** Título de arriba en vez del de siempre (ej. "Chapita 2 de 3" en el Combo Manada). */
   titulo?: string;
+  /** Black Friday: viene con el kit, así que la chapita es de regalo (textos y precio de `oferta.regaloKit`). */
+  regalo?: boolean;
 }
 
 /**
  * Cartel que aparece al comprar: primero la pieza con "Agregar"; al tocarlo, el grabado con el mismo formato
  * que el personalizador de los parches: pantalla completa, la chapita sin fondo sobre lino arriba y los pasos abajo.
  */
-export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo }: Props) {
+export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo, regalo }: Props) {
+  const bf = regalo ? oferta.regaloKit : null;
+  const precioCartel = bf ? 0 : oferta.precio;
   const ref = useRef<HTMLDialogElement>(null);
   const liberar = useRef<(() => void) | null>(null);
   useEffect(() => () => liberar.current?.(), []);
@@ -117,7 +121,7 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo 
 
   const elegido = tipoChapita(tipo) ?? oferta.tipos[0];
   const ultimo = pasoGrabado === PASOS.length - 1;
-  const textoBoton = modo === "combo" ? oferta.botonCombo : `${oferta.boton} · ${formatearPrecio(oferta.precio)}`;
+  const textoBoton = modo === "combo" ? oferta.botonCombo : bf ? bf.boton : `${oferta.boton} · ${formatearPrecio(oferta.precio)}`;
 
   return (
     <dialog
@@ -156,20 +160,20 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo 
             </button>
           </div>
           <div className="px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-6">
-            <p className="eyebrow">{oferta.cartelPrevia}</p>
+            <p className="eyebrow">{bf ? bf.cartelPrevia : oferta.cartelPrevia}</p>
             <h2 id={`${id}-titulo`} className="mt-2 text-[26px] font-light leading-[1.15] tracking-wide text-tinta">
-              {oferta.cartelTitulo}
+              {bf ? bf.cartelTitulo : oferta.cartelTitulo}
             </h2>
-            <p className="mt-2.5 text-[14px] leading-relaxed text-tinta/70">{oferta.cartelTexto}</p>
+            <p className="mt-2.5 text-[14px] leading-relaxed text-tinta/70">{bf ? bf.cartelTexto : oferta.cartelTexto}</p>
 
             <div className="mt-5 flex items-center gap-4 border-t border-tinta/10 pt-4">
               <p className="flex shrink-0 items-baseline gap-2">
-                <span className="text-[26px] font-normal leading-none tracking-wide text-tinta">{formatearPrecio(oferta.precio)}</span>
-                {chapita.precio !== null && chapita.precio > oferta.precio && (
+                <span className="text-[26px] font-normal leading-none tracking-wide text-tinta">{bf ? "De regalo" : formatearPrecio(precioCartel)}</span>
+                {chapita.precio !== null && chapita.precio > precioCartel && (
                   <s className="text-[14px] text-tinta/45">{formatearPrecio(chapita.precio)}</s>
                 )}
               </p>
-              {oferta.tresPorDos.activa && (
+              {oferta.tresPorDos.activa && !bf && (
                 // El 3x2 en un recuadro fino marrón, como el "Ahorrás" de los combos.
                 <p className="flex flex-1 items-center gap-2.5 rounded-lg border border-marron/40 px-3 py-2 text-[12px] leading-snug text-marron">
                   <span className="text-[15px] font-normal tracking-wide">{oferta.tresPorDos.etiqueta}</span>
@@ -430,10 +434,10 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo 
           </div>
 
           <div className="border-t border-tinta/10 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:col-start-2 sm:row-start-3 sm:px-6">
-            {ultimo && modo === "oferta" && chapita.precio !== null && chapita.precio > oferta.precio && (
+            {ultimo && modo === "oferta" && chapita.precio !== null && chapita.precio > precioCartel && (
               // Solo si hay precio especial con la compra: el de la oferta, con el suelto tachado al lado (lo pidió Renzo).
               <p className="mb-2.5 flex items-baseline justify-center gap-2 text-[12px] uppercase tracking-[0.14em] text-marron">
-                {oferta.soloAhora}
+                {bf ? bf.cartelPrevia : oferta.soloAhora}
                 <s className="normal-case tracking-normal text-tinta/50">{formatearPrecio(chapita.precio)}</s>
               </p>
             )}

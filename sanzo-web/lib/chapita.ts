@@ -37,6 +37,14 @@ const textoTam = (t?: number) => (t && t !== 1 ? `${TAM}${Math.round(t * 100)} %
 export const letrasChapita = personalizacion.fuentes.filter((f) => !f.propia);
 const LETRA_BASE = letrasChapita[0]?.id ?? "jost";
 
+/** true si hoy corre el regalo de Black Friday (chapita gratis con el kit). */
+export function regaloKitVigente(ahora: Date = new Date()) {
+  const r = ofertaChapita.regaloKit;
+  if (!r.activa) return false;
+  const t = ahora.getTime();
+  return t >= new Date(r.desde).getTime() && t < new Date(r.hasta).getTime();
+}
+
 export function esChapita(productoId: string) {
   return productoId === chapita.id;
 }

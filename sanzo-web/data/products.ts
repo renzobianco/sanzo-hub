@@ -861,6 +861,24 @@ export const ofertaChapita = {
   },
   /** Línea del descuento cuando la chapita va con otra compra ($8.000 → $6.000). */
   textoConCompra: "Chapita con tu compra",
+  /**
+   * Black Friday (Renzo, 2026-11-26): con cada kit, una chapita personalizada de regalo (la calcula lib/carrito.ts).
+   * Vale solo entre `desde` y `hasta` (hora de Argentina); fuera de esas fechas no se ve ni se aplica.
+   */
+  regaloKit: {
+    activa: true,
+    desde: "2026-11-27T00:00:00-03:00",
+    hasta: "2026-12-01T00:00:00-03:00",
+    /** Línea del descuento en el carrito y el checkout. */
+    texto: "Black Friday: chapita de regalo con el kit",
+    /** Debajo del precio del kit. */
+    aviso: "Black Friday: con el kit, su chapita grabada va de regalo. Hasta el lunes 30/11.",
+    /** Cartel de la chapita cuando se suma el kit. */
+    cartelPrevia: "Black Friday",
+    cartelTitulo: "Su chapita grabada va de regalo",
+    cartelTexto: "Con el kit, la chapita personalizada te la regalamos. Su nombre, tu teléfono o su carita, grabados con láser. Hasta el lunes 30/11.",
+    boton: "Sumar chapita · De regalo",
+  },
   /** Comparación de precio: una chapita grabada sale en promedio $40.000 en otros lados (Santino, 2026-10-30). */
   comparacion: "En otros lados, una chapita grabada sale unos $40.000.",
   cartelAlt: "¿Le sumás su chapita grabada?",

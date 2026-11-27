@@ -49,7 +49,8 @@ export function CarritoDrawer() {
   }
   // 3x2 en chapitas: con 1 o 2 sueltas (o 4, 5…) muestra el recuadro del Combo Manada para sumar otra.
   const primeraChapita = lineas.find((l) => esChapita(l.productoId))?.key;
-  const chapitasSueltas = ofertaChapita.tresPorDos.activa ? chapitasEnCarrito(lineas) % 3 : 0;
+  // Las de regalo del Black Friday no cuentan para el 3x2.
+  const chapitasSueltas = ofertaChapita.tresPorDos.activa ? (chapitasEnCarrito(lineas) - chapitas.deRegalo) % 3 : 0;
   // Va debajo de la primera chapita que se ve suelta (las del trío van juntas en la línea del Combo Manada).
   const chapitaConSugerencia = lineas.find((l) => esChapita(l.productoId) && precioDeLinea(l, chapitas).cantidad > 0)?.key;
   // Las chapitas no llevan la etiqueta: su precio ya dice cuánto ahorran.

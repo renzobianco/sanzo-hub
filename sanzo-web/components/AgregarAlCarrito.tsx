@@ -158,7 +158,7 @@ export function AgregarAlCarrito({ producto, etiqueta = "Agregar", irAlCheckout,
     }
     agregar(producto.id, valor || undefined, { abrir: false, personalizacion });
     // Si trae collar, antes de seguir (carrito o checkout) le ofrecemos la chapita personalizada.
-    if (llevaCollar(producto)) ofrecerChapita(seguir);
+    if (llevaCollar(producto)) ofrecerChapita(seguir, producto.tipo === "kit");
     else seguir();
   }
 

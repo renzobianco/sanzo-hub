@@ -4,6 +4,7 @@ import { Palabras } from "./Palabras";
 import { contadorKits, getProducto, kit, sitio } from "@/data/products";
 import { formatearPrecio } from "@/lib/formato";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
+import { AvisoRegaloKit } from "./AvisoRegaloKit";
 import { GuiaTalles } from "./GuiaTalles";
 import { KitGaleria } from "./KitGaleria";
 import { Reveal } from "./Reveal";
@@ -55,6 +56,7 @@ export function SeccionKit() {
                   </span>
                 )}
               </div>
+              <AvisoRegaloKit className="mt-4" />
             </div>
           )}
 

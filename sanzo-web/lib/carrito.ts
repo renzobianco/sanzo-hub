@@ -1,5 +1,5 @@
 import { chapita, getProducto, ofertaChapita, type Producto } from "@/data/products";
-import { esChapita, llevaChapita, normalizarOpcionChapita, normalizarOpcionComboChapita } from "./chapita";
+import { esChapita, llevaChapita, regaloKitVigente, normalizarOpcionChapita, normalizarOpcionComboChapita } from "./chapita";
 import { envioInfo, puntoRetiro, retiro, zonaPorCP, zonaPorProvincia, type Entrega, type PuntoRetiro, type TipoEntrega, type ZonaEnvio } from "@/data/envios";
 import { clavePersonalizacion, normalizarPersonalizacion, precioPersonalizacion, type Personalizacion } from "./personalizacion";
 import { armables, calcularPromos, type DescuentoAplicado, type Sugerencia } from "./promos";
@@ -162,18 +162,27 @@ export function ahorroChapitas(lineas: LineaResuelta[]) {
     .filter((l) => esChapita(l.productoId))
     .flatMap((l) => Array.from({ length: l.cantidad }, () => ({ key: l.key, precio: l.unitario })))
     .sort((a, b) => b.precio - a.precio);
-  const enTrios = ofertaChapita.tresPorDos.activa ? Math.floor(unidades.length / 3) * 3 : 0;
+  // Black Friday: una chapita de regalo por cada kit (van primero y no entran en el 3x2).
+  const kits = regaloKitVigente() ? lineas.filter((l) => l.producto.tipo === "kit").reduce((s, l) => s + l.cantidad, 0) : 0;
+  const deRegalo = Math.min(kits, unidades.length);
+  const enTrios = ofertaChapita.tresPorDos.activa ? deRegalo + Math.floor((unidades.length - deRegalo) / 3) * 3 : deRegalo;
   const conOtraCompra = lineas.some((l) => !esChapita(l.productoId));
   let tresPorDos = 0;
   let conCompra = 0;
+  let regaloKit = 0;
   let listaManada = 0;
   unidades.forEach((u, i) => {
     const r = (reparto[u.key] ??= { enManada: 0, sueltas: 0, ahorroSueltas: 0 });
     let monto = 0;
-    if (i < enTrios) {
+    if (i < deRegalo) {
+      // Se muestra como suelta, tachada y a $0.
+      r.sueltas++;
+      regaloKit += monto = u.precio;
+      r.ahorroSueltas += monto;
+    } else if (i < enTrios) {
       r.enManada++;
       listaManada += u.precio;
-      if (i % 3 === 2) tresPorDos += monto = u.precio;
+      if ((i - deRegalo) % 3 === 2) tresPorDos += monto = u.precio;
     } else {
       r.sueltas++;
       if (conOtraCompra) {
@@ -184,12 +193,13 @@ export function ahorroChapitas(lineas: LineaResuelta[]) {
     if (monto) porLinea[u.key] = (porLinea[u.key] ?? 0) + monto;
   });
   // Con al menos un trío, el carrito las junta en una línea "Combo Manada" (como los otros combos) y las sueltas siguen aparte.
-  return { porLinea, reparto, tresPorDos, conCompra, unidades: unidades.length, enManada: enTrios, listaManada, agrupadas: enTrios > 0 };
+  return { porLinea, reparto, tresPorDos, conCompra, regaloKit, deRegalo, unidades: unidades.length, enManada: enTrios - deRegalo, listaManada, agrupadas: enTrios - deRegalo > 0 };
 }
 
 function descuentosChapitas(lineas: LineaResuelta[]): DescuentoAplicado[] {
-  const { tresPorDos, conCompra } = ahorroChapitas(lineas);
+  const { tresPorDos, conCompra, regaloKit } = ahorroChapitas(lineas);
   const out: DescuentoAplicado[] = [];
+  if (regaloKit) out.push({ promoId: "chapita-regalo-kit", texto: ofertaChapita.regaloKit.texto, monto: regaloKit, piezas: [chapita.id], envioGratis: false });
   if (tresPorDos) out.push({ promoId: "chapitas-3x2", texto: ofertaChapita.tresPorDos.texto, monto: tresPorDos, piezas: [chapita.id], envioGratis: false });
   if (conCompra) out.push({ promoId: "chapita-con-compra", texto: ofertaChapita.textoConCompra, monto: conCompra, piezas: [chapita.id], envioGratis: false });
   return out;

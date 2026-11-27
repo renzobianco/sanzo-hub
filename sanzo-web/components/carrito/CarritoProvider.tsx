@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { chapita, getProducto, ofertaChapita } from "@/data/products";
-import { llevaChapita } from "@/lib/chapita";
+import { llevaChapita, regaloKitVigente } from "@/lib/chapita";
 import {
   armarCombos,
   calcularTotales,
@@ -52,7 +52,7 @@ interface CarritoContexto {
    * Muestra el cartel de la chapita (si corresponde) y después llama a `seguir`
    * (abrir el carrito o ir al checkout). Si ya tiene chapita o dijo que no, sigue directo.
    */
-  ofrecerChapita: (seguir: () => void) => void;
+  ofrecerChapita: (seguir: () => void, conKit?: boolean) => void;
   /**
    * Combo que trae chapita (Combo Identidad): abre directo la personalización y, si la completa,
    * llama a `listo` con el texto del grabado ("Corazón · Coco"). Si cancela, no pasa nada.
@@ -77,6 +77,8 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
   // Cada pedido de grabado arranca el cartel de cero (en el Combo Manada se piden tres seguidos).
   const [vezGrabado, setVezGrabado] = useState(0);
   const dijoQueNo = useRef(false);
+  // Black Friday: la chapita se ofrece de regalo porque acaba de sumar el kit.
+  const [regaloEnCartel, setRegaloEnCartel] = useState(false);
   const lineasRef = useRef(lineas);
   lineasRef.current = lineas;
 
@@ -176,12 +178,16 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
   const abrir = useCallback(() => setAbierto(true), []);
   const cerrar = useCallback(() => setAbierto(false), []);
 
-  const ofrecerChapita = useCallback((seguir: () => void) => {
+  const ofrecerChapita = useCallback((seguir: () => void, conKit?: boolean) => {
+    // Con el kit en Black Friday la chapita es de regalo: se ofrece aunque antes haya dicho que no.
+    const regalo = !!conKit && chapita.disponible && regaloKitVigente();
     const yaTiene = lineasRef.current.some((l) => {
       const p = getProducto(l.productoId);
       return !!p && llevaChapita(p);
     });
-    if (!ofertaChapita.activa || !chapita.disponible || dijoQueNo.current || yaTiene) seguir();
+    setRegaloEnCartel(regalo);
+    if (regalo) setSeguirTrasOferta(() => seguir);
+    else if (!ofertaChapita.activa || !chapita.disponible || dijoQueNo.current || yaTiene) seguir();
     else setSeguirTrasOferta(() => seguir);
   }, []);
 
@@ -193,7 +199,7 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
 
   function cerrarOferta(sumar?: string, imagen?: string) {
     const seguir = seguirTrasOferta;
-    if (sumar) agregar(chapita.id, sumar, { abrir: false, imagen, precioMeta: ofertaChapita.precio });
+    if (sumar) agregar(chapita.id, sumar, { abrir: false, imagen, precioMeta: regaloEnCartel ? 0 : ofertaChapita.precio });
     else dijoQueNo.current = true; // no se la volvemos a ofrecer en esta visita
     setSeguirTrasOferta(null);
     seguir?.();
@@ -231,6 +237,7 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
         key={vezGrabado}
         abierta={seguirTrasOferta !== null || alGrabar !== null}
         modo={alGrabar ? "combo" : "oferta"}
+        regalo={!alGrabar && regaloEnCartel}
         titulo={alGrabar ? tituloGrabado : undefined}
         onSumar={(texto, imagen) => {
           if (alGrabar) {
