@@ -408,7 +408,7 @@ export const kit: Producto = {
   linkPago: "",
   disponible: true,
   opcion: { nombre: "Talle", valores: TALLES_ARNES, agotados: TALLES_AGOTADOS },
-  etiqueta: "Más vendido",
+  // Sin "Más vendido" (Renzo, 2026-11-27).
 };
 
 // -----------------------------------------------------------------------------

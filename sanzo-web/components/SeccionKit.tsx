@@ -33,9 +33,8 @@ export function SeccionKit() {
 
         {/* Jerarquía: dato chico en marrón → nombre bien grande → precio → piezas → talle → comprar. */}
         <Reveal delay={120} className="flex flex-col pt-1 md:pt-6">
-          <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-marron">
-            {kit.incluye.length} piezas{kit.envioGratis && " · Envío gratis"}
-          </p>
+          {/* Sin "6 piezas" arriba del nombre (Renzo, 2026-11-27). */}
+          {kit.envioGratis && <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-marron">Envío gratis</p>}
           <h2 id="kit-titulo" className="mt-2 text-[2.1rem] font-medium uppercase leading-[1.05] tracking-[0.1em] md:text-5xl">
             <Palabras texto={kit.nombre} />
           </h2>
