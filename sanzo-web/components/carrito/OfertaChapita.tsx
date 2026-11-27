@@ -63,12 +63,13 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo,
     if (abierta && !d.open) {
       setErrores({});
       setPasoGrabado(0);
-      setPaso(modo === "combo" ? "personalizar" : "cartel");
+      // Black Friday con el kit: la chapita es gratis, así que va directo a grabarla (Renzo, 2026-11-27).
+      setPaso(modo === "combo" || regalo ? "personalizar" : "cartel");
       liberar.current?.();
       liberar.current = trabarScroll();
       d.showModal();
     } else if (!abierta && d.open) d.close();
-  }, [abierta, modo]);
+  }, [abierta, modo, regalo]);
 
   /** Revisa lo que hay que grabar; si falta algo, vuelve a ese paso y marca el campo. */
   function revisar() {
@@ -197,7 +198,7 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo,
         <div className="flex h-full flex-col sm:grid sm:grid-cols-[1.15fr_1fr] sm:grid-rows-[auto_1fr_auto]">
           <div className="flex items-center justify-between border-b border-tinta/10 px-4 py-3 sm:col-span-2 sm:px-6">
             <h2 id={`${id}-titulo`} className="text-sm uppercase tracking-marca">
-              {titulo ?? oferta.titulo}
+              {titulo ?? (bf ? bf.tituloGrabado : oferta.titulo)}
             </h2>
             <button type="button" onClick={onNo} aria-label="Cerrar" className="-mr-2 p-2">
               <IconoCerrar />
