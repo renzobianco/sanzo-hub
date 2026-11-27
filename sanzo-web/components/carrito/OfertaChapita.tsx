@@ -168,7 +168,7 @@ export function OfertaChapita({ abierta, onSumar, onNo, modo = "oferta", titulo,
 
             <div className="mt-5 flex items-center gap-4 border-t border-tinta/10 pt-4">
               <p className="flex shrink-0 items-baseline gap-2">
-                <span className="text-[26px] font-normal leading-none tracking-wide text-tinta">{bf ? "De regalo" : formatearPrecio(precioCartel)}</span>
+                <span className="text-[26px] font-normal leading-none tracking-wide text-tinta">{bf ? "Gratis" : formatearPrecio(precioCartel)}</span>
                 {chapita.precio !== null && chapita.precio > precioCartel && (
                   <s className="text-[14px] text-tinta/45">{formatearPrecio(chapita.precio)}</s>
                 )}

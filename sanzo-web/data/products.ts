@@ -869,15 +869,17 @@ export const ofertaChapita = {
     activa: true,
     desde: "2026-11-27T00:00:00-03:00",
     hasta: "2026-12-01T00:00:00-03:00",
+    /** Cartel corredizo arriba de todo, en toda la web, mientras dure (Renzo, 2026-11-27). */
+    cartel: ["Black Friday", "Chapita grabada gratis con el kit", "Hasta el lunes 30/11"],
     /** Línea del descuento en el carrito y el checkout. */
-    texto: "Black Friday: chapita de regalo con el kit",
+    texto: "Black Friday: chapita gratis con el kit",
     /** Debajo del precio del kit. */
-    aviso: "Black Friday: con el kit, su chapita grabada va de regalo. Hasta el lunes 30/11.",
+    aviso: "Black Friday: con el kit, su chapita grabada es gratis. Hasta el lunes 30/11.",
     /** Cartel de la chapita cuando se suma el kit. */
     cartelPrevia: "Black Friday",
-    cartelTitulo: "Su chapita grabada va de regalo",
-    cartelTexto: "Con el kit, la chapita personalizada te la regalamos. Su nombre, tu teléfono o su carita, grabados con láser. Hasta el lunes 30/11.",
-    boton: "Sumar chapita · De regalo",
+    cartelTitulo: "Su chapita grabada, gratis",
+    cartelTexto: "Con el kit, la chapita personalizada es gratis. Su nombre, tu teléfono o su carita, grabados con láser. Hasta el lunes 30/11.",
+    boton: "Sumar chapita · Gratis",
   },
   /** Comparación de precio: una chapita grabada sale en promedio $40.000 en otros lados (Santino, 2026-10-30). */
   comparacion: "En otros lados, una chapita grabada sale unos $40.000.",
