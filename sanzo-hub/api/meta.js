@@ -249,10 +249,13 @@ async function readCompetencia(q) {
 }
 
 export default async function handler(req, res) {
-  const send = (status, body) => {
+  const send = (status, body, cache) => {
     res.statusCode = status
     res.setHeader('content-type', 'application/json')
-    res.setHeader('cache-control', 'no-store')
+    // Competencia son ~20 consultas a Meta por lectura: Vercel guarda la
+    // respuesta 6 horas y la comparte entre todos, así Meta no lo toma como
+    // actividad rara (el 28 nov bloqueó la cuenta de desarrollador por eso).
+    res.setHeader('cache-control', cache || 'no-store')
     res.end(JSON.stringify(body))
   }
   if (req.method !== 'GET') return send(405, { error: 'Método no permitido' })
@@ -261,10 +264,13 @@ export default async function handler(req, res) {
     const tipo = q.get('tipo')
     if (tipo === 'ads') return send(200, await readAds(q))
     if (tipo === 'instagram') return send(200, await readInstagram(q))
-    if (tipo === 'competencia') return send(200, await readCompetencia(q))
+    if (tipo === 'competencia') return send(200, await readCompetencia(q), 'public, s-maxage=21600, stale-while-revalidate=86400')
     return send(400, { error: 'tipo tiene que ser ads, instagram o competencia' })
   } catch (e) {
     const status = e.code === 'sin_token' || e.code === 'token_invalido' ? 401 : 502
-    return send(status, { error: e.message, code: e.code || 'error' })
+    const msg = /API access blocked/i.test(e.message || '')
+      ? 'Meta bloqueó la cuenta de desarrollador "San Zo". Entrá a developers.facebook.com con el Chrome Sanzo y tocá "Confirmar cuenta".'
+      : e.message
+    return send(status, { error: msg, code: e.code || 'error' })
   }
 }

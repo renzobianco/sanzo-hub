@@ -47,11 +47,12 @@ const TRUSTED_ORIGINS = ['https://www.facebook.com', 'https://www.instagram.com'
 const KINDS = ['Todo', 'Reel', 'Carrusel', 'Foto', 'Anuncio']
 const KIND_LABEL = { Todo: 'Todo', Reel: 'Reels', Carrusel: 'Carruseles', Foto: 'Fotos', Anuncio: 'Anuncios' }
 
-// Lo mismo no se vuelve a pedir a Meta por 15 minutos (cada lectura son ~20 consultas).
+// Lo mismo no se vuelve a pedir por 6 horas (cada lectura son ~20 consultas a Meta;
+// además Vercel la guarda 6 horas del lado del servidor).
 const compCache = new Map()
 function fetchCompetencia(key, force) {
   const hit = compCache.get(key)
-  if (!force && hit && Date.now() - hit.at < 15 * 60 * 1000) return hit.promise
+  if (!force && hit && Date.now() - hit.at < 6 * 3600 * 1000) return hit.promise
   const promise = fetchMeta('competencia', { usuarios: key })
   compCache.set(key, { at: Date.now(), promise })
   promise.catch(() => compCache.delete(key))
